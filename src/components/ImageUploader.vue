@@ -3,7 +3,7 @@ import { ref, reactive, nextTick, watch } from "vue";
 
 interface CanvasElement {
   id: number;
-  type: 'text' | 'icon';
+  type: 'text' | 'icon' | 'sticker';
   content: string;
   x: number;
   y: number;
@@ -13,8 +13,10 @@ interface CanvasElement {
   fontFamily?: string;
   fontWeight?: 'normal' | 'bold';
   lineHeight?: number;
-  // 圖示屬性
+  // 圖示/貼圖屬性
   size?: number;
+  img?: HTMLImageElement;
+  url?: string;
   // 陰影屬性
   shadowColor?: string;
   shadowBlur?: number;
@@ -36,8 +38,8 @@ const originalImage = ref<HTMLImageElement | null>(null); // 儲存原始圖片�
 const cropBox = reactive({
   x: 150,
   y: 150,
-  width: 300,
-  height: 300,
+  width: 800,
+  height: 400,
 });
 
 // 畫布上的元素 (文字、圖形等)
@@ -180,6 +182,7 @@ const redrawCanvas = () => {
     }
     ctx.drawImage(img, x, y, drawWidth, drawHeight);
   }
+  console.log('elements', imageUrl.value, elements.value);
 
   // 3. 若有圖片，則繪製裁切框的半透明遮罩和邊框
   if (imageUrl.value) {
@@ -199,6 +202,7 @@ const redrawCanvas = () => {
 
     // 4. 繪製所有其他元素
     elements.value.forEach(element => {
+
       // 如果元素正在被編輯，則不在 canvas 上繪製它，由 input 框取代
       if (editingElement.value?.id === element.id) return;
 
@@ -255,8 +259,12 @@ const redrawCanvas = () => {
         ctx.translate(-512, -512); // SVG viewBox 的中心是 512,512
         ctx.fill(path);
         ctx.restore();
+      } else if (element.type === 'sticker') {
+        if (element.img && element.size) {
+          const size = element.size;
+          ctx.drawImage(element.img, element.x - size / 2, element.y - size / 2, size, size);
+        }
       }
-      // 未來可以在此處處理其他類型的元素
     });
 
     // 5. 如果有選中元素，繪製選取框
@@ -302,7 +310,7 @@ const getElementBoundingBox = (element: CanvasElement) => {
     const lineHeight = element.lineHeight || 1.2;
     height = lines.length * element.fontSize * lineHeight;
 
-  } else if (element.type === 'icon' && element.size) {
+  } else if ((element.type === 'icon' || element.type === 'sticker') && element.size) {
     width = element.size;
     height = element.size;
   }
@@ -514,6 +522,7 @@ const addElement = (element: any) => {
       strokeColor: element.strokeColor,
       strokeWidth: element.strokeWidth,
     });
+    redrawCanvas();
   } else if (element.type === 'icon') {
     elements.value.push({
       id: Date.now(),
@@ -524,9 +533,25 @@ const addElement = (element: any) => {
       size: 50, // 預設圖示大小
       color: 'black',
     });
+    redrawCanvas();
+  } else if (element.type === 'sticker') {
+    const img = new Image();
+    img.onload = () => {
+      if (!canvas.value) return;
+      elements.value.push({
+        id: Date.now(),
+        type: 'sticker',
+        content: element.payload, // URL
+        x: canvas.value.width / 2,
+        y: canvas.value.height / 2,
+        size: 100, // Default sticker size
+        img: img,
+        color: '', // Not used, but to satisfy interface
+      });
+      redrawCanvas();
+    };
+    img.src = element.payload;
   }
-
-  redrawCanvas();
 };
 
 const updateSelectedElement = (newProps: Partial<CanvasElement>) => {

@@ -1,8 +1,54 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { Search } from "@element-plus/icons-vue";
+import type { StickerElement } from "../types.ts";
+
+const emit = defineEmits<{ (e: 'add-element', action: StickerElement): void }>();
+
 const input = ref<String>('');
 
+const gallery: {
+  label: string,
+  items: string[]
+}[] = [
+  {
+    label: '自訂',
+    items: []
+  },
+  {
+    label: '聯名活動素材',
+    items: [
+        '/assets/stickers/coffee.svg',
+        '/assets/stickers/dollar.svg',
+        '/assets/stickers/fries.svg',
+        '/assets/stickers/gambler-luck.svg',
+        '/assets/stickers/gem.svg',
+        '/assets/stickers/hamburger.svg',
+        '/assets/stickers/ice-cream.svg',
+        '/assets/stickers/peach.svg',
+        '/assets/stickers/soda.svg',
+        '/assets/stickers/syrup.svg',
+    ]
+  },
+  {
+    label: 'BB Logo素材',
+    items: [
+        '/assets/stickers/target.svg',
+        '/assets/stickers/mustache.svg',
+        '/assets/stickers/clock-ring.svg'
+    ]
+  },
+  {
+    label: 'BB 產品素材',
+    items: [
+        '/assets/stickers/banking-money.svg',
+        '/assets/stickers/smoker.svg'
+    ]
+  }];
+
+const onStickerClick = (stickerUrl: string) => {
+  emit('add-element', { type: 'sticker', payload: stickerUrl });
+};
 
 </script>
 
@@ -17,37 +63,18 @@ const input = ref<String>('');
         clearable
     ></el-input>
     <div class="categories">
-      <span class="label">自訂</span>
-      <div class="category-items">
-        <div class="image">圖1</div>
-      </div>
-      <span class="label">聯名活動素材</span>
-      <div class="category-items">
-        <div class="image">圖1</div>
-        <div class="image">圖2</div>
-        <div class="image">圖3</div>
-        <div class="image">圖4</div>
-        <div class="image">圖5</div>
-        <div class="image">圖6</div>
-      </div>
-      <span class="label">BB Logo素材</span>
-      <div class="category-items">
-        <div class="image">圖1</div>
-        <div class="image">圖2</div>
-        <div class="image">圖3</div>
-        <div class="image">圖4</div>
-        <div class="image">圖5</div>
-        <div class="image">圖6</div>
-      </div>
-      <span class="label">BB 產品素材</span>
-      <div class="category-items">
-        <div class="image">圖1</div>
-        <div class="image">圖2</div>
-        <div class="image">圖3</div>
-        <div class="image">圖4</div>
-        <div class="image">圖5</div>
-        <div class="image">圖6</div>
-      </div>
+      <template v-for="(group) in gallery">
+        <span class="label">{{ group.label }}</span>
+        <div class="category-items">
+          <div
+              v-for="(item, index) in group.items"
+              :key="index"
+              class="image"
+              @click="onStickerClick(item)">
+            <img :src="item" alt=""/>
+          </div>
+        </div>
+      </template>
     </div>
   </div>
 </template>
@@ -99,6 +126,10 @@ const input = ref<String>('');
     }
     &:hover {
       background-color: rgba(80, 80, 80, 0.6);
+    }
+    img {
+      object-fit: contain;
+      margin: 10px 10px;
     }
   }
 }

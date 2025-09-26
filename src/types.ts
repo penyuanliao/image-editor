@@ -15,11 +15,15 @@ export interface TextElement {
   strokeColor?: string;
   strokeWidth?: number;
 }
+export interface StickerElement {
+    type: 'sticker',
+    payload?: string;
+}
 
 export type ImageEditorElement = TextElement; // Add other element types here in the future
 
 export interface ImageEditorAction {
-    type: "icon" | "text";
+    type: "icon" | "text" | "sticker";
     content?: string;
     color?: string;
     fontSize?: number;
@@ -32,6 +36,7 @@ export interface ImageEditorAction {
     shadowOffsetY?: number;
     strokeColor?: string;
     strokeWidth?: number;
+    payload?: string;
 }
 
 export const ImageEditorTypes: {

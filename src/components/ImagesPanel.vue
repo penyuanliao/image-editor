@@ -3,11 +3,14 @@ import { ref } from "vue";
 import { Search } from "@element-plus/icons-vue";
 const input = ref<String>('');
 
+const tagOptions = ['全部', '自訂', '聯名活動素材', 'BB Logo素材', 'BB 產品素材']
+const tagValue = ref('全部');
 
 </script>
 
 <template>
   <div class="images-gallery-container">
+    <span class="label">背景圖片</span>
     <el-input
         v-model="input"
         class="responsive-input"
@@ -15,6 +18,9 @@ const input = ref<String>('');
         :prefix-icon="Search"
         clearable
     ></el-input>
+    <div class="tag-group">
+      <el-segmented v-model="tagValue" :options="tagOptions"/>
+    </div>
     <div class="categories">
       <span class="label">自訂</span>
       <div class="category-items">
@@ -65,12 +71,27 @@ const input = ref<String>('');
   &::-webkit-scrollbar {
     display: none;
   }
+  gap: 10px;
 }
 .responsive-input {
   width: 240px;
   margin-top: 20px;
   height: 40px;
   font-size: medium;
+  flex-shrink: 0;
+}
+.tag-group {
+  width: 240px;
+  height: 40px;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 .categories {
   width: 240px;

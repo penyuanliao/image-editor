@@ -41,7 +41,7 @@ const handleUpdateElement = (newProps: Partial<TextElement>) => {
 <template>
   <div class="main-container">
     <BoxBar @boxItemClick="boxItemClickHandle"/>
-    <div style="width: 280px; overflow: auto; height: 100%">
+    <div style="width: auto; height: 100%">
       <AIPanel v-if="selected === ImageEditorTypes.star"/>
       <ImagesPanel v-if="selected === ImageEditorTypes.image"/>
       <TextPanel
@@ -50,13 +50,16 @@ const handleUpdateElement = (newProps: Partial<TextElement>) => {
           @add-element="handleAddElement"
           @update-element="handleUpdateElement"
       />
-      <StickersPanel v-if="selected === ImageEditorTypes.sticker"/>
+      <StickersPanel
+          v-if="selected === ImageEditorTypes.sticker"
+          @add-element="handleAddElement"
+      />
       <UploadPanel v-if="selected === ImageEditorTypes.upload"/>
     </div>
     <div class="editor-area">
-      <ImageEditor 
-        ref="editor" 
-        @element-selected="handleElementSelected" 
+      <ImageEditor
+        ref="editor"
+        @element-selected="handleElementSelected"
       />
     </div>
   </div>
