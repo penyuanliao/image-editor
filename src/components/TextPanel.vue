@@ -47,10 +47,18 @@ const getDefaultStroke = () => ({
   width: 2
 });
 
+const getDefaultGradient = () => ({
+  enabled: false,
+  startColor: '#FF0000',
+  endColor: '#0000FF',
+  angle: 90
+});
+
 // --- Reactive State ---
 const textProps = reactive(getDefaultTextProps());
 const shadow = reactive(getDefaultShadow());
 const stroke = reactive(getDefaultStroke());
+const gradient = reactive(getDefaultGradient());
 
 // --- Watchers for State Synchronization ---
 
@@ -80,16 +88,26 @@ watch(() => props.selectedElement, (newEl) => {
       stroke.color = newEl.strokeColor || '#000000';
       stroke.width = newEl.strokeWidth || 1;
     }
+
+    // Update gradient properties
+    gradient.enabled = !!newEl.gradientEnabled;
+    if (gradient.enabled) {
+      gradient.startColor = newEl.gradientStartColor || '#FF0000';
+      gradient.endColor = newEl.gradientEndColor || '#0000FF';
+      gradient.angle = newEl.gradientAngle || 90;
+    }
+
   } else {
     // Reset to default if no element is selected
     Object.assign(textProps, getDefaultTextProps());
     Object.assign(shadow, getDefaultShadow());
     Object.assign(stroke, getDefaultStroke());
+    Object.assign(gradient, getDefaultGradient());
   }
 }, { deep: true });
 
 // Watch for panel UI changes and emit updates to the parent
-watch([textProps, shadow, stroke], () => {
+watch([textProps, shadow, stroke, gradient], () => {
   if (props.selectedElement) {
     const payload: any = {
       ...textProps,
@@ -116,6 +134,18 @@ watch([textProps, shadow, stroke], () => {
       payload.strokeColor = null;
       payload.strokeWidth = null;
     }
+
+    if (gradient.enabled) {
+      payload.gradientEnabled = true;
+      payload.gradientStartColor = gradient.startColor;
+      payload.gradientEndColor = gradient.endColor;
+      payload.gradientAngle = gradient.angle;
+    } else {
+      payload.gradientEnabled = false;
+      payload.gradientStartColor = null;
+      payload.gradientEndColor = null;
+      payload.gradientAngle = null;
+    }
     
     emit('update-element', payload);
   }
@@ -141,6 +171,13 @@ const addText = () => {
   if (stroke.enabled) {
     element.strokeColor = stroke.color;
     element.strokeWidth = stroke.width;
+  }
+
+  if (gradient.enabled) {
+    element.gradientEnabled = true;
+    element.gradientStartColor = gradient.startColor;
+    element.gradientEndColor = gradient.endColor;
+    element.gradientAngle = gradient.angle;
   }
 
   emit('addElement', element);
@@ -186,7 +223,26 @@ const fontSizeOption = [
       
       <div class="ctrl">
         <span>顏色：</span>
-        <el-color-picker v-model="textProps.color" />
+        <el-color-picker v-model="textProps.color" :disabled="gradient.enabled" />
+      </div>
+
+      <div class="ctrl">
+        <span>漸層：</span>
+        <el-switch v-model="gradient.enabled" />
+      </div>
+      <div v-if="gradient.enabled" class="sub-controls">
+        <div>
+          <span>開始顏色：</span>
+          <el-color-picker v-model="gradient.startColor" />
+        </div>
+        <div>
+          <span>結束顏色：</span>
+          <el-color-picker v-model="gradient.endColor" />
+        </div>
+        <div>
+          <span>角度：</span>
+          <el-slider v-model="gradient.angle" :min="0" :max="360" style="width: 140px;" />
+        </div>
       </div>
       
       <div class="ctrl">

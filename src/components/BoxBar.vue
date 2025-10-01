@@ -22,6 +22,10 @@ const buttonGroup: { icon: string, text: string }[] = [
     text: '素材'
   },
   {
+    icon: 'layers',
+    text: '圖層'
+  },
+  {
     icon: 'upload',
     text: '上傳'
   }

@@ -14,6 +14,10 @@ export interface TextElement {
   shadowOffsetY?: number;
   strokeColor?: string;
   strokeWidth?: number;
+  gradientEnabled?: boolean;
+  gradientStartColor?: string;
+  gradientEndColor?: string;
+  gradientAngle?: number;
 }
 export interface StickerElement {
     type: 'sticker',
@@ -37,6 +41,10 @@ export interface ImageEditorAction {
     strokeColor?: string;
     strokeWidth?: number;
     payload?: string;
+    gradientEnabled?: boolean;
+    gradientStartColor?: string;
+    gradientEndColor?: string;
+    gradientAngle?: number;
 }
 
 export const ImageEditorTypes: {
@@ -46,5 +54,6 @@ export const ImageEditorTypes: {
     image: 'image',
     text: 'text',
     sticker: 'sticker',
-    'upload': 'upload'
+    'upload': 'upload',
+    layers: 'layers'
 }

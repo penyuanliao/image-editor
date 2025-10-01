@@ -9,6 +9,7 @@ import AIPanel from "./components/AIPanel.vue";
 import TextPanel from "./components/TextPanel.vue";
 import StickersPanel from "./components/StickersPanel.vue";
 import UploadPanel from "./components/UploadPanel.vue";
+import LayersPanel from "./components/LayersPanel.vue";
 
 const editor = ref<InstanceType<typeof ImageEditor> | null>(null);
 const selected = ref<string>('');
@@ -54,6 +55,7 @@ const handleUpdateElement = (newProps: Partial<TextElement>) => {
           v-if="selected === ImageEditorTypes.sticker"
           @add-element="handleAddElement"
       />
+      <LayersPanel v-if="selected === ImageEditorTypes.layers"/>
       <UploadPanel v-if="selected === ImageEditorTypes.upload"/>
     </div>
     <div class="editor-area">
@@ -70,14 +72,13 @@ const handleUpdateElement = (newProps: Partial<TextElement>) => {
   display: grid;
   grid-template-columns: 72px auto 1fr; /* 左側面板 240px，右側佔滿剩餘空間 */
   height: 100vh;
-  background-color: #f0f2f5;
 }
 
 .editor-area {
+  width: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 2rem;
   overflow: auto; /* 如果編輯器太大，允許滾動 */
 }
 </style>

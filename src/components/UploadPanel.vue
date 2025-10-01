@@ -1,23 +1,54 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { Search } from "@element-plus/icons-vue";
-const input = ref<String>('');
+import { UploadFilled } from "@element-plus/icons-vue";
+import { useImagesStore } from "../store/images";
 
+const imagesStore = useImagesStore();
+const fileInput = ref<HTMLInputElement | null>(null);
 
+const handleFileChange = (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  if (target.files) {
+    for (const file of Array.from(target.files)) {
+      const imageUrl = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        // Now that the image is loaded, push the HTMLImageElement to the store
+        imagesStore.addImage(img);
+      };
+      img.src = imageUrl;
+    }
+  }
+};
+
+const triggerFileInput = () => {
+  fileInput.value?.click();
+};
 </script>
 
 <template>
   <div class="images-gallery-container">
-    <span class="label">上傳</span>
-    <el-input
-        v-model="input"
-        class="responsive-input"
-        placeholder="搜尋素材"
-        :prefix-icon="Search"
-        clearable
-    ></el-input>
+    <el-button @click="triggerFileInput" type="primary" class="upload-button">
+      <el-icon class="el-icon--left"><UploadFilled /></el-icon>
+      上傳圖片
+    </el-button>
+    <input
+      type="file"
+      ref="fileInput"
+      @change="handleFileChange"
+      multiple
+      accept="image/*"
+      hidden
+    />
     <div class="categories">
-
+      <div class="category-items">
+        <div
+          v-for="(image, index) in imagesStore.imageList"
+          :key="index"
+          class="image"
+          :style="{ backgroundImage: `url(${image.src})` }"
+        ></div>
+      </div>
     </div>
   </div>
 </template>
@@ -33,45 +64,45 @@ const input = ref<String>('');
   flex-wrap: nowrap;
   align-items: center;
   overflow: auto;
+  padding: 20px;
+  box-sizing: border-box;
   &::-webkit-scrollbar {
     display: none;
   }
 }
-.responsive-input {
-  width: 240px;
-  margin-top: 20px;
+.upload-button {
+  width: 100%;
   height: 40px;
   font-size: medium;
 }
 .categories {
-  width: 240px;
+  width: 100%;
   display: flex;
   flex-direction: column;
-  .label {
-    flex-shrink: 0;
+  margin-top: 20px;
+}
+.category-items {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  justify-content: space-between;
+  gap: 10px;
+}
+.image {
+  width: calc(50% - 5px);
+  padding-bottom: calc(50% - 5px); /* Maintain aspect ratio 1:1 */
+  height: 0;
+  flex-shrink: 0;
+  background-color: rgba(80, 80, 80, 0.3);
+  border-radius: 4px;
+  background-size: cover;
+  background-position: center;
+  cursor: pointer;
+  &:active {
+    background-color: rgba(80, 80, 80, 0.6);
   }
-  .category-items {
-    display: flex;
-    flex-wrap: wrap;
-    flex-direction: row;
-    justify-content: space-between;
-  }
-  .image {
-    width: 110px;
-    height: 110px;
-    flex-shrink: 0;
-    background-color: rgba(80, 80, 80, 0.3);
-    border-radius: 4px;
-    margin-top: 5px;
-    margin-bottom: 5px;
-    &:active {
-      background-color: rgba(80, 80, 80, 0.6);
-    }
-    &:hover {
-      background-color: rgba(80, 80, 80, 0.6);
-    }
+  &:hover {
+    background-color: rgba(80, 80, 80, 0.6);
   }
 }
-
-
 </style>

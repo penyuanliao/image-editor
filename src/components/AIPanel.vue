@@ -4,7 +4,33 @@ import { Search, Opportunity } from "@element-plus/icons-vue";
 import Symbols from "./Symbols.vue";
 const input = ref<String>('');
 
+const materials = ref([
+    { id: 1 },
+    { id: 2 },
+]);
+const selectedMaterial = ref<number | null>(null);
+const selectMaterial = (materialId: number) => {
+    selectedMaterial.value = materialId;
+}
 
+const styles = ref([
+  { name: '自訂風格', key: 'custom', url: '/assets/themes/img_custom.png' },
+  { name: '3D插圖', key: '3d-illustration', url: '/assets/themes/img_3d.png' },
+  { name: '卡通', key: 'cartoon', url: '/assets/themes/img_cartoon.png' },
+  { name: '賽德龐克', key: 'cyberpunk', class: 'cyberpunk', url: '/assets/themes/img_cyberpunk.png' },
+  { name: '動漫', key: 'anime', url: '/assets/themes/img_anime.png' },
+  { name: '像素', key: 'pixel-art', url: '/assets/themes/img_pixel_art.png' },
+  { name: '復刻插畫', key: 'retro-illustration', url: '/assets/themes/img_illustration.png' },
+  { name: '水彩', key: 'watercolor', url: '/assets/themes/img_watercolor.png' },
+  { name: '油畫', key: 'oil-painting', url: '/assets/themes/img_oil_painting.png' },
+  { name: '素描', key: 'sketch', url: '/assets/themes/img_sketch.png' },
+]);
+
+const selectedStyle = ref('3d-illustration');
+
+const selectStyle = (styleKey: string) => {
+  selectedStyle.value = styleKey;
+};
 </script>
 
 <template>
@@ -20,54 +46,30 @@ const input = ref<String>('');
     <div class="categories">
       <span class="label">選擇素材</span>
       <div class="category-group">
-        <div class="item">
-          <div class="image"></div>
-        </div>
-        <div class="item">
-          <div class="image"></div>
+        <div
+          v-for="material in materials"
+          :key="material.id"
+          class="item"
+          @click="selectMaterial(material.id)"
+        >
+          <div class="image" :class="{ selected: selectedMaterial === material.id }"></div>
         </div>
       </div>
       <span class="label">風格轉換</span>
       <div class="category-group">
-        <div class="item">
-          <div class="image"></div>
-          <span>自訂</span>
-        </div>
-        <div class="item">
-          <div class="image"></div>
-          <span>3D插圖</span>
-        </div>
-        <div class="item">
-          <div class="image"></div>
-          <span>卡通</span>
-        </div>
-        <div class="item">
-          <div class="image"></div>
-          <span class="cyberpunk">賽德龐克</span>
-        </div>
-        <div class="item">
-          <div class="image"></div>
-          <span>動漫</span>
-        </div>
-        <div class="item">
-          <div class="image"></div>
-          <span>像素</span>
-        </div>
-        <div class="item">
-          <div class="image"></div>
-          <span>復刻插畫</span>
-        </div>
-        <div class="item">
-          <div class="image"></div>
-          <span>水彩</span>
-        </div>
-        <div class="item">
-          <div class="image"></div>
-          <span>油畫</span>
-        </div>
-        <div class="item">
-          <div class="image"></div>
-          <span>素描</span>
+        <div
+          v-for="style in styles"
+          :key="style.key"
+          class="item"
+          @click="selectStyle(style.key)"
+        >
+          <div
+              class="image"
+              :class="{ selected: selectedStyle === style.key }"
+          >
+            <img :src="style.url" alt=""/>
+          </div>
+          <span :class="style.class">{{ style.name }}</span>
         </div>
       </div>
     </div>
@@ -90,7 +92,7 @@ const input = ref<String>('');
 .images-gallery-container {
   display: flex;
   width: 240px;
-  min-height: 100vh;
+  max-height: 100vh;
   justify-content: flex-start;
   flex-direction: column;
   background-color: #303030;
@@ -131,8 +133,10 @@ const input = ref<String>('');
     flex-wrap: wrap;
     flex-direction: row;
     justify-content: center;
+    cursor: pointer;
   }
   .image {
+    position: relative;
     width: 72px;
     height: 72px;
     flex-shrink: 0;
@@ -140,11 +144,33 @@ const input = ref<String>('');
     border-radius: 4px;
     margin-top: 5px;
     margin-bottom: 5px;
+    box-sizing: border-box;
+    overflow: hidden;
     &:active {
       background-color: rgba(80, 80, 80, 0.6);
     }
     &:hover {
       background-color: rgba(80, 80, 80, 0.6);
+      &:after {
+        border: 2px solid #f15624;
+      }
+    }
+    &.selected:after {
+      border: 2px solid #f15624;
+    }
+    &:after {
+      content: '';
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      box-sizing: border-box;
+    }
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
     }
   }
 }
