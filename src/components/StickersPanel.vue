@@ -9,7 +9,7 @@ const input = ref<String>('');
 
 const gallery: {
   label: string,
-  items: string[]
+  items: { url: string, filename: string }[]
 }[] = [
   {
     label: '自訂',
@@ -18,36 +18,36 @@ const gallery: {
   {
     label: '聯名活動素材',
     items: [
-        '/assets/stickers/coffee.svg',
-        '/assets/stickers/dollar.svg',
-        '/assets/stickers/fries.svg',
-        '/assets/stickers/gambler-luck.svg',
-        '/assets/stickers/gem.svg',
-        '/assets/stickers/hamburger.svg',
-        '/assets/stickers/ice-cream.svg',
-        '/assets/stickers/peach.svg',
-        '/assets/stickers/soda.svg',
-        '/assets/stickers/syrup.svg',
+        { url: './assets/stickers/coffee.svg', filename: 'coffee' },
+        { url: './assets/stickers/dollar.svg', filename: 'dollar' },
+        { url: './assets/stickers/fries.svg', filename: 'fries' },
+        { url: './assets/stickers/gambler-luck.svg', filename: 'gambler-luck' },
+        { url: './assets/stickers/gem.svg', filename: 'gem' },
+        { url: './assets/stickers/hamburger.svg', filename: 'hamburger' },
+        { url: './assets/stickers/ice-cream.svg', filename: 'ice-cream' },
+        { url: './assets/stickers/peach.svg', filename: 'peach' },
+        { url: './assets/stickers/soda.svg', filename: 'soda' },
+        { url: './assets/stickers/syrup.svg', filename: 'syrup' },
     ]
   },
   {
     label: 'BB Logo素材',
     items: [
-        '/assets/stickers/target.svg',
-        '/assets/stickers/mustache.svg',
-        '/assets/stickers/clock-ring.svg'
+        { url: './assets/stickers/target.svg', filename: 'target' },
+        { url: './assets/stickers/mustache.svg', filename: 'mustache' },
+        { url: './assets/stickers/clock-ring.svg', filename: 'clock-ring' },
     ]
   },
   {
     label: 'BB 產品素材',
     items: [
-        '/assets/stickers/banking-money.svg',
-        '/assets/stickers/smoker.svg'
+        { url: './assets/stickers/banking-money.svg', filename: 'banking-money' },
+        { url: './assets/stickers/smoker.svg', filename: 'smoker' },
     ]
   }];
 
-const onStickerClick = (stickerUrl: string) => {
-  emit('add-element', { type: 'sticker', payload: stickerUrl });
+const onStickerClick = (stickerUrl: string, filename: string) => {
+  emit('add-element', { type: 'sticker', payload: stickerUrl, name: filename });
 };
 
 </script>
@@ -70,8 +70,8 @@ const onStickerClick = (stickerUrl: string) => {
               v-for="(item, index) in group.items"
               :key="index"
               class="image"
-              @click="onStickerClick(item)">
-            <img :src="item" alt=""/>
+              @click="onStickerClick(item.url, item.filename)">
+            <img :src="item.url" alt=""/>
           </div>
         </div>
       </template>

@@ -26,6 +26,7 @@ const availableFonts = [
 // --- Default State Factory ---
 const getDefaultTextProps = () => ({
   content: '雙擊編輯文字',
+  name: '文字',
   color: '#000000',
   isBold: false,
   fontSize: 32,

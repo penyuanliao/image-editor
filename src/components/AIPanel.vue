@@ -14,16 +14,16 @@ const selectMaterial = (materialId: number) => {
 }
 
 const styles = ref([
-  { name: '自訂風格', key: 'custom', url: '/assets/themes/img_custom.png' },
-  { name: '3D插圖', key: '3d-illustration', url: '/assets/themes/img_3d.png' },
-  { name: '卡通', key: 'cartoon', url: '/assets/themes/img_cartoon.png' },
-  { name: '賽德龐克', key: 'cyberpunk', class: 'cyberpunk', url: '/assets/themes/img_cyberpunk.png' },
-  { name: '動漫', key: 'anime', url: '/assets/themes/img_anime.png' },
-  { name: '像素', key: 'pixel-art', url: '/assets/themes/img_pixel_art.png' },
-  { name: '復刻插畫', key: 'retro-illustration', url: '/assets/themes/img_illustration.png' },
-  { name: '水彩', key: 'watercolor', url: '/assets/themes/img_watercolor.png' },
-  { name: '油畫', key: 'oil-painting', url: '/assets/themes/img_oil_painting.png' },
-  { name: '素描', key: 'sketch', url: '/assets/themes/img_sketch.png' },
+  { name: '自訂風格', key: 'custom', url: './assets/themes/img_custom.png' },
+  { name: '3D插圖', key: '3d-illustration', url: './assets/themes/img_3d.png' },
+  { name: '卡通', key: 'cartoon', url: './assets/themes/img_cartoon.png' },
+  { name: '賽德龐克', key: 'cyberpunk', class: 'cyberpunk', url: './assets/themes/img_cyberpunk.png' },
+  { name: '動漫', key: 'anime', url: './assets/themes/img_anime.png' },
+  { name: '像素', key: 'pixel-art', url: './assets/themes/img_pixel_art.png' },
+  { name: '復刻插畫', key: 'retro-illustration', url: './assets/themes/img_illustration.png' },
+  { name: '水彩', key: 'watercolor', url: './assets/themes/img_watercolor.png' },
+  { name: '油畫', key: 'oil-painting', url: './assets/themes/img_oil_painting.png' },
+  { name: '素描', key: 'sketch', url: './assets/themes/img_sketch.png' },
 ]);
 
 const selectedStyle = ref('3d-illustration');

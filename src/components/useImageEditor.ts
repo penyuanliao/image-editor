@@ -2,6 +2,7 @@
 export interface AbsoluteElement {
     id: number;
     type: 'text' | 'icon' | 'sticker';
+    name?: string;
     x: number;
     y: number;
     rotation?: number; // 旋轉角度 (radians)
@@ -38,7 +39,11 @@ export interface SVGElement extends AbsoluteElement {
     color: string;
     size?: number;
 }
-export interface CanvasElement extends AbsoluteElement {
+export interface CanvasElement extends StickerElement, TextElement, SVGElement {
+    id: number;
+    type: 'text' | 'icon' | 'sticker';
+}
+export interface CanvasElement_2 extends AbsoluteElement {
     id: number;
     type: 'text' | 'icon' | 'sticker';
     x: number;

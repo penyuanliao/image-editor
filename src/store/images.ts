@@ -5,6 +5,7 @@ export const useImagesStore = defineStore('images', {
   state: () => ({
     imageList: [] as HTMLImageElement[],
     originalImage: null as HTMLImageElement | null | undefined,
+    // 畫布上的元素 (文字、圖形等)
     elements: [] as CanvasElement[],
   }),
   actions: {

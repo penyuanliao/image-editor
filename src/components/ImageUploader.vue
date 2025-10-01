@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { ref, reactive, nextTick, watch } from "vue";
-import { ElMessage } from "element-plus";
 import { drawBackground, drawCropMarks, drawSticker, drawSVG, drawText, type CanvasElement} from "./useImageEditor.ts";
+import { useImagesStore } from "../store/images.ts";
+import {ErrorMessage} from "../Utilities/AlertMessage.ts";
+import {processFile} from "../Utilities/FileProcessor.ts";
 
+const imagesStore = useImagesStore();
 const emit = defineEmits(['element-selected']);
 
 const imageUrl = ref<string | null>(null);
@@ -17,9 +20,6 @@ const cropBox = reactive({
   width: 800,
   height: 400,
 });
-
-// 畫布上的元素 (文字、圖形等)
-const elements = ref<CanvasElement[]>([]);
 
 // --- 互動狀態管理 ---
 const selectedElement = ref<CanvasElement | null>(null);
@@ -58,48 +58,19 @@ watch(selectedElement, (newSelection) => {
   emit('element-selected', newSelection ? JSON.parse(JSON.stringify(newSelection)) : null);
 });
 
-const ErrorMessage = (message: string) => {
-  ElMessage({
-    message,
-    type: 'error',
-    plain: true,
-  });
+watch(() => imagesStore.elements, () => {
+  redrawCanvas();
+}, { deep: true });
 
-}
-
-// 處理選擇或拖曳的檔案
-const processFile = (file: File) => {
-  // 驗證是否為圖片檔案
-  if (!file.type.startsWith('image/')) {
-    ErrorMessage('請上傳圖片檔案');
-    return;
+const resetCropMarks = () => {
+  // 將裁切框重設到畫布中心
+  if (canvas.value) {
+    cropBox.x = (canvas.value.width - cropBox.width) / 2;
+    cropBox.y = (canvas.value.height - cropBox.height) / 2;
   }
-
-  // 使用 FileReader 讀取檔案並產生預覽
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const dataUrl = e.target?.result as string;
-    imageUrl.value = dataUrl; // 用於切換 v-if 顯示
-
-    const img = new Image();
-    img.onload = () => {
-      originalImage.value = img; // 儲存圖片物件
-
-      // 將裁切框重設到畫布中心
-      if (canvas.value) {
-        cropBox.x = (canvas.value.width - cropBox.width) / 2;
-        cropBox.y = (canvas.value.height - cropBox.height) / 2;
-      }
-
-      redrawCanvas(); // 進行初次繪製
-    };
-    img.src = dataUrl;
-  };
-  reader.readAsDataURL(file);
 };
 
 // --- 統一的約束與重繪邏輯 ---
-
 const constrainCropBox = () => {
   if (!canvas.value) return false;
 
@@ -160,7 +131,7 @@ const redrawCanvas = () => {
     drawCropMarks(canvasEl, ctx, cropBox);
 
     // 4. 繪製所有其他元素
-    elements.value.forEach(element => {
+    imagesStore.elements.forEach(element => {
 
       // 如果元素正在被編輯，則不在 canvas 上繪製它，由 input 框取代
       if (editingElement.value?.id === element.id) return;
@@ -321,7 +292,7 @@ const getActionForHandle = (x: number, y: number, element: CanvasElement) => {
 
 const findElementAtPosition = (x: number, y: number) => {
   // 從後往前找，確保點擊到最上層的元素
-  return [...elements.value].reverse().find(el => {
+  return [...imagesStore.elements].reverse().find(el => {
     if ((el.type === 'sticker' || el.type === 'text') && el.rotation) {
       // For rotated stickers, we need to check against the rotated bounding box
       // A simpler way is to transform the click point into the element's local coordinate system
@@ -543,7 +514,7 @@ const finishEditing = () => {
   if (!editingElement.value) return;
   // 如果編輯後文字為空，則移除該元素
   if (editingElement.value.content.trim() === '') {
-    elements.value = elements.value.filter(el => el.id !== editingElement.value!.id);
+    imagesStore.elements = imagesStore.elements.filter(el => el.id !== editingElement.value!.id);
   }
   editingElement.value = null;
   redrawCanvas();
@@ -590,9 +561,7 @@ const saveImage = () => {
   document.body.removeChild(link); // 清理 DOM
 };
 
-
 // --- 供外部呼叫的方法 ---
-
 const addElement = (element: any) => {
   if (!canvas.value || !imageUrl.value) {
     ErrorMessage('請先上傳一張圖片！');
@@ -600,9 +569,10 @@ const addElement = (element: any) => {
   }
 
   if (element.type === 'text') {
-    elements.value.push({
+    imagesStore.elements.push({
       id: Date.now(),
       type: 'text',
+      name: element.name || '新文字',
       content: element.content || '新文字',
       x: canvas.value.width / 2, // 預設放在畫布中央
       y: canvas.value.height / 2,
@@ -625,9 +595,10 @@ const addElement = (element: any) => {
     });
     redrawCanvas();
   } else if (element.type === 'icon') {
-    elements.value.push({
+    imagesStore.elements.push({
       id: Date.now(),
       type: 'icon',
+      name: element.name || '新貼圖',
       content: element.content || '',
       x: canvas.value.width / 2,
       y: canvas.value.height / 2,
@@ -639,9 +610,10 @@ const addElement = (element: any) => {
     const img = new Image();
     img.onload = () => {
       if (!canvas.value) return;
-      elements.value.push({
+      imagesStore.elements.push({
         id: Date.now(),
         type: 'sticker',
+        name: element.name || '新貼圖',
         content: element.payload, // URL
         x: canvas.value.width / 2,
         y: canvas.value.height / 2,
@@ -671,10 +643,17 @@ const onContainerClick = () => {
 };
 
 // 處理透過點擊選擇的檔案
-const onFileChange = (event: Event) => {
+const onFileChange = async (event: Event) => {
   const target = event.target as HTMLInputElement;
   if (target.files && target.files[0]) {
-    processFile(target.files[0]);
+    const info = await processFile(target.files[0]);
+    console.log('info', info);
+
+    imageUrl.value = info.imageUrl;
+    originalImage.value = info.image;
+
+    resetCropMarks();
+    redrawCanvas(); // 進行初次繪製
   }
 };
 

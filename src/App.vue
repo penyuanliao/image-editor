@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import ImageEditor from './components/ImageUploader.vue';
-import type { ImageEditorAction, TextElement } from "./types.ts";
-import { ImageEditorTypes } from "./types.ts";
+import type { ImageEditorAction, TextElement } from "./types";
+import { ImageEditorTypes } from "./types";
 import BoxBar from "./components/BoxBar.vue";
 import ImagesPanel from "./components/ImagesPanel.vue";
 import AIPanel from "./components/AIPanel.vue";

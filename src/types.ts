@@ -1,5 +1,6 @@
 export interface TextElement {
   type: "text";
+  name?: string;
   content: string;
   x: number;
   y: number;
@@ -22,6 +23,7 @@ export interface TextElement {
 export interface StickerElement {
     type: 'sticker',
     payload?: string;
+    name?: string;
 }
 
 export type ImageEditorElement = TextElement; // Add other element types here in the future
