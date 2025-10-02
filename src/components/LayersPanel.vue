@@ -1,68 +1,54 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
-import { Search } from "@element-plus/icons-vue";
+import { computed } from "vue";
 import { useImagesStore } from "../store/images.ts";
-import type { CanvasElement } from "./useImageEditor.ts";
-const input = ref<String>('');
+import draggable from 'vuedraggable';
+import type {CanvasElement} from "./useImageEditor.ts";
+
 const imagesStore = useImagesStore();
 
-const elementsReverse = computed(() => [...imagesStore.elements].reverse());
-
-let draggedId = -1;
-
-const handleDragStart = (id: number) => {
-  draggedId = id;
-};
-
-const handleDragOver = (event: DragEvent) => {
-  event.preventDefault(); // Necessary to allow dropping
-};
-
-const handleDrop = (id: number) => {
-  if (draggedId === -1) return;
-  const draggedIndex: number = imagesStore.elements.findIndex((element) => element.id === draggedId);
-  const index: number = imagesStore.elements.findIndex((element) => element.id === id);
-  if (draggedIndex !== -1 && index !== -1) {
-    const draggedItem:CanvasElement = imagesStore.elements.splice(draggedIndex, 1)[0] as CanvasElement;
-    imagesStore.elements.splice(index, 0, draggedItem);
+// Create a computed property to reverse the elements for display
+// and handle updating the store when the order changes.
+const reversedElements = computed({
+  get() {
+    // Reverse the array for display, so the top layer is at the top of the list
+    return [...imagesStore.elements].reverse();
+  },
+  set(newValue) {
+    // When vuedraggable updates the model, it's already in the reversed order.
+    // We need to reverse it back before committing to the store.
+    imagesStore.elements = [...newValue].reverse();
   }
-  draggedId = -1;
+});
+const onClickLayerHandle = (element: CanvasElement) => {
+  console.log(element);
 };
 
 </script>
 
 <template>
   <div class="layers-object-container">
-    <span class="label">圖層</span>
-    <el-input
-        v-model="input"
-        class="responsive-input"
-        placeholder="輸入文字搜尋圖層"
-        :prefix-icon="Search"
-        clearable
-    ></el-input>
-    <div class="layers-wrapper">
-      <div
-          v-for="(item) in elementsReverse"
-          :key="item.id"
-          class="layer"
-          draggable="true"
-          @dragstart="handleDragStart(item.id)"
-          @dragover="handleDragOver"
-          @drop="handleDrop(item.id)"
-      >{{ item.type === 'text' ? item.content : item.name }}</div>
-    </div>
+    <draggable
+        v-model="reversedElements"
+        item-key="id"
+        class="layers-wrapper"
+        ghost-class="ghost"
+    >
+      <template #item="{ element }">
+        <div class="layer" @click="onClickLayerHandle(element)">
+          <img v-if="element.type === 'sticker'" :src="element.content" alt=""/>
+        </div>
+      </template>
+    </draggable>
   </div>
 </template>
 
 <style scoped>
 .layers-object-container {
   display: flex;
-  width: 280px;
-  height: 100vh;
+  width: 80px;
+  height: 100%;
   justify-content: flex-start;
   flex-direction: column;
-  background-color: #303030;
   flex-wrap: nowrap;
   align-items: center;
   overflow: auto;
@@ -71,29 +57,36 @@ const handleDrop = (id: number) => {
   }
   gap: 10px;
 }
-.responsive-input {
-  width: 240px;
-  margin-top: 20px;
-  height: 40px;
-  font-size: medium;
-  flex-shrink: 0;
-}
 .layers-wrapper {
-  width: 240px;
+  width: 80px;
+  min-width: 80px;
+  position: relative;
   display: flex;
   flex-direction: column;
-  .layer {
-    width: 240px;
-    height: 20px;
-    font-size: 12px;
-    display: flex;
-    border: #444444 1px solid;
-    cursor: grab;
-  }
-  .layer:hover {
-    background-color: #444444;
-  }
+  align-items: center;
+  justify-content: center;
+}
+.layer {
+  width: 70px;
+  height: 70px;
+  font-size: 12px;
+  display: flex;
+  position: relative;
+  align-items: center; /* Vertically center the text */
+  justify-content: center;
+  border: #444444 1px solid;
+  cursor: grab;
+  background-color: #3a3a3a;
+  color: #e0e0e0;
+  margin-bottom: 2px; /* Add space between layers */
+}
+.layer:hover {
+  background-color: #4f4f4f;
 }
 
+.ghost {
+  opacity: 0.5;
+  background: #409eff;
+}
 
 </style>

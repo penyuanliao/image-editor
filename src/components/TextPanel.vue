@@ -32,6 +32,7 @@ const getDefaultTextProps = () => ({
   fontSize: 32,
   fontFamily: 'Arial',
   lineHeight: 1.2,
+  rotation: 0,
 });
 
 const getDefaultShadow = () => ({
@@ -73,6 +74,7 @@ watch(() => props.selectedElement, (newEl) => {
     textProps.fontSize = newEl.fontSize;
     textProps.fontFamily = newEl.fontFamily || 'Arial';
     textProps.lineHeight = newEl.lineHeight || 1.2;
+    textProps.rotation = newEl.rotation || 0;
 
     // Update shadow properties
     shadow.enabled = !!newEl.shadowColor;
@@ -268,6 +270,11 @@ const fontSizeOption = [
         <el-slider v-model="textProps.lineHeight" :min="0.5" :max="3" :step="0.1" style="width: 100%;"/>
       </div>
       
+      <div class="ctrl">
+        <span style="flex-shrink: 0;">旋轉角度：</span>
+        <el-slider v-model="textProps.rotation" :min="0" :max="360" style="width: 100%;"/>
+      </div>
+
       <div class="ctrl">
         <span>陰影：</span>
         <el-switch v-model="shadow.enabled" />

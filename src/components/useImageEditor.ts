@@ -263,7 +263,7 @@ export const getElementBoundingBox = (ctx: CanvasRenderingContext2D, el: TextEle
     };
 }
 //
-export const getTransformHandles = (ctx: CanvasRenderingContext2D, element: StickerElement) => {
+export const getTransformHandles = (ctx: CanvasRenderingContext2D, element: TextElement | StickerElement) => {
     const box = getElementBoundingBox(ctx, element);
     if (!box) return null;
 
@@ -309,7 +309,7 @@ export const getTransformHandles = (ctx: CanvasRenderingContext2D, element: Stic
     };
 };
 // 產生編輯用的邊框
-export const drawTransformHandles = (ctx: CanvasRenderingContext2D, element: StickerElement) => {
+export const drawTransformHandles = (ctx: CanvasRenderingContext2D, element: TextElement | StickerElement) => {
     const handles = getTransformHandles(ctx, element);
     if (!handles) return null;
 
@@ -342,7 +342,7 @@ export const drawControls = (ctx: CanvasRenderingContext2D, element: AbsoluteEle
         ctx.lineWidth = 2;
         const isTransformable = element.type === 'sticker' || element.type === 'text';
         if (isTransformable) {
-            drawTransformHandles(ctx, element);
+            drawTransformHandles(ctx, element as TextElement | StickerElement);
         } else { // Draw simple dashed box for other types like 'icon'
             ctx.setLineDash([6, 3]);
             ctx.strokeRect(box.x - 5, box.y - 5, box.width + 10, box.height + 10);

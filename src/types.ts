@@ -9,6 +9,7 @@ export interface TextElement {
   color: string;
   fontWeight?: 'normal' | 'bold';
   lineHeight?: number; // As a multiplier of font size, e.g., 1.2
+  rotation?: number;
   shadowColor?: string;
   shadowBlur?: number;
   shadowOffsetX?: number;

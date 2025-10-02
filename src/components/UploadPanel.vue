@@ -24,6 +24,10 @@ const handleFileChange = (event: Event) => {
 const triggerFileInput = () => {
   fileInput.value?.click();
 };
+
+const selectImageAsBackground = (index: number) => {
+  imagesStore.setOriginalImage(index);
+};
 </script>
 
 <template>
@@ -47,6 +51,7 @@ const triggerFileInput = () => {
           :key="index"
           class="image"
           :style="{ backgroundImage: `url(${image.src})` }"
+          @click="selectImageAsBackground(index)"
         ></div>
       </div>
     </div>

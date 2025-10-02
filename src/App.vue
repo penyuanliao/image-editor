@@ -55,7 +55,6 @@ const handleUpdateElement = (newProps: Partial<TextElement>) => {
           v-if="selected === ImageEditorTypes.sticker"
           @add-element="handleAddElement"
       />
-      <LayersPanel v-if="selected === ImageEditorTypes.layers"/>
       <UploadPanel v-if="selected === ImageEditorTypes.upload"/>
     </div>
     <div class="editor-area">
@@ -63,6 +62,12 @@ const handleUpdateElement = (newProps: Partial<TextElement>) => {
         ref="editor"
         @element-selected="handleElementSelected"
       />
+      <div class="layers">
+        <LayersPanel/>
+      </div>
+    </div>
+    <div class="attribute">
+
     </div>
   </div>
 </template>
@@ -70,15 +75,29 @@ const handleUpdateElement = (newProps: Partial<TextElement>) => {
 <style scoped>
 .main-container {
   display: grid;
-  grid-template-columns: 72px auto 1fr; /* 左側面板 240px，右側佔滿剩餘空間 */
+  grid-template-columns: 72px auto 1fr auto; /* 左側面板 240px，右側佔滿剩餘空間 */
   height: 100vh;
 }
 
 .editor-area {
   width: 100%;
+  position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
   overflow: auto; /* 如果編輯器太大，允許滾動 */
+}
+.layers {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 80px;
+  height: 100%;
+}
+.attribute {
+  display: flex;
+  width: 240px;
+  height: 100vh;
+  flex-direction: column;
 }
 </style>

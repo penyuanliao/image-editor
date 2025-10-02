@@ -7,6 +7,9 @@ export const useImagesStore = defineStore('images', {
     originalImage: null as HTMLImageElement | null | undefined,
     // 畫布上的元素 (文字、圖形等)
     elements: [] as CanvasElement[],
+    // --- 互動狀態管理 ---
+    selectedElement: null as CanvasElement | null,
+    editingElement: null as CanvasElement | null,
   }),
   actions: {
     // 取得圖片
@@ -18,6 +21,10 @@ export const useImagesStore = defineStore('images', {
       if (index >= 0 && index < this.imageList.length) {
         this.originalImage = this.imageList[index];
       }
+    },
+    // 設定選擇的物件
+    setSelectedElement(element: CanvasElement | null) {
+      this.selectedElement = element;
     },
   },
 });
