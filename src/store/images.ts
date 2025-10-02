@@ -8,7 +8,8 @@ export const useImagesStore = defineStore('images', {
     elements: CanvasElement[],
     selectedElement: CanvasElement | null,
     editingElement: CanvasElement | null,
-    imageUrl: string | null
+    imageUrl: string | null,
+    deleteIcon: HTMLImageElement,
   } => ({
     imageList: [],
     originalImage: null,
@@ -17,7 +18,9 @@ export const useImagesStore = defineStore('images', {
     // --- 互動狀態管理 ---
     selectedElement: null,
     editingElement: null,
-    imageUrl: ''
+    imageUrl: '',
+    // --- 預載入控制項圖示 ---
+    deleteIcon: new Image(),
   }),
   actions: {
     // 取得圖片

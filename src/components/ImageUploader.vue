@@ -1,6 +1,14 @@
 <script setup lang="ts">
 import { ref, reactive, nextTick, watch } from "vue";
-import { drawBackground, drawCropMarks, drawSticker, drawSVG, drawText, type CanvasElement} from "./useImageEditor.ts";
+import {
+  drawBackground,
+  drawCropMarks,
+  drawSticker,
+  drawSVG,
+  drawText,
+  type CanvasElement,
+  drawControls, getElementBoundingBox, getTransformHandles
+} from "./useImageEditor.ts";
 import { useImagesStore } from "../store/images.ts";
 import {ErrorMessage} from "../Utilities/AlertMessage.ts";
 import {processFile} from "../Utilities/FileProcessor.ts";
@@ -11,8 +19,6 @@ const emit = defineEmits(['element-selected']);
 const fileInput = ref<HTMLInputElement | null>(null);
 const canvas = ref<HTMLCanvasElement | null>(null);
 
-// --- 預載入控制項圖示 ---
-const deleteIcon = new Image();
 // 使用 SVG 建立一個白色的 'X' 圖示
 const deleteIconSVG = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
@@ -20,7 +26,7 @@ const deleteIconSVG = `
   <line x1="6" y1="6" x2="18" y2="18"></line>
 </svg>`;
 // 將 SVG 轉為 Base64 Data URL，讓 Image 物件可以載入
-deleteIcon.src = `data:image/svg+xml;base64,${btoa(deleteIconSVG)}`;
+imagesStore.deleteIcon.src = `data:image/svg+xml;base64,${btoa(deleteIconSVG)}`;
 
 // 裁切框的狀態
 const cropBox = reactive({
@@ -163,63 +169,14 @@ const redrawCanvas = () => {
 
     // 5. 如果有選中元素，繪製選取框
     if (imagesStore.selectedElement && !editingElement.value) {
-      const box = getElementBoundingBox(imagesStore.selectedElement);
-      if (box) { // Draw a simple dashed box for non-sticker elements
-        ctx.strokeStyle = '#409eff';
-        ctx.lineWidth = 2;
-        const isTransformable = imagesStore.selectedElement.type === 'sticker' || imagesStore.selectedElement.type === 'text';
-        if (isTransformable) {
-          drawTransformHandles(ctx, imagesStore.selectedElement);
-        } else { // Draw simple dashed box for other types like 'icon'
-          ctx.setLineDash([6, 3]);
-          ctx.strokeRect(box.x - 5, box.y - 5, box.width + 10, box.height + 10);
-          ctx.setLineDash([]);
-        }
-      }
+      const ctx = canvas.value?.getContext("2d") as CanvasRenderingContext2D;
+      const box = getElementBoundingBox(ctx, imagesStore.selectedElement);
+      drawControls(ctx, imagesStore.selectedElement, box);
     }
   }
 };
-// 產生編輯用的邊框
-const drawTransformHandles = (ctx: CanvasRenderingContext2D, element: CanvasElement) => {
-  const handles = getTransformHandles(element);
-  if (!handles) return;
-
-  ctx.strokeStyle = '#409eff';
-  ctx.lineWidth = 1;
-
-  // Draw bounding box
-  ctx.stroke(handles.path);
-
-  // Draw handles
-  Object.entries(handles.points).forEach(([key, p]) => {
-    if (!p) return;
-
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, 6, 0, 2 * Math.PI);
-
-    if (key === 'del') {
-      // 繪製刪除按鈕
-      ctx.fillStyle = '#f56c6c'; // Element Plus danger color
-      ctx.fill();
-
-      // 繪製 'X' (使用預載入的 SVG 圖示)
-      const iconSize = 8; // 圖示在按鈕中的大小
-      if (deleteIcon.complete) { // 確保圖片已載入完成
-        ctx.drawImage(deleteIcon, p.x - iconSize / 2, p.y - iconSize / 2, iconSize, iconSize);
-      }
-    } else {
-      // 繪製其他控制點
-      ctx.fillStyle = '#FFFFFF';
-      ctx.fill();
-      ctx.strokeStyle = '#409eff';
-      ctx.lineWidth = 1;
-      ctx.stroke();
-    }
-  });
-};
 
 // --- 裁切框拖曳事件處理 ---
-
 const isPointInCropBox = (x: number, y: number) => {
   return (
     x >= cropBox.x &&
@@ -228,91 +185,13 @@ const isPointInCropBox = (x: number, y: number) => {
     y <= cropBox.y + cropBox.height
   );
 };
-
-// --- 元素互動輔助函式 ---
-const getElementBoundingBox = (element: CanvasElement) => {
-  const ctx = canvas.value?.getContext("2d");
-  if (!ctx) return null;
-
-  let width = 0;
-  let height = 0;
-
-  if (element.type === 'text' && element.fontSize && element.fontFamily) {
-    ctx.font = `${element.fontWeight || 'normal'} ${element.fontSize}px ${element.fontFamily}`;
-    const lines = element.content.split('\n');
-    const metrics = lines.map(line => ctx.measureText(line));
-    width = Math.max(...metrics.map(m => m.width));
-    const lineHeight = element.lineHeight || 1.2;
-    height = lines.length * element.fontSize * lineHeight;
-
-  } else if ((element.type === 'icon' || element.type === 'sticker') && element.size) {
-    width = element.size;
-    height = element.size;
-  }
-
-  // 因為文字是中心對齊的，所以要從中心點計算左上角座標
-  return {
-    x: element.x - width / 2,
-    y: element.y - height / 2,
-    width,
-    height,
-  };
-};
-
 const isPointInBox = (px: number, py: number, box: {x: number, y: number, width: number, height: number}) => {
   return px >= box.x && px <= box.x + box.width && py >= box.y && py <= box.y + box.height;
 }
 
-const getTransformHandles = (element: CanvasElement) => {
-  const box = getElementBoundingBox(element);
-  if (!box) return null;
-
-  const { width: w, height: h } = box;
-  const cx = element.x;
-  const cy = element.y;
-  const angle = element.rotation || 0;
-
-  const rotatePoint = (x: number, y: number, angle: number) => {
-    const cos = Math.cos(angle);
-    const sin = Math.sin(angle);
-    return {
-      x: x * cos - y * sin,
-      y: x * sin + y * cos,
-    };
-  };
-
-  const halfW = w / 2;
-  const halfH = h / 2;
-
-  const tl_r = rotatePoint(-halfW, -halfH, angle);
-  const tr_r = rotatePoint(halfW, -halfH, angle);
-  const bl_r = rotatePoint(-halfW, halfH, angle);
-  const br_r = rotatePoint(halfW, halfH, angle);
-  const rot_r = rotatePoint(0, -halfH - 20, angle); // Rotation handle 20px above top-middle
-  const del_r = rotatePoint(halfW + 20, -halfH - 20, angle); // Delete handle outside top-right
-
-  const path = new Path2D();
-  path.moveTo(cx + tl_r.x, cy + tl_r.y);
-  path.lineTo(cx + tr_r.x, cy + tr_r.y);
-  path.lineTo(cx + br_r.x, cy + br_r.y);
-  path.lineTo(cx + bl_r.x, cy + bl_r.y);
-  path.closePath();
-
-  return {
-    path,
-    points: {
-      tl: { x: cx + tl_r.x, y: cy + tl_r.y },
-      tr: { x: cx + tr_r.x, y: cy + tr_r.y },
-      bl: { x: cx + bl_r.x, y: cy + bl_r.y },
-      br: { x: cx + br_r.x, y: cy + br_r.y },
-      rot: { x: cx + rot_r.x, y: cy + rot_r.y },
-      del: { x: cx + del_r.x, y: cy + del_r.y },
-    }
-  };
-};
-
 const getActionForHandle = (x: number, y: number, element: CanvasElement) => {
-  const handles = getTransformHandles(element);
+  const ctx = canvas.value?.getContext("2d") as CanvasRenderingContext2D;
+  const handles = getTransformHandles(ctx, element);
   if (!handles) return null;
 
   const handleRadius = 8; // Larger click area for handles
@@ -325,7 +204,8 @@ const getActionForHandle = (x: number, y: number, element: CanvasElement) => {
 };
 
 const findElementAtPosition = (x: number, y: number) => {
-  // 從後往前找，確保點擊到最上層的元素
+  const ctx = canvas.value?.getContext("2d") as CanvasRenderingContext2D;
+// 從後往前找，確保點擊到最上層的元素
   return [...imagesStore.elements].reverse().find(el => {
     if ((el.type === 'sticker' || el.type === 'text') && el.rotation) {
       // For rotated stickers, we need to check against the rotated bounding box
@@ -336,12 +216,12 @@ const findElementAtPosition = (x: number, y: number) => {
       const localX = dx * Math.cos(-angle) - dy * Math.sin(-angle);
       const localY = dx * Math.sin(-angle) + dy * Math.cos(-angle);
 
-      const box = getElementBoundingBox(el);
+      const box = getElementBoundingBox(ctx, el);
       if (!box) return false;
       return Math.abs(localX) < box.width / 2 && Math.abs(localY) < box.height / 2;
     } else {
       // For other elements, use the axis-aligned bounding box
-      const box = getElementBoundingBox(el);
+      const box = getElementBoundingBox(ctx, el);
       return box && isPointInBox(x, y, box);
     }
   });
@@ -401,7 +281,6 @@ const handleTransformStart = (x: number, y: number, action: string, element: Can
   // For text, we scale fontSize. For stickers, we scale size.
   dragStart.elementSize = element.fontSize || element.size || 0;
   dragStart.elementRotation = element.rotation || 0;
-
   if (action === 'rot') {
     isRotating.value = true;
     // Calculate initial angle between center and mouse
@@ -523,7 +402,8 @@ const onCanvasDoubleClick = (event: MouseEvent) => {
   if (clickedElement && clickedElement.type === 'text') {
     imagesStore.setSelectedElement(null);
     editingElement.value = clickedElement;
-    const box = getElementBoundingBox(clickedElement)!;
+    const ctx = canvas.value?.getContext("2d") as CanvasRenderingContext2D;
+    const box = getElementBoundingBox(ctx, clickedElement)!;
 
     // 設定 input 的樣式和位置
     textInputStyle.left = `${box.x}px`;
@@ -700,7 +580,6 @@ const onFileChange = async (event: Event) => {
   if (target.files && target.files[0]) {
     const info = await processFile(target.files[0]);
     const index = imagesStore.addImage(info.image);
-    console.log('index', index);
     imagesStore.setOriginalImage(index);
     resetCropMarks();
     redrawCanvas(); // 進行初次繪製

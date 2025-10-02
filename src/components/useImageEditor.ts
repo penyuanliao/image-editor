@@ -1,3 +1,4 @@
+import { useImagesStore } from "../store/images.ts";
 
 export interface AbsoluteElement {
     id: number;
@@ -8,6 +9,8 @@ export interface AbsoluteElement {
     rotation?: number; // 旋轉角度 (radians)
 }
 export interface StickerElement extends AbsoluteElement {
+    width?: number;
+    height?: number;
     size?: number;
     img?: HTMLImageElement;
     url?: string;
@@ -289,6 +292,7 @@ export const getTransformHandles = (ctx: CanvasRenderingContext2D, element: Text
     const bl_r = rotatePoint(-halfW, halfH, angle);
     const br_r = rotatePoint(halfW, halfH, angle);
     const rot_r = rotatePoint(0, -halfH - 20, angle); // Rotation handle 20px above top-middle
+    const del_r = rotatePoint(halfW + 20, -halfH - 20, angle); // Delete handle outside top-right
 
     const path = new Path2D();
     path.moveTo(cx + tl_r.x, cy + tl_r.y);
@@ -305,6 +309,7 @@ export const getTransformHandles = (ctx: CanvasRenderingContext2D, element: Text
             bl: { x: cx + bl_r.x, y: cy + bl_r.y },
             br: { x: cx + br_r.x, y: cy + br_r.y },
             rot: { x: cx + rot_r.x, y: cy + rot_r.y },
+            del: { x: cx + del_r.x, y: cy + del_r.y },
         }
     };
 };
@@ -318,14 +323,31 @@ export const drawTransformHandles = (ctx: CanvasRenderingContext2D, element: Tex
 
     // Draw bounding box
     ctx.stroke(handles.path);
+    const imagesStore = useImagesStore();
 
     // Draw handles
-    Object.values(handles.points).forEach(p => {
-        if (p) {
-            ctx.fillStyle = '#FFFFFF';
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, 6, 0, 2 * Math.PI);
+    Object.entries(handles.points).forEach(([key, p]) => {
+        if (!p) return;
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 6, 0, 2 * Math.PI);
+
+        if (key === 'del') {
+            // 繪製刪除按鈕
+            ctx.fillStyle = '#f56c6c'; // Element Plus danger color
             ctx.fill();
+
+            // 繪製 'X' (使用預載入的 SVG 圖示)
+            const iconSize = 8; // 圖示在按鈕中的大小
+            if (imagesStore.deleteIcon.complete) { // 確保圖片已載入完成
+                ctx.drawImage(imagesStore.deleteIcon, p.x - iconSize / 2, p.y - iconSize / 2, iconSize, iconSize);
+            }
+        } else {
+            // 繪製其他控制點
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fill();
+            ctx.strokeStyle = '#409eff';
+            ctx.lineWidth = 1;
             ctx.stroke();
         }
     });
@@ -336,7 +358,7 @@ export const drawTransformHandles = (ctx: CanvasRenderingContext2D, element: Tex
  * @param element
  * @param box
  */
-export const drawControls = (ctx: CanvasRenderingContext2D, element: AbsoluteElement, box: { x: number, y: number, width: number, height: number }) => {
+export const drawControls = (ctx: CanvasRenderingContext2D, element: AbsoluteElement, box: { x: number, y: number, width: number, height: number } | null) => {
     if (box) { // Draw a simple dashed box for non-sticker elements
         ctx.strokeStyle = '#409eff';
         ctx.lineWidth = 2;
