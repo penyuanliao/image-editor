@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reactive, watch } from "vue";
+import {computed, reactive, watch} from "vue";
 import type { TextElement } from "../types";
 
 const props = defineProps<{ 
@@ -199,7 +199,21 @@ const fontSizeOption = [
   { label: '64', value: 64 },
   { label: '72', value: 72 },
 ]
-
+const rotationInDegrees = computed({
+  get() {
+    if (textProps && textProps.rotation) {
+      // Convert radians to degrees and round to nearest integer
+      return Math.round((textProps.rotation * 180) / Math.PI);
+    }
+    return 0;
+  },
+  set(degrees: number) {
+    if (textProps) {
+      // Convert degrees to radians
+      textProps.rotation = (degrees * Math.PI) / 180;
+    }
+  },
+});
 </script>
 
 <template>
@@ -272,7 +286,7 @@ const fontSizeOption = [
       
       <div class="ctrl">
         <span style="flex-shrink: 0;">旋轉角度：</span>
-        <el-slider v-model="textProps.rotation" :min="0" :max="360" style="width: 100%;"/>
+        <el-input-number v-model="rotationInDegrees" :controls="false" style="width: 100%;"/>
       </div>
 
       <div class="ctrl">
@@ -320,7 +334,7 @@ const fontSizeOption = [
 .text-panel-container {
   display: flex;
   width: 280px;
-  height: 100vh;
+  height: 100%;
   justify-content: flex-start;
   flex-direction: column;
   background-color: #303030;

@@ -3,6 +3,7 @@ import { computed } from "vue";
 import { useImagesStore } from "../store/images.ts";
 import draggable from 'vuedraggable';
 import type {CanvasElement} from "./useImageEditor.ts";
+import Symbols from "./Symbols.vue";
 
 const imagesStore = useImagesStore();
 
@@ -36,6 +37,7 @@ const onClickLayerHandle = (element: CanvasElement) => {
       <template #item="{ element }">
         <div class="layer" @click="onClickLayerHandle(element)">
           <img v-if="element.type === 'sticker'" :src="element.content" alt=""/>
+          <span v-else>{{ element.content }}</span>
         </div>
       </template>
     </draggable>
@@ -79,6 +81,11 @@ const onClickLayerHandle = (element: CanvasElement) => {
   background-color: #3a3a3a;
   color: #e0e0e0;
   margin-bottom: 2px; /* Add space between layers */
+  span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 }
 .layer:hover {
   background-color: #4f4f4f;

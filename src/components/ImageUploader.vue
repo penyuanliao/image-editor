@@ -8,10 +8,8 @@ import {processFile} from "../Utilities/FileProcessor.ts";
 const imagesStore = useImagesStore();
 const emit = defineEmits(['element-selected']);
 
-const imageUrl = ref<string | null>(null);
 const fileInput = ref<HTMLInputElement | null>(null);
 const canvas = ref<HTMLCanvasElement | null>(null);
-const originalImage = ref<HTMLImageElement | null>(null); // 儲存原始圖片物件
 
 // --- 預載入控制項圖示 ---
 const deleteIcon = new Image();
@@ -75,6 +73,11 @@ watch(() => imagesStore.elements, () => {
   redrawCanvas();
 }, { deep: true });
 
+watch(() => imagesStore.originalImage, () => {
+  resetCropMarks();
+  redrawCanvas(); // 進行初次繪製
+}, { deep: true })
+
 const resetCropMarks = () => {
   // 將裁切框重設到畫布中心
   if (canvas.value) {
@@ -136,11 +139,11 @@ const redrawCanvas = () => {
   ctx.fillRect(0, 0, canvasEl.width, canvasEl.height);
 
   // 2. 繪製置中的原始圖片
-  if (originalImage.value) {
-    drawBackground(canvasEl, ctx, originalImage.value);
+  if (imagesStore.originalImage) {
+    drawBackground(canvasEl, ctx, imagesStore.originalImage);
   }
   // 3. 若有圖片，則繪製裁切框的半透明遮罩和邊框
-  if (imageUrl.value) {
+  if (imagesStore.imageUrl) {
     drawCropMarks(canvasEl, ctx, cropBox);
 
     // 4. 繪製所有其他元素
@@ -347,7 +350,7 @@ const findElementAtPosition = (x: number, y: number) => {
 // --- Canvas 事件處理 ---
 
 const onCanvasMouseDown = (event: MouseEvent) => {
-  if (!imageUrl.value || !canvas.value) return;
+  if (!imagesStore.imageUrl || !canvas.value) return;
   const x = event.offsetX;
   const y = event.offsetY;
 
@@ -410,7 +413,7 @@ const handleTransformStart = (x: number, y: number, action: string, element: Can
 };
 
 const onCanvasMouseMove = (event: MouseEvent) => {
-  if (!imageUrl.value || !canvas.value) return;
+  if (!imagesStore.imageUrl || !canvas.value) return;
   const x = event.offsetX;
   const y = event.offsetY;
 
@@ -513,7 +516,7 @@ const onCanvasMouseMove = (event: MouseEvent) => {
 };
 
 const onCanvasDoubleClick = (event: MouseEvent) => {
-  if (!imageUrl.value) return;
+  if (!imagesStore.imageUrl) return;
   const clickedElement = findElementAtPosition(event.offsetX, event.offsetY);
 
   // 只有文字元素可以雙擊編輯
@@ -571,7 +574,7 @@ const compositionEnd = () => {
 
 // 儲存裁切後的圖片
 const saveImage = () => {
-  if (!canvas.value || !imageUrl.value) {
+  if (!canvas.value || !imagesStore.imageUrl) {
     alert('沒有可儲存的圖片。');
     return;
   }
@@ -612,7 +615,7 @@ const saveImage = () => {
 
 // --- 供外部呼叫的方法 ---
 const addElement = (element: any) => {
-  if (!canvas.value || !imageUrl.value) {
+  if (!canvas.value || !imagesStore.imageUrl) {
     ErrorMessage('請先上傳一張圖片！');
     return;
   }
@@ -696,11 +699,9 @@ const onFileChange = async (event: Event) => {
   const target = event.target as HTMLInputElement;
   if (target.files && target.files[0]) {
     const info = await processFile(target.files[0]);
-    console.log('info', info);
-
-    imageUrl.value = info.imageUrl;
-    originalImage.value = info.image;
-
+    const index = imagesStore.addImage(info.image);
+    console.log('index', index);
+    imagesStore.setOriginalImage(index);
     resetCropMarks();
     redrawCanvas(); // 進行初次繪製
   }
@@ -745,7 +746,7 @@ defineExpose({ addElement, updateSelectedElement });
       @keydown.enter.prevent="finishEditing"
     />
     <!-- 上傳提示變成一個覆蓋層 -->
-    <div v-if="!imageUrl" class="upload-prompt-overlay">
+    <div v-if="!imagesStore.imageUrl" class="upload-prompt-overlay">
       <div class="prompt-content">
         <p>點擊下方按鈕上傳圖片</p>
       </div>
@@ -755,11 +756,11 @@ defineExpose({ addElement, updateSelectedElement });
       <button class="upload-button" @click="onContainerClick">
         上傳圖片
       </button>
-      <button v-if="imageUrl" class="save-button" @click="saveImage">
+      <button v-if="imagesStore.imageUrl" class="save-button" @click="saveImage">
         儲存圖片
       </button>
       <!-- 裁切框控制項 -->
-      <div v-if="imageUrl" class="crop-controls">
+      <div v-if="imagesStore.imageUrl" class="crop-controls">
         <div class="input-group">
           <label for="crop-x">X:</label>
           <input id="crop-x" type="number" v-model.number="cropBox.x" />

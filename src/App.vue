@@ -11,6 +11,9 @@ import StickersPanel from "./components/StickersPanel.vue";
 import UploadPanel from "./components/UploadPanel.vue";
 import LayersPanel from "./components/LayersPanel.vue";
 
+import { useImagesStore } from "./store/images";
+import ImagePropsPanel from "./components/ImagePropsPanel.vue";
+const imagesStore = useImagesStore();
 const editor = ref<InstanceType<typeof ImageEditor> | null>(null);
 const selected = ref<string>('');
 
@@ -66,8 +69,14 @@ const handleUpdateElement = (newProps: Partial<TextElement>) => {
         <LayersPanel/>
       </div>
     </div>
-    <div class="attribute">
-
+    <div class="properties">
+      <TextPanel
+          v-if="imagesStore.selectedElement?.type === 'text'"
+          :selected-element="selectedElementForPanel"
+          @add-element="handleAddElement"
+          @update-element="handleUpdateElement"
+      />
+      <ImagePropsPanel v-if="imagesStore.selectedElement?.type === 'sticker'"/>
     </div>
   </div>
 </template>
@@ -75,7 +84,7 @@ const handleUpdateElement = (newProps: Partial<TextElement>) => {
 <style scoped>
 .main-container {
   display: grid;
-  grid-template-columns: 72px auto 1fr auto; /* 左側面板 240px，右側佔滿剩餘空間 */
+  grid-template-columns: 72px 280px 1fr auto; /* 左側面板 240px，右側佔滿剩餘空間 */
   height: 100vh;
 }
 
@@ -94,10 +103,11 @@ const handleUpdateElement = (newProps: Partial<TextElement>) => {
   width: 80px;
   height: 100%;
 }
-.attribute {
+.properties {
   display: flex;
-  width: 240px;
-  height: 100vh;
+  max-width: 280px;
+  min-width: 280px;
+  height: 100%;
   flex-direction: column;
 }
 </style>
