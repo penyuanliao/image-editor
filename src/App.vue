@@ -50,6 +50,7 @@ const handleUpdateElement = (newProps: Partial<TextElement>) => {
       <ImagesPanel v-if="selected === ImageEditorTypes.image"/>
       <TextPanel
           v-if="selected === ImageEditorTypes.text"
+          :controlEnabled="false"
           :selected-element="selectedElementForPanel"
           @add-element="handleAddElement"
           @update-element="handleUpdateElement"
@@ -72,6 +73,7 @@ const handleUpdateElement = (newProps: Partial<TextElement>) => {
     <div class="properties">
       <TextPanel
           v-if="imagesStore.selectedElement?.type === 'text'"
+          :controlEnabled="true"
           :selected-element="selectedElementForPanel"
           @add-element="handleAddElement"
           @update-element="handleUpdateElement"

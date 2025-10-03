@@ -3,7 +3,8 @@ import {computed, reactive, watch} from "vue";
 import type { TextElement } from "../types";
 
 const props = defineProps<{ 
-  selectedElement: TextElement | null 
+  selectedElement: TextElement | null
+  controlEnabled: boolean
 }>();
 
 const emit = defineEmits(['addElement', 'update-element']);
@@ -218,9 +219,10 @@ const rotationInDegrees = computed({
 
 <template>
   <div class="text-panel-container">
-    <div class="categories">
+    <div class="categories" v-if="!props.controlEnabled">
       <el-button @click="addText" :disabled="!!selectedElement">+ 添加文字</el-button>
-      
+    </div>
+    <div class="categories" v-if="props.controlEnabled">
       <div class="ctrl">
         <span>文字：</span>
         <el-input v-model="textProps.content" />

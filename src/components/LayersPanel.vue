@@ -3,7 +3,6 @@ import { computed } from "vue";
 import { useImagesStore } from "../store/images.ts";
 import draggable from 'vuedraggable';
 import type {CanvasElement} from "../Utilities/useImageEditor.ts";
-import Symbols from "./Symbols.vue";
 
 const imagesStore = useImagesStore();
 

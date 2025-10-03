@@ -15,8 +15,9 @@ import {
 } from './useImageEditor.ts';
 import {ErrorMessage} from "./AlertMessage.ts";
 import {createCanvasElement} from "./useCreateCanvasElement.ts";
-import {useImagesStore} from "../store/images.ts";
 import {nextTick} from "vue";
+// 引入 store 的類型，但不直接使用 useImagesStore()
+import type { ImagesStore } from '../store/images';
 
 interface IDragStart {
     x: number,
@@ -37,6 +38,7 @@ interface IDragStart {
 export class CanvasEditor {
     protected canvas?: HTMLCanvasElement;
     protected ctx?: CanvasRenderingContext2D;
+    protected store: ImagesStore; // 儲存 Pinia store 的引用
     public editingElement?: CanvasElement | null = null;
     // 點擊兩下編輯的輸入框
     public textInput: HTMLInputElement | null = null;
@@ -73,7 +75,8 @@ export class CanvasEditor {
     public isRotating: boolean = false;
 
 
-    constructor() {
+    constructor(store: ImagesStore) {
+        this.store = store;
         // 初始化裁切框
         this.cropBox = {
             x: 0,
@@ -91,8 +94,9 @@ export class CanvasEditor {
         this.canvas?.addEventListener('mouseleave', this.handleMouseUpOrLeave.bind(this));
     }
 
-    public setup(canvas: HTMLCanvasElement) {
+    public setup(canvas: HTMLCanvasElement, store?: ImagesStore) {
         this.canvas = canvas;
+        if (store) this.store = store;
         const context:CanvasRenderingContext2D | null = canvas.getContext('2d');
         if (!context) {
             throw new Error('Failed to get 2D context');
@@ -112,21 +116,19 @@ export class CanvasEditor {
     }
 
     public setImage(image: HTMLImageElement) {
-        const imagesStore = useImagesStore();
-        const index:number = imagesStore.addImage(image);
-        imagesStore.setOriginalImage(index);
+        const index:number = this.store.addImage(image);
+        this.store.setOriginalImage(index);
         this.render();
     }
 
     public async addElement(element: any) {
-        const imagesStore = useImagesStore();
-        if (!this.canvas || !imagesStore.originalImage) {
+        if (!this.canvas || !this.store.originalImage) {
             ErrorMessage('請先上傳一張圖片！');
             return;
         }
         const el = await createCanvasElement(element, this.canvas);
         if (el) {
-            imagesStore.elements.push(el);
+            this.store.addElement(el); // 使用 action 新增
             this.render();
         }
     };
@@ -161,23 +163,22 @@ export class CanvasEditor {
     public render() {
         if (!this.ctx || !this.canvas) return;
 
-        const { ctx, canvas, cropBox } = this;
-        const imagesStore = useImagesStore();
+        const { ctx, canvas, cropBox, store } = this;
 
         // 1. 清除畫布並填上白色背景
         ctx.fillStyle = "#FFFFFF";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         // 2. 繪製背景圖
-        if (imagesStore.originalImage) {
-            drawBackground(this.canvas, this.ctx, imagesStore.originalImage);
+        if (store.originalImage) {
+            drawBackground(this.canvas, this.ctx, store.originalImage);
         }
 
         // 3. 繪製裁切框
         drawCropMarks(canvas, ctx, cropBox);
 
         // 4. 繪製所有元素 (這就是多型的應用)
-        imagesStore.elements.forEach(element => {
+        store.elements.forEach(element => {
 
             // 如果元素正在被編輯，則不在 canvas 上繪製它，由 input 框取代
             if (this.editingElement?.id === element.id) return;
@@ -192,9 +193,9 @@ export class CanvasEditor {
         });
 
         // 5. 繪製控制項
-        if (imagesStore.selectedElement && !this.editingElement) {
-            const box = getElementBoundingBox(ctx, imagesStore.selectedElement);
-            drawControls(ctx, imagesStore.selectedElement, box);
+        if (store.selectedElement && !this.editingElement) {
+            const box = getElementBoundingBox(ctx, store.selectedElement);
+            drawControls(ctx, store.selectedElement, box);
         }
     }
     // 檢查是否在元素上面
@@ -214,12 +215,11 @@ export class CanvasEditor {
         );
     }
     public findElementAtPosition(x: number, y: number) {
-        const imagesStore = useImagesStore();
         const ctx = this.ctx;
         if (!ctx) return null;
 
         // 從後往前找，確保點擊到最上層的元素
-        return [...imagesStore.elements].reverse().find(el => {
+        return [...this.store.elements].reverse().find(el => {
             if ((el.type === 'sticker' || el.type === 'text') && el.rotation) {
                 // For rotated stickers, we need to check against the rotated bounding box
                 // A simpler way is to transform the click point into the element's local coordinate system
@@ -258,20 +258,18 @@ export class CanvasEditor {
         if (!this.canvas) return;
         const x = event.offsetX;
         const y = event.offsetY;
-        const imagesStore = useImagesStore();
         // Check for sticker handle interaction first
-        const isTransformable = imagesStore.selectedElement?.type === 'sticker' || imagesStore.selectedElement?.type === 'text';
-        if (imagesStore.selectedElement && isTransformable) {
-            const action = this.getActionForHandle(x, y, imagesStore.selectedElement);
+        const isTransformable = this.store.selectedElement?.type === 'sticker' || this.store.selectedElement?.type === 'text';
+        if (this.store.selectedElement && isTransformable) {
+            const action = this.getActionForHandle(x, y, this.store.selectedElement);
             if (action) {
                 if (action === 'del') {
                     // 執行刪除操作
-                    imagesStore.elements = imagesStore.elements.filter(el => el.id !== imagesStore.selectedElement!.id);
-                    imagesStore.selectedElement = null; // 清除選取
+                    this.store.removeElement(this.store.selectedElement!.id);
                     this.render();
                     return;
                 }
-                this.handleTransformStart(x, y, action, imagesStore.selectedElement);
+                this.handleTransformStart(x, y, action, this.store.selectedElement);
                 return;
             }
         }
@@ -279,7 +277,7 @@ export class CanvasEditor {
         const clickedElement = this.findElementAtPosition(x, y);
 
         // Handle element selection
-        imagesStore.selectedElement = clickedElement || null;
+        this.store.selectedElement = clickedElement || null;
 
         if (clickedElement) {
             this.isDraggingElement = true;
@@ -328,31 +326,30 @@ export class CanvasEditor {
         this.render();
     }
     private handleMouseMove(event: MouseEvent) {
-        const imagesStore = useImagesStore();
-        if (!this.canvas || !imagesStore.imageUrl) return;
+        if (!this.canvas || !this.store.imageUrl) return;
         const x = event.offsetX;
         const y = event.offsetY;
 
         // 處理元素拖曳
-        if (this.isDraggingElement && imagesStore.selectedElement) {
+        if (this.isDraggingElement && this.store.selectedElement) {
             this.canvas.style.cursor = "move";
             const dx = x - this.dragStart.x;
             const dy = y - this.dragStart.y;
-            imagesStore.selectedElement.x = this.dragStart.elementX + dx;
-            imagesStore.selectedElement.y = this.dragStart.elementY + dy;
+            this.store.selectedElement.x = this.dragStart.elementX + dx;
+            this.store.selectedElement.y = this.dragStart.elementY + dy;
             this.render();
             return;
         }
         // 處理貼圖旋轉
-        if (this.isRotating && imagesStore.selectedElement) {
+        if (this.isRotating && this.store.selectedElement) {
             this.canvas.style.cursor = "grabbing";
-            const currentAngle = Math.atan2(y - imagesStore.selectedElement.y, x - imagesStore.selectedElement.x);
-            imagesStore.selectedElement.rotation = currentAngle - this.dragStart.angle;
+            const currentAngle = Math.atan2(y - this.store.selectedElement.y, x - this.store.selectedElement.x);
+            this.store.selectedElement.rotation = currentAngle - this.dragStart.angle;
             this.render();
             return;
         }
         // 處理貼圖縮放
-        if (this.isResizing && imagesStore.selectedElement) {
+        if (this.isResizing && this.store.selectedElement) {
             // canvas.value.style.cursor = "nesw-resize"; // This could be more specific
             const dx = x - this.dragStart.x;
             const dy = y - this.dragStart.y;
@@ -373,11 +370,12 @@ export class CanvasEditor {
             // Dot product of mouse delta and corner vector to find projected distance
             const projectedDistance = (dx * rotatedCornerVectorX + dy * rotatedCornerVectorY);
 
-            const element = imagesStore.selectedElement;
+            const element = this.store.selectedElement;
             if (element.type === 'sticker') {
                 const newWidth = Math.max(10, this.dragStart.elementWidth + projectedDistance * Math.SQRT2);
+                const newHeight = newWidth / this.dragStart.aspectRatio;
                 (element as StickerElement).width = newWidth;
-                (element as StickerElement).height = newWidth / this.dragStart.aspectRatio;
+                (element as StickerElement).height = newHeight;
             } else if (element.type === 'text') {
                 (element as TextElement).fontSize = Math.max(10, this.dragStart.elementSize + projectedDistance * Math.SQRT2);
             } else if (element.type === 'icon') {
@@ -402,10 +400,10 @@ export class CanvasEditor {
         }
 
         // 根據滑鼠位置改變指標樣式 (Hover)
-        const isTransformable = imagesStore.selectedElement?.type === 'sticker' || imagesStore.selectedElement?.type === 'text';
+        const isTransformable = this.store.selectedElement?.type === 'sticker' || this.store.selectedElement?.type === 'text';
 
-        if (imagesStore.selectedElement && isTransformable) {
-            const action = this.getActionForHandle(x, y, imagesStore.selectedElement);
+        if (this.store.selectedElement && isTransformable) {
+            const action = this.getActionForHandle(x, y, this.store.selectedElement);
             if (action === 'del') {
                 this.canvas.style.cursor = 'pointer';
                 return;
@@ -430,13 +428,12 @@ export class CanvasEditor {
         }
     }
     private handleDoubleClick(event: MouseEvent) {
-        const imagesStore = useImagesStore();
-        if (!imagesStore.imageUrl || !this.ctx) return;
+        if (!this.store.imageUrl || !this.ctx) return;
         const clickedElement = this.findElementAtPosition(event.offsetX, event.offsetY);
 
         // 只有文字元素可以雙擊編輯
         if (clickedElement && clickedElement.type === 'text') {
-            imagesStore.setSelectedElement(null);
+            this.store.setSelectedElement(null);
             this.editingElement = clickedElement;
             const box = getElementBoundingBox(this.ctx, clickedElement)!;
 
@@ -469,6 +466,11 @@ export class CanvasEditor {
     // 銷毀時要移除監聽器
     public destroy() {
         this.textInput = null;
+        this.canvas?.removeEventListener('mousedown', this.handleMouseDown.bind(this));
+        this.canvas?.removeEventListener('mousemove', this.handleMouseMove.bind(this));
+        this.canvas?.removeEventListener('dblclick', this.handleDoubleClick.bind(this));
+        this.canvas?.removeEventListener('mouseup', this.handleMouseUpOrLeave.bind(this));
+        this.canvas?.removeEventListener('mouseleave', this.handleMouseUpOrLeave.bind(this));
         this.canvas = undefined;
         this.ctx = undefined;
     }

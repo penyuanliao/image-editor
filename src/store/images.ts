@@ -1,16 +1,21 @@
 import { defineStore } from 'pinia';
 import type { CanvasElement } from "../Utilities/useImageEditor.ts";
 
+// 為了讓 CanvasEditor 能夠傳入 store，我們需要匯出 store 的類型
+export type ImagesStore = ReturnType<typeof useImagesStore>;
+
+interface ImagesStoreState {
+  imageList: HTMLImageElement[];
+  originalImage: HTMLImageElement | null | undefined;
+  elements: CanvasElement[];
+  selectedElement: CanvasElement | null;
+  editingElement: CanvasElement | null;
+  imageUrl: string | null;
+  deleteIcon: HTMLImageElement;
+}
+
 export const useImagesStore = defineStore('images', {
-  state: (): {
-    imageList: HTMLImageElement[],
-    originalImage: HTMLImageElement | null | undefined,
-    elements: CanvasElement[],
-    selectedElement: CanvasElement | null,
-    editingElement: CanvasElement | null,
-    imageUrl: string | null,
-    deleteIcon: HTMLImageElement,
-  } => ({
+  state: (): ImagesStoreState => ({
     imageList: [],
     originalImage: null,
     // 畫布上的元素 (文字、圖形等)
@@ -33,6 +38,26 @@ export const useImagesStore = defineStore('images', {
         this.originalImage = this.imageList[index];
         this.imageUrl = this.imageList[index]?.src || null;
       }
+    },
+    addElement(element: CanvasElement) {
+      this.elements.push(element);
+      this.selectedElement = element; // 新增後自動選取
+    },
+    // 執行刪除操作
+    removeElement(elementId: number) {
+      this.elements = this.elements.filter(el => el.id !== elementId);
+      if (this.selectedElement?.id === elementId) {
+        this.selectedElement = null;
+      }
+    },
+    updateElement(elementId: number, props: Partial<CanvasElement>) {
+      const element = this.elements.find(el => el.id === elementId);
+      if (element) {
+        Object.assign(element, props);
+      }
+    },
+    reorderElements(elements: CanvasElement[]) {
+      this.elements = elements;
     },
     // 設定選擇的物件
     setSelectedElement(element: CanvasElement | null) {

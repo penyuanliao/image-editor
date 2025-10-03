@@ -11,7 +11,7 @@ const emit = defineEmits(['element-selected']);
 const fileInput = ref<HTMLInputElement | null>(null);
 const canvas = ref<HTMLCanvasElement | null>(null);
 
-const editor = ref<CanvasEditor>(new CanvasEditor());
+const editor = ref<CanvasEditor>(new CanvasEditor(imagesStore));
 
 // 使用 SVG 建立一個白色的 'X' 圖示
 const deleteIconSVG = `
