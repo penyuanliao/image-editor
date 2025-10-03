@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useImagesStore } from '../store/images';
-import type { StickerElement } from './useImageEditor';
+import type { StickerElement } from '../Utilities/useImageEditor.ts';
 
 const imagesStore = useImagesStore();
 
@@ -45,8 +45,12 @@ const rotationInDegrees = computed({
         <el-input-number v-model="selectedSticker.y" :controls="false" style="width: 100%" />
       </div>
       <div class="ctrl">
-        <span>大小：</span>
-        <el-slider v-model="selectedSticker.size" :min="10" :max="500" style="width: 100%" />
+        <span>寬：</span>
+        <el-input-number v-model="selectedSticker.width" :controls="false" style="width: 100%" />
+      </div>
+      <div class="ctrl">
+        <span>高：</span>
+        <el-input-number v-model="selectedSticker.height" :controls="false" style="width: 100%" />
       </div>
       <div class="ctrl">
         <span>旋轉角度：</span>

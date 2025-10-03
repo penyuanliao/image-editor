@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import type { CanvasElement } from "../components/useImageEditor.ts";
+import type { CanvasElement } from "../Utilities/useImageEditor.ts";
 
 export const useImagesStore = defineStore('images', {
   state: (): {

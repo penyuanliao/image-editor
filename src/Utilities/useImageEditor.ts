@@ -1,3 +1,4 @@
+
 import { useImagesStore } from "../store/images.ts";
 
 export interface AbsoluteElement {
@@ -9,9 +10,8 @@ export interface AbsoluteElement {
     rotation?: number; // 旋轉角度 (radians)
 }
 export interface StickerElement extends AbsoluteElement {
-    width?: number;
-    height?: number;
-    size?: number;
+    width: number;
+    height: number;
     img?: HTMLImageElement;
     url?: string;
 }
@@ -46,38 +46,6 @@ export interface CanvasElement extends StickerElement, TextElement, SVGElement {
     id: number;
     type: 'text' | 'icon' | 'sticker';
 }
-export interface CanvasElement_2 extends AbsoluteElement {
-    id: number;
-    type: 'text' | 'icon' | 'sticker';
-    x: number;
-    y: number;
-    rotation?: number; // 旋轉角度 (radians)
-    content: string;
-    color: string;
-    // 文字屬性
-    fontSize?: number;
-    fontFamily?: string;
-    fontWeight?: 'normal' | 'bold';
-    lineHeight?: number;
-    // 圖示/貼圖屬性
-    size?: number;
-    img?: HTMLImageElement;
-    url?: string;
-    // 陰影屬性
-    shadowColor?: string;
-    shadowBlur?: number;
-    shadowOffsetX?: number;
-    shadowOffsetY?: number;
-    // 外框屬性
-    strokeColor?: string;
-    strokeWidth?: number;
-    // 漸層屬性
-    gradientEnabled?: boolean;
-    gradientStartColor?: string;
-    gradientEndColor?: string;
-    gradientAngle?: number;
-}
-
 /**
  * 把上傳的圖片繪製到底圖
  * @param canvasEl
@@ -219,19 +187,18 @@ export const drawSVG = (ctx: CanvasRenderingContext2D, element: SVGElement) => {
  * @param element
  */
 export const drawSticker = (ctx: CanvasRenderingContext2D, element: StickerElement) => {
-    if (element.img && element.size) {
+    if (element.img && element.width && element.height) {
         ctx.save();
         // Translate to the element's center, rotate, and then draw the image
         ctx.translate(element.x, element.y);
         ctx.rotate(element.rotation || 0);
-        const size = element.size;
         // Draw the image centered on the new (0,0) origin
-        ctx.drawImage(element.img, -size / 2, -size / 2, size, size);
+        ctx.drawImage(element.img, -element.width / 2, -element.height / 2, element.width, element.height);
         ctx.restore();
     }
 }
 // --- 元素互動輔助函式 ---
-export const getElementBoundingBox = (ctx: CanvasRenderingContext2D, el: TextElement | StickerElement) => {
+export const getElementBoundingBox = (ctx: CanvasRenderingContext2D, el: CanvasElement) => {
     if (!ctx) return null;
     let width: number = 0;
     let height: number = 0;
@@ -246,11 +213,17 @@ export const getElementBoundingBox = (ctx: CanvasRenderingContext2D, el: TextEle
         width = Math.max(...metrics.map(m => m.width));
         const lineHeight = element.lineHeight || 1.2;
         height = lines.length * (element.fontSize || 1) * lineHeight;
+        x = el.x - width / 2;
+        y = el.y - height / 2;
+
+    } else if (el.type === 'sticker') {
+        const element: StickerElement = el as StickerElement;
+        width = element.width || 1;
+        height = element.height || 1;
         x = element.x - width / 2;
         y = element.y - height / 2;
-
-    } else if ((el.type === 'icon' || el.type === 'sticker')) {
-        const element: StickerElement = el as StickerElement;
+    } else if (el.type === 'icon') {
+        const element: SVGElement = el as SVGElement;
         width = element.size || 1;
         height = element.size || 1;
         x = element.x - width / 2;
@@ -267,7 +240,7 @@ export const getElementBoundingBox = (ctx: CanvasRenderingContext2D, el: TextEle
 }
 //
 export const getTransformHandles = (ctx: CanvasRenderingContext2D, element: TextElement | StickerElement) => {
-    const box = getElementBoundingBox(ctx, element);
+    const box = getElementBoundingBox(ctx, element as CanvasElement);
     if (!box) return null;
 
     const { width: w, height: h } = box;
@@ -371,4 +344,4 @@ export const drawControls = (ctx: CanvasRenderingContext2D, element: AbsoluteEle
             ctx.setLineDash([]);
         }
     }
-}
+};

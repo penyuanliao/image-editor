@@ -1,23 +1,17 @@
 <script setup lang="ts">
-import { ref, reactive, nextTick, watch } from "vue";
-import {
-  drawBackground,
-  drawCropMarks,
-  drawSticker,
-  drawSVG,
-  drawText,
-  type CanvasElement,
-  drawControls, getElementBoundingBox, getTransformHandles
-} from "./useImageEditor.ts";
-import { useImagesStore } from "../store/images.ts";
-import {ErrorMessage} from "../Utilities/AlertMessage.ts";
+import {onMounted, reactive, ref, watch} from "vue";
+import type { CanvasElement } from "../Utilities/useImageEditor.ts";
+import {useImagesStore} from "../store/images.ts";
 import {processFile} from "../Utilities/FileProcessor.ts";
+import {CanvasEditor} from "../Utilities/CanvasEditor.ts";
 
 const imagesStore = useImagesStore();
 const emit = defineEmits(['element-selected']);
 
 const fileInput = ref<HTMLInputElement | null>(null);
 const canvas = ref<HTMLCanvasElement | null>(null);
+
+const editor = ref<CanvasEditor>(new CanvasEditor());
 
 // 使用 SVG 建立一個白色的 'X' 圖示
 const deleteIconSVG = `
@@ -29,44 +23,21 @@ const deleteIconSVG = `
 imagesStore.deleteIcon.src = `data:image/svg+xml;base64,${btoa(deleteIconSVG)}`;
 
 // 裁切框的狀態
-const cropBox = reactive({
-  x: 150,
-  y: 150,
-  width: 800,
-  height: 400,
-});
+const cropBox = reactive(editor.value.cropBox);
 
 // --- 互動狀態管理 ---
-const editingElement = ref<CanvasElement | null>(null);
 const textInput = ref<HTMLInputElement | null>(null);
 // 文字編輯狀態
 const isComposing = ref<boolean>(false);
 
-const textInputStyle = reactive({
-  top: '0px',
-  left: '0px',
-  width: '0px',
-  height: '0px',
-  fontSize: '32px',
-  fontFamily: 'Arial',
-});
+const textInputStyle = reactive(editor.value.textInputStyle);
 
-// 拖曳裁切框相關的狀態
-const isDraggingCropBox = ref(false);
-const isDraggingElement = ref(false);
-const isResizing = ref<string | null>(null);
-const isRotating = ref(false);
-const dragStart = reactive({
-  x: 0,
-  y: 0,
-  boxX: 0,
-  boxY: 0,
-  elementX: 0,
-  elementY: 0,
-  elementSize: 0,
-  elementRotation: 0,
-  angle: 0,
-});
+onMounted(() => {
+  if (canvas.value) {
+    editor.value.setup(canvas.value);
+    editor.value.textInput = textInput.value;
+  }
+})
 
 // --- Event Emitters and Watchers ---
 watch(() => imagesStore.selectedElement, (newSelection) => {
@@ -76,373 +47,36 @@ watch(() => imagesStore.selectedElement, (newSelection) => {
 
 // 這邊檢查物件有異動就刷新畫面
 watch(() => imagesStore.elements, () => {
-  redrawCanvas();
+  editor.value.render();
 }, { deep: true });
 
 watch(() => imagesStore.originalImage, () => {
-  resetCropMarks();
-  redrawCanvas(); // 進行初次繪製
-}, { deep: true })
-
-const resetCropMarks = () => {
-  // 將裁切框重設到畫布中心
-  if (canvas.value) {
-    cropBox.x = (canvas.value.width - cropBox.width) / 2;
-    cropBox.y = (canvas.value.height - cropBox.height) / 2;
-  }
-};
-
-// --- 統一的約束與重繪邏輯 ---
-const constrainCropBox = () => {
-  if (!canvas.value) return false;
-
-  const original = { ...cropBox };
-
-  const minSize = 10;
-  // 使用 Math.round 避免拖曳時產生小數
-  let w = Math.round(Math.max(minSize, cropBox.width));
-  let h = Math.round(Math.max(minSize, cropBox.height));
-
-  // 確保尺寸不超過畫布
-  w = Math.min(w, canvas.value.width);
-  h = Math.min(h, canvas.value.height);
-
-  // 確保位置在邊界內
-  let x = Math.round(Math.max(0, Math.min(cropBox.x, canvas.value.width - w)));
-  let y = Math.round(Math.max(0, Math.min(cropBox.y, canvas.value.height - h)));
-
-  // 應用約束後的值
-  cropBox.width = w;
-  cropBox.height = h;
-  cropBox.x = x;
-  cropBox.y = y;
-
-  // 回傳是否有值被更改
-  return original.x !== x || original.y !== y || original.width !== w || original.height !== h;
-};
+  editor.value.resetCropMarks();
+  editor.value.render(); // 進行初次繪製
+}, { deep: true });
 
 // 監聽裁切框的任何變更（來自拖曳或輸入框）
-watch(cropBox, () => {
+watch(editor.value.cropBox, () => {
   // 當 cropBox 變更時，先套用約束
-  const wasConstrained = constrainCropBox();
+  const wasConstrained = editor.value.constrainCropBox();
 
   // 如果值沒有被約束（表示值是有效的），則直接重繪
   // 如果值被約束了，此函式會被再次觸發，屆時 wasConstrained 會是 false，然後再重繪
   if (!wasConstrained) {
-    redrawCanvas();
+    editor.value.render();
   }
 }, { deep: true });
-
-// 重新繪製整個畫布（背景、圖片、裁切框）
-const redrawCanvas = () => {
-  const ctx = canvas.value?.getContext("2d");
-  if (!ctx || !canvas.value) return;
-
-  const canvasEl = canvas.value;
-
-  // 1. 清除畫布並填上白色背景
-  ctx.fillStyle = "#FFFFFF";
-  ctx.fillRect(0, 0, canvasEl.width, canvasEl.height);
-
-  // 2. 繪製置中的原始圖片
-  if (imagesStore.originalImage) {
-    drawBackground(canvasEl, ctx, imagesStore.originalImage);
-  }
-  // 3. 若有圖片，則繪製裁切框的半透明遮罩和邊框
-  if (imagesStore.imageUrl) {
-    drawCropMarks(canvasEl, ctx, cropBox);
-
-    // 4. 繪製所有其他元素
-    imagesStore.elements.forEach(element => {
-
-      // 如果元素正在被編輯，則不在 canvas 上繪製它，由 input 框取代
-      if (editingElement.value?.id === element.id) return;
-
-      if (element.type === 'text') {
-        drawText(ctx, element);
-      } else if (element.type === 'icon') {
-        drawSVG(ctx, element);
-      } else if (element.type === 'sticker') {
-        drawSticker(ctx, element);
-      }
-    });
-
-    // 5. 如果有選中元素，繪製選取框
-    if (imagesStore.selectedElement && !editingElement.value) {
-      const ctx = canvas.value?.getContext("2d") as CanvasRenderingContext2D;
-      const box = getElementBoundingBox(ctx, imagesStore.selectedElement);
-      drawControls(ctx, imagesStore.selectedElement, box);
-    }
-  }
-};
-
-// --- 裁切框拖曳事件處理 ---
-const isPointInCropBox = (x: number, y: number) => {
-  return (
-    x >= cropBox.x &&
-    x <= cropBox.x + cropBox.width &&
-    y >= cropBox.y &&
-    y <= cropBox.y + cropBox.height
-  );
-};
-const isPointInBox = (px: number, py: number, box: {x: number, y: number, width: number, height: number}) => {
-  return px >= box.x && px <= box.x + box.width && py >= box.y && py <= box.y + box.height;
-}
-
-const getActionForHandle = (x: number, y: number, element: CanvasElement) => {
-  const ctx = canvas.value?.getContext("2d") as CanvasRenderingContext2D;
-  const handles = getTransformHandles(ctx, element);
-  if (!handles) return null;
-
-  const handleRadius = 8; // Larger click area for handles
-  for (const [key, p] of Object.entries(handles.points)) {
-    if (Math.hypot(p.x - x, p.y - y) < handleRadius) {
-      return key; // 'tl', 'tr', 'bl', 'br', 'rot', 'del'
-    }
-  }
-  return null;
-};
-
-const findElementAtPosition = (x: number, y: number) => {
-  const ctx = canvas.value?.getContext("2d") as CanvasRenderingContext2D;
-// 從後往前找，確保點擊到最上層的元素
-  return [...imagesStore.elements].reverse().find(el => {
-    if ((el.type === 'sticker' || el.type === 'text') && el.rotation) {
-      // For rotated stickers, we need to check against the rotated bounding box
-      // A simpler way is to transform the click point into the element's local coordinate system
-      const angle = el.rotation || 0;
-      const dx = x - el.x;
-      const dy = y - el.y;
-      const localX = dx * Math.cos(-angle) - dy * Math.sin(-angle);
-      const localY = dx * Math.sin(-angle) + dy * Math.cos(-angle);
-
-      const box = getElementBoundingBox(ctx, el);
-      if (!box) return false;
-      return Math.abs(localX) < box.width / 2 && Math.abs(localY) < box.height / 2;
-    } else {
-      // For other elements, use the axis-aligned bounding box
-      const box = getElementBoundingBox(ctx, el);
-      return box && isPointInBox(x, y, box);
-    }
-  });
-};
-
-// --- Canvas 事件處理 ---
-
-const onCanvasMouseDown = (event: MouseEvent) => {
-  if (!imagesStore.imageUrl || !canvas.value) return;
-  const x = event.offsetX;
-  const y = event.offsetY;
-
-  // Check for sticker handle interaction first
-  const isTransformable = imagesStore.selectedElement?.type === 'sticker' || imagesStore.selectedElement?.type === 'text';
-  if (imagesStore.selectedElement && isTransformable) {
-    const action = getActionForHandle(x, y, imagesStore.selectedElement);
-    if (action) {
-      if (action === 'del') {
-        // 執行刪除操作
-        imagesStore.elements = imagesStore.elements.filter(el => el.id !== imagesStore.selectedElement!.id);
-        imagesStore.selectedElement = null; // 清除選取
-        redrawCanvas();
-        return;
-      }
-      handleTransformStart(x, y, action, imagesStore.selectedElement);
-      return;
-    }
-  }
-
-  const clickedElement = findElementAtPosition(x, y);
-
-  // Handle element selection
-  imagesStore.selectedElement = clickedElement || null;
-
-  if (clickedElement) {
-    isDraggingElement.value = true;
-    dragStart.x = x;
-    dragStart.y = y;
-    dragStart.elementX = clickedElement.x;
-    dragStart.elementY = clickedElement.y;
-  } else if (isPointInCropBox(x, y)) {
-    isDraggingCropBox.value = true;
-    dragStart.x = event.offsetX;
-    dragStart.y = event.offsetY;
-    dragStart.boxX = cropBox.x;
-    dragStart.boxY = cropBox.y;
-  }
-
-  redrawCanvas();
-};
-
-const handleTransformStart = (x: number, y: number, action: string, element: CanvasElement) => {
-  dragStart.x = x;
-  dragStart.y = y;
-  dragStart.elementX = element.x;
-  dragStart.elementY = element.y;
-  // For text, we scale fontSize. For stickers, we scale size.
-  dragStart.elementSize = element.fontSize || element.size || 0;
-  dragStart.elementRotation = element.rotation || 0;
-  if (action === 'rot') {
-    isRotating.value = true;
-    // Calculate initial angle between center and mouse
-    dragStart.angle = Math.atan2(y - element.y, x - element.x) - dragStart.elementRotation;
-  } else {
-    isResizing.value = action; // 'tl', 'tr', 'bl', 'br'
-  }
-  redrawCanvas();
-};
-
-const onCanvasMouseMove = (event: MouseEvent) => {
-  if (!imagesStore.imageUrl || !canvas.value) return;
-  const x = event.offsetX;
-  const y = event.offsetY;
-
-  // 處理元素拖曳
-  if (isDraggingElement.value && imagesStore.selectedElement) {
-    canvas.value.style.cursor = "move";
-    const dx = x - dragStart.x;
-    const dy = y - dragStart.y;
-    imagesStore.selectedElement.x = dragStart.elementX + dx;
-    imagesStore.selectedElement.y = dragStart.elementY + dy;
-    redrawCanvas();
-    return;
-  }
-
-  // 處理貼圖旋轉
-  if (isRotating.value && imagesStore.selectedElement) {
-    canvas.value.style.cursor = "grabbing";
-    const currentAngle = Math.atan2(y - imagesStore.selectedElement.y, x - imagesStore.selectedElement.x);
-    imagesStore.selectedElement.rotation = currentAngle - dragStart.angle;
-    redrawCanvas();
-    return;
-  }
-
-  // 處理貼圖縮放
-  if (isResizing.value && imagesStore.selectedElement) {
-    // canvas.value.style.cursor = "nesw-resize"; // This could be more specific
-    const dx = x - dragStart.x;
-    const dy = y - dragStart.y;
-
-    // Project mouse movement onto the vector from center to corner
-    const angle = dragStart.elementRotation;
-    const cos = Math.cos(angle);
-    const sin = Math.sin(angle);
-
-    // Get the vector for the dragged corner in its un-rotated state
-    let cornerVectorX = isResizing.value.includes('r') ? 1 : -1;
-    let cornerVectorY = isResizing.value.includes('b') ? 1 : -1;
-
-    // Rotate the corner vector
-    const rotatedCornerVectorX = cornerVectorX * cos - cornerVectorY * sin;
-    const rotatedCornerVectorY = cornerVectorX * sin + cornerVectorY * cos;
-
-    // Dot product of mouse delta and corner vector to find projected distance
-    const projectedDistance = (dx * rotatedCornerVectorX + dy * rotatedCornerVectorY);
-
-    // New size (maintaining aspect ratio)
-    const newSize = Math.max(10, dragStart.elementSize + projectedDistance * Math.SQRT2);
-
-    if (imagesStore.selectedElement.type === 'sticker') {
-      imagesStore.selectedElement.size = newSize;
-    } else if (imagesStore.selectedElement.type === 'text') {
-      imagesStore.selectedElement.fontSize = newSize;
-    }
-
-    redrawCanvas();
-    return;
-  }
-
-  // 處理裁切框拖曳
-  if (isDraggingCropBox.value) {
-    canvas.value.style.cursor = "move";
-    const dx = event.offsetX - dragStart.x;
-    const dy = event.offsetY - dragStart.y;
-
-    // 直接更新值，讓 watcher 處理約束和重繪
-    cropBox.x = dragStart.boxX + dx;
-    cropBox.y = dragStart.boxY + dy;
-
-    return;
-  }
-
-  // 根據滑鼠位置改變指標樣式 (Hover)
-  const isTransformable = imagesStore.selectedElement?.type === 'sticker' || imagesStore.selectedElement?.type === 'text';
-  if (imagesStore.selectedElement && isTransformable) {
-    const action = getActionForHandle(x, y, imagesStore.selectedElement);
-    if (action === 'del') {
-      canvas.value.style.cursor = 'pointer';
-      return;
-    } else if (action === 'rot') {
-      canvas.value.style.cursor = 'grabbing'; // Or a custom rotation cursor
-      return;
-    } else if (action) {
-      // Set cursor based on corner
-      // const rotation = (imagesStore.selectedElement.rotation || 0) * 180 / Math.PI;
-      if (action === 'tl' || action === 'br') canvas.value.style.cursor = 'nwse-resize';
-      if (action === 'tr' || action === 'bl') canvas.value.style.cursor = 'nesw-resize';
-      // Note: Rotating the cursor itself is complex, this is a good approximation.
-      return;
-    }
-  }
-
-  const hoveredElement = findElementAtPosition(x, y);
-  if (hoveredElement) {
-    canvas.value.style.cursor = 'move';
-  } else if (isPointInCropBox(x, y)) {
-    canvas.value.style.cursor = 'move';
-  } else {
-    canvas.value.style.cursor = 'default';
-  }
-};
-
-const onCanvasDoubleClick = (event: MouseEvent) => {
-  if (!imagesStore.imageUrl) return;
-  const clickedElement = findElementAtPosition(event.offsetX, event.offsetY);
-
-  // 只有文字元素可以雙擊編輯
-  if (clickedElement && clickedElement.type === 'text') {
-    imagesStore.setSelectedElement(null);
-    editingElement.value = clickedElement;
-    const ctx = canvas.value?.getContext("2d") as CanvasRenderingContext2D;
-    const box = getElementBoundingBox(ctx, clickedElement)!;
-
-    // 設定 input 的樣式和位置
-    textInputStyle.left = `${box.x}px`;
-    textInputStyle.top = `${box.y}px`;
-    textInputStyle.width = `${box.width + 20}px`; // 增加一點寬度方便輸入
-    textInputStyle.height = `${box.height}px`;
-    textInputStyle.fontSize = `${clickedElement.fontSize}px`;
-    textInputStyle.fontFamily = clickedElement.fontFamily || '';
-
-    redrawCanvas(); // 重新繪製，隱藏 canvas 上的文字
-
-    nextTick(() => {
-      textInput.value?.focus();
-      textInput.value?.select();
-    });
-  }
-};
-
-const onCanvasMouseUpOrLeave = () => {
-  isDraggingCropBox.value = false;
-  isDraggingElement.value = false;
-  isResizing.value = null;
-  isRotating.value = false;
-  if (canvas.value) {
-    // 恢復指標樣式，讓mousemove事件下次可以重新判斷
-    canvas.value.style.cursor = "default";
-  }
-};
 
 // --- 文字編輯方法 ---
 const finishEditing = () => {
   if (isComposing.value) return;
-  if (!editingElement.value) return;
+  if (!editor.value.editingElement) return;
   // 如果編輯後文字為空，則移除該元素
-  if (editingElement.value.content.trim() === '') {
-    imagesStore.elements = imagesStore.elements.filter(el => el.id !== editingElement.value!.id);
+  if (editor.value.editingElement.content.trim() === '') {
+    imagesStore.elements = imagesStore.elements.filter(el => el.id !== editor.value.editingElement!.id);
   }
-  editingElement.value = null;
-  redrawCanvas();
+  editor.value.editingElement = null;
+  editor.value.render();
 };
 // 處理IME輸入問題
 const compositionStart = () => {
@@ -494,95 +128,27 @@ const saveImage = () => {
 };
 
 // --- 供外部呼叫的方法 ---
-const addElement = (element: any) => {
-  if (!canvas.value || !imagesStore.imageUrl) {
-    ErrorMessage('請先上傳一張圖片！');
-    return;
-  }
-
-  if (element.type === 'text') {
-    imagesStore.elements.push({
-      id: Date.now(),
-      type: 'text',
-      name: element.name || '新文字',
-      content: element.content || '新文字',
-      x: canvas.value.width / 2, // 預設放在畫布中央
-      y: canvas.value.height / 2,
-      fontSize: element.fontSize || 32,
-      fontFamily: element.fontFamily || 'Arial',
-      color: element.color || 'black',
-      fontWeight: element.fontWeight || 'normal',
-      lineHeight: element.lineHeight || 1.2,
-      shadowColor: element.shadowColor,
-      shadowBlur: element.shadowBlur,
-      shadowOffsetX: element.shadowOffsetX,
-      shadowOffsetY: element.shadowOffsetY,
-      strokeColor: element.strokeColor,
-      strokeWidth: element.strokeWidth,
-      rotation: 0,
-      gradientEnabled: element.gradientEnabled,
-      gradientStartColor: element.gradientStartColor,
-      gradientEndColor: element.gradientEndColor,
-      gradientAngle: element.gradientAngle,
-    });
-    redrawCanvas();
-  } else if (element.type === 'icon') {
-    imagesStore.elements.push({
-      id: Date.now(),
-      type: 'icon',
-      name: element.name || '新貼圖',
-      content: element.content || '',
-      x: canvas.value.width / 2,
-      y: canvas.value.height / 2,
-      size: 50, // 預設圖示大小
-      color: 'black',
-    });
-    redrawCanvas();
-  } else if (element.type === 'sticker') {
-    const img = new Image();
-    img.onload = () => {
-      if (!canvas.value) return;
-      imagesStore.elements.push({
-        id: Date.now(),
-        type: 'sticker',
-        name: element.name || '新貼圖',
-        content: element.payload, // URL
-        x: canvas.value.width / 2,
-        y: canvas.value.height / 2,
-        size: 100, // Default sticker size
-        img: img,
-        rotation: 0,
-        color: '', // Not used, but to satisfy interface
-      });
-      redrawCanvas();
-    };
-    img.src = element.payload;
-  }
+const addElement = async (element: any) => {
+  editor.value.addElement(element);
 };
 
 const updateSelectedElement = (newProps: Partial<CanvasElement>) => {
   if (!imagesStore.selectedElement) return;
 
-  // Merge the new properties into the selected element
   Object.assign(imagesStore.selectedElement, newProps);
-  
-  redrawCanvas();
+
+  editor.value.render();
 };
 
-// 點擊容器時，觸發隱藏的 file input
 const onContainerClick = () => {
   fileInput.value?.click();
 };
 
-// 處理透過點擊選擇的檔案
 const onFileChange = async (event: Event) => {
   const target = event.target as HTMLInputElement;
   if (target.files && target.files[0]) {
     const info = await processFile(target.files[0]);
-    const index = imagesStore.addImage(info.image);
-    imagesStore.setOriginalImage(index);
-    resetCropMarks();
-    redrawCanvas(); // 進行初次繪製
+    editor.value.setImage(info.image);
   }
 };
 
@@ -600,31 +166,23 @@ defineExpose({ addElement, updateSelectedElement });
       accept="image/*"
       hidden
     />
-    <!-- Canvas 畫布現在是主要顯示區域 -->
     <canvas
       ref="canvas"
       width="800"
       height="600"
       class="editor-canvas"
-      @mousedown="onCanvasMouseDown"
-      @mousemove="onCanvasMouseMove"
-      @mouseup="onCanvasMouseUpOrLeave"
-      @mouseleave="onCanvasMouseUpOrLeave"
-      @dblclick="onCanvasDoubleClick"
     ></canvas>
-    <!-- 文字編輯輸入框 -->
     <input
-      v-if="editingElement"
+      v-if="editor.editingElement"
       ref="textInput"
-      v-model="editingElement.content"
+      v-model="editor.editingElement.content"
       :style="textInputStyle"
       class="text-editor-input"
       @compositionstart="compositionStart"
       @compositionend="compositionEnd"
-      @focus="finishEditing"
+      @focusout="finishEditing"
       @keydown.enter.prevent="finishEditing"
     />
-    <!-- 上傳提示變成一個覆蓋層 -->
     <div v-if="!imagesStore.imageUrl" class="upload-prompt-overlay">
       <div class="prompt-content">
         <p>點擊下方按鈕上傳圖片</p>
@@ -638,7 +196,6 @@ defineExpose({ addElement, updateSelectedElement });
       <button v-if="imagesStore.imageUrl" class="save-button" @click="saveImage">
         儲存圖片
       </button>
-      <!-- 裁切框控制項 -->
       <div v-if="imagesStore.imageUrl" class="crop-controls">
         <div class="input-group">
           <label for="crop-x">X:</label>
@@ -674,7 +231,7 @@ defineExpose({ addElement, updateSelectedElement });
 }
 
 .uploader-container:hover {
-  border-color: #409eff; /* Element Plus 主題色 */
+  border-color: #409eff;
 }
 
 .editor-canvas {
@@ -693,7 +250,7 @@ defineExpose({ addElement, updateSelectedElement });
   display: flex;
   justify-content: center;
   align-items: center;
-  pointer-events: none; /* 讓點擊事件可以穿透到下方的 container */
+  pointer-events: none;
 }
 
 .prompt-content {
@@ -705,7 +262,7 @@ defineExpose({ addElement, updateSelectedElement });
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.5rem; /* 增加按鈕和畫布的間距 */
+  gap: 1.5rem;
 }
 
 .actions-bar {
@@ -717,7 +274,6 @@ defineExpose({ addElement, updateSelectedElement });
 }
 
 .upload-button {
-  /* 此按鈕現在是唯一的上傳方式 */
   padding: 10px 20px;
   border: none;
   background-color: #409eff;
@@ -734,7 +290,7 @@ defineExpose({ addElement, updateSelectedElement });
 .save-button {
   padding: 10px 20px;
   border: none;
-  background-color: #67c23a; /* Element Plus success color */
+  background-color: #67c23a;
   color: white;
   border-radius: 5px;
   cursor: pointer;
@@ -793,7 +349,7 @@ defineExpose({ addElement, updateSelectedElement });
   border: 1px solid #ccc;
   border-radius: 4px;
 }
-/* 隱藏 number input 的上下箭頭 */
+
 .input-group input::-webkit-outer-spin-button,
 .input-group input::-webkit-inner-spin-button {
   -webkit-appearance: none;
