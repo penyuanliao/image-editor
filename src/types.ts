@@ -30,7 +30,7 @@ export interface StickerElement {
 export type ImageEditorElement = TextElement; // Add other element types here in the future
 
 export interface ImageEditorAction {
-    type: "icon" | "text" | "sticker";
+    type: "icon" | "text" | "sticker" | "image";
     content?: string;
     color?: string;
     fontSize?: number;

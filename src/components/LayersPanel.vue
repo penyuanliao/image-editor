@@ -17,6 +17,8 @@ const reversedElements = computed({
     // When vuedraggable updates the model, it's already in the reversed order.
     // We need to reverse it back before committing to the store.
     imagesStore.elements = [...newValue].reverse();
+    // const firstElement = newValue[0];
+    // imagesStore.originalImage = firstElement?.img;
   }
 });
 const onClickLayerHandle = (element: CanvasElement) => {
@@ -84,6 +86,11 @@ const onClickLayerHandle = (element: CanvasElement) => {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
 }
 .layer:hover {

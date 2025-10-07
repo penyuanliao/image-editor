@@ -6,10 +6,6 @@ import {ImageEditorTypes} from "../types.ts";
 const selected = ref<number>(0);
 const buttonGroup: { icon: string, text: string }[] = [
   {
-    icon: 'image',
-    text: '背景'
-  },
-  {
     icon: 'text',
     text: '文字'
   },

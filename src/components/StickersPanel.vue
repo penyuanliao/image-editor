@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import {computed, ref} from "vue";
 import { Search } from "@element-plus/icons-vue";
 import type { StickerElement } from "../types.ts";
+import {useImagesStore} from "../store/images.ts";
+const imagesStore = useImagesStore();
 
 const emit = defineEmits<{ (e: 'add-element', action: StickerElement): void }>();
 
@@ -11,10 +13,6 @@ const gallery: {
   label: string,
   items: { url: string, filename: string }[]
 }[] = [
-  {
-    label: '自訂',
-    items: []
-  },
   {
     label: '聯名活動素材',
     items: [
@@ -46,6 +44,18 @@ const gallery: {
     ]
   }];
 
+const customizedGallery = computed(() => {
+
+  const list: { url: string, filename: string }[] = [];
+  imagesStore.imageList.forEach((image) => {
+    list.push({
+      url: image.src,
+      filename: image.src.split('/').pop() || ''
+    })
+  });
+  return list;
+})
+
 const onStickerClick = (stickerUrl: string, filename: string) => {
   emit('add-element', { type: 'sticker', payload: stickerUrl, name: filename });
 };
@@ -63,6 +73,16 @@ const onStickerClick = (stickerUrl: string, filename: string) => {
         clearable
     ></el-input>
     <div class="categories">
+      <span class="label">自訂素材</span>
+      <div class="category-items">
+        <div
+            v-for="(item, index) in customizedGallery"
+            :key="index"
+            class="image"
+            @click="onStickerClick(item.url, item.filename)">
+          <img :src="item.url" alt=""/>
+        </div>
+      </div>
       <template v-for="(group) in gallery">
         <span class="label">{{ group.label }}</span>
         <div class="category-items">
@@ -121,6 +141,10 @@ const onStickerClick = (stickerUrl: string, filename: string) => {
     border-radius: 4px;
     margin-top: 5px;
     margin-bottom: 5px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     &:active {
       background-color: rgba(80, 80, 80, 0.6);
     }
@@ -128,8 +152,9 @@ const onStickerClick = (stickerUrl: string, filename: string) => {
       background-color: rgba(80, 80, 80, 0.6);
     }
     img {
+      width: 90%;
+      height: 90%;
       object-fit: contain;
-      margin: 10px 10px;
     }
   }
 }

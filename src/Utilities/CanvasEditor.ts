@@ -116,13 +116,29 @@ export class CanvasEditor {
     }
 
     public setImage(image: HTMLImageElement) {
-        const index:number = this.store.addImage(image);
-        this.store.setOriginalImage(index);
+        // const index:number = this.store.addImage(image);
+        // this.store.setOriginalImage(index);
+        // this.render();
+        if (!this.canvas) return;
+        this.store.addImage(image);
+        this.store.addElement({
+            id: Date.now(),
+            type: 'sticker',
+            name:  '新貼圖',
+            content: image.src,
+            x: this.canvas.width / 2,
+            y: this.canvas.height / 2,
+            width: image.width,
+            height: image.height,
+            img: image,
+            rotation: 0,
+        } as CanvasElement);
+        this.store.imageUrl = image.src;
         this.render();
     }
 
     public async addElement(element: any) {
-        if (!this.canvas || !this.store.originalImage) {
+        if (!this.canvas || !this.store.imageUrl) {
             ErrorMessage('請先上傳一張圖片！');
             return;
         }

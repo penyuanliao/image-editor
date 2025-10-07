@@ -1,6 +1,16 @@
 import { defineStore } from 'pinia';
 import type { CanvasElement } from "../Utilities/useImageEditor.ts";
 
+// 建立一個代表 1x1 白色像素的 Data URL
+const WHITE_BG_SRC = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+
+// 建立一個虛擬的白色圖片物件，用於預設狀態
+const createWhiteImage = (): HTMLImageElement => {
+  const img = new Image();
+  img.src = WHITE_BG_SRC;
+  return img;
+};
+
 // 為了讓 CanvasEditor 能夠傳入 store，我們需要匯出 store 的類型
 export type ImagesStore = ReturnType<typeof useImagesStore>;
 
@@ -63,5 +73,9 @@ export const useImagesStore = defineStore('images', {
     setSelectedElement(element: CanvasElement | null) {
       this.selectedElement = element;
     },
+    setDefaultBackground() {
+      this.originalImage = createWhiteImage();
+      this.imageUrl = WHITE_BG_SRC;
+    }
   },
 });
