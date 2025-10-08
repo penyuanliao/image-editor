@@ -69,7 +69,7 @@ export const drawBackground = (canvasEl: HTMLCanvasElement, ctx: CanvasRendering
         drawHeight = canvasEl.height;
         drawWidth = drawHeight * imgRatio;
         y = 0;
-        x = (canvasEl.width = drawWidth) / 2;
+        x = (canvasEl.width - drawWidth) / 2;
     }
     ctx.drawImage(img, x, y, drawWidth, drawHeight);
     // ctx.drawImage.apply(ctx, arguments)
@@ -379,3 +379,35 @@ export const drawControls = (ctx: CanvasRenderingContext2D, element: AbsoluteEle
         }
     }
 };
+
+/**
+ * 計算在給定最大寬高限制下的新尺寸，並保持原始長寬比。
+ * @param originalWidth - 原始寬度
+ * @param originalHeight - 原始高度
+ * @param maxWidth - 最大寬度限制 (例如 800)
+ * @param maxHeight - 最大高度限制 (例如 600)
+ * @returns {{width: number, height: number}} - 按比例縮放後的新尺寸
+ */
+export const calculateConstrainedSize = (
+    originalWidth: number,
+    originalHeight: number,
+    maxWidth: number,
+    maxHeight: number
+): { width: number; height: number, scale: number } => {
+    const widthRatio = maxWidth / originalWidth;
+    const heightRatio = maxHeight / originalHeight;
+
+    // 取較小的縮放比例，以確保寬和高都不會超過限制
+    const scale = Math.floor((Math.min(widthRatio, heightRatio) * 10000)) / 10000;
+
+    // 如果原始尺寸已經在限制內，則不需要縮放，直接回傳原始尺寸
+    if (scale >= 1) {
+        return {width: originalWidth, height: originalHeight, scale};
+    }
+
+    // 使用較小的比例計算新的寬高
+    const newWidth = Math.round(originalWidth * scale);
+    const newHeight = Math.round(originalHeight * scale);
+
+    return {width: newWidth, height: newHeight, scale};
+}
