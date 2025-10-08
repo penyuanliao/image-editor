@@ -2,6 +2,7 @@
 import { ref } from "vue";
 import { UploadFilled } from "@element-plus/icons-vue";
 import { useImagesStore } from "../store/images";
+import type {CanvasElement} from "../Utilities/useImageEditor.ts";
 
 const imagesStore = useImagesStore();
 const fileInput = ref<HTMLInputElement | null>(null);
@@ -15,6 +16,18 @@ const handleFileChange = (event: Event) => {
       img.onload = () => {
         // Now that the image is loaded, push the HTMLImageElement to the store
         imagesStore.addImage(img);
+        imagesStore.addElement({
+          id: Date.now(),
+          type: 'sticker',
+          name:  '新貼圖',
+          content: img.src,
+          x: img.width,
+          y: img.height,
+          width: img.width,
+          height: img.height,
+          img: img,
+          rotation: 0,
+        } as CanvasElement);
       };
       img.src = imageUrl;
     }
