@@ -26,3 +26,13 @@ export const processFile = (file: File) => {
         reader.readAsDataURL(file);
     })
 }
+export const processBlob = (blob: Blob) => {
+    return new Promise<HTMLImageElement>(async (resolve) => {
+        const pngImage = new Image();
+        pngImage.alt = "PNG image from clipboard";
+        pngImage.onload = () => {
+            resolve(pngImage);
+        };
+        pngImage.src = URL.createObjectURL(blob);
+    });
+}

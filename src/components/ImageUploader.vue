@@ -4,12 +4,14 @@ import type { CanvasElement } from "../Utilities/useImageEditor.ts";
 import {useImagesStore} from "../store/images.ts";
 import {processFile} from "../Utilities/FileProcessor.ts";
 import {CanvasEditor} from "../Utilities/CanvasEditor.ts";
+import {pasteImage} from "../Utilities/useClipboard.ts";
 
 const imagesStore = useImagesStore();
 const emit = defineEmits(['element-selected']);
 
 const fileInput = ref<HTMLInputElement | null>(null);
 const canvas = ref<HTMLCanvasElement | null>(null);
+const uploaderContainer = ref<HTMLDivElement | null>(null);
 
 const editor = ref<CanvasEditor>(new CanvasEditor(imagesStore));
 
@@ -36,13 +38,40 @@ onMounted(() => {
   if (canvas.value) {
     editor.value.setup(canvas.value);
     editor.value.textInput = textInput.value;
+
+    // 建立 ResizeObserver 來監聽容器尺寸變化
+    const resizeObserver = new ResizeObserver(entries => {
+      for (const entry of entries) {
+        // 使用 contentRect 取得包含 padding 的尺寸
+        const { width, height } = entry.contentRect;
+        if (canvas.value) {
+          // 同步更新 canvas 的繪圖表面尺寸
+          canvas.value.width = width;
+          canvas.value.height = height;
+          // 尺寸變更後需要重新繪製所有內容
+          editor.value.render();
+        }
+      }
+    });
+    if (uploaderContainer.value) resizeObserver.observe(uploaderContainer.value);
   }
+  document.addEventListener('paste', async () => {
+    const image = await pasteImage();
+    console.log('paste:', image);
+    if (image) {
+      editor.value.setImage(image);
+      editor.value.render();
+    }
+  })
+
 })
 
 // --- Event Emitters and Watchers ---
+// 選擇物件刷新畫面
 watch(() => imagesStore.selectedElement, (newSelection) => {
   // Deep copy to avoid downstream mutations affecting the original object
   emit('element-selected', newSelection ? JSON.parse(JSON.stringify(newSelection)) : null);
+  editor.value.render();
 }, {deep : true});
 
 // 這邊檢查物件有異動就刷新畫面
@@ -158,7 +187,7 @@ defineExpose({ addElement, updateSelectedElement });
 
 <template>
   <div class="editor-wrapper">
-    <div class="uploader-container">
+    <div class="uploader-container" ref="uploaderContainer">
     <input
       ref="fileInput"
       type="file"
@@ -168,8 +197,6 @@ defineExpose({ addElement, updateSelectedElement });
     />
     <canvas
       ref="canvas"
-      width="800"
-      height="600"
       class="editor-canvas"
     ></canvas>
     <input
@@ -219,15 +246,33 @@ defineExpose({ addElement, updateSelectedElement });
 </template>
 
 <style scoped>
+
+.editor-wrapper {
+  width: 100%;
+  height: 100%;
+  min-width: 800px;
+  display: flex;
+  flex-direction: column;
+  padding: 10px 10px 10px 10px;
+  gap: 1.5rem;
+  border-radius: 10px;
+  box-sizing: border-box;
+  justify-content: center;
+  align-items: center;
+}
+
 .uploader-container {
   position: relative;
   border: 2px dashed #ccc;
   border-radius: 10px;
-  width: 100%;
+  width: 800px;
   height: 600px;
+  max-height: 600px;
+  /* 讓容器自動撐開，或者你可以設定一個 flex-grow: 1 */
+  flex: 1;
+  min-height: 400px; /* 避免過度縮小 */
   transition: border-color 0.3s, background-color 0.3s;
   overflow: hidden;
-  background-color: #f9f9f9;
 }
 
 .uploader-container:hover {
@@ -258,12 +303,7 @@ defineExpose({ addElement, updateSelectedElement });
   color: #666;
 }
 
-.editor-wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1.5rem;
-}
+
 
 .actions-bar {
   display: flex;

@@ -36,25 +36,7 @@ const selectStyle = (styleKey: string) => {
 <template>
   <div class="images-gallery-container">
     <span class="label">AI生成</span>
-    <el-input
-        v-model="input"
-        class="responsive-input"
-        placeholder="搜尋素材"
-        :prefix-icon="Search"
-        clearable
-    ></el-input>
     <div class="categories">
-      <span class="label">選擇素材</span>
-      <div class="category-group">
-        <div
-          v-for="material in materials"
-          :key="material.id"
-          class="item"
-          @click="selectMaterial(material.id)"
-        >
-          <div class="image" :class="{ selected: selectedMaterial === material.id }"></div>
-        </div>
-      </div>
       <span class="label">風格轉換</span>
       <div class="category-group">
         <div
@@ -102,7 +84,7 @@ const selectStyle = (styleKey: string) => {
   &::-webkit-scrollbar {
     display: none;
   }
-  padding: 10px 20px;
+  padding: 10px 10px;
 }
 .responsive-input {
   width: 240px;

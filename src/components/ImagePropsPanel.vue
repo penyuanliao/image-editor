@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import { useImagesStore } from '../store/images';
 import type { StickerElement } from '../Utilities/useImageEditor.ts';
+import AIPanel from "./AIPanel.vue";
 
 const imagesStore = useImagesStore();
 
@@ -30,12 +31,22 @@ const rotationInDegrees = computed({
   },
 });
 
+const handleReplaceBackground = () => {
+  if (!imagesStore.selectedElement) return;
+  imagesStore.originalImage = imagesStore.selectedElement?.img;
+  imagesStore.imageUrl = imagesStore.selectedElement?.img?.src || null;
+  imagesStore.removeElement(imagesStore.selectedElement?.id);
+  imagesStore.selectedElement = null;
+}
+
 </script>
 
 <template>
   <div v-if="selectedSticker" class="image-props-container">
     <div class="properties">
-      <div class="view"></div>
+      <div class="view">
+        <img :src="imagesStore.selectedElement?.content" alt="">
+      </div>
       <div class="ctrl">
         <span>X：</span>
         <el-input-number v-model="selectedSticker.x" :controls="false" style="width: 100%" />
@@ -57,6 +68,10 @@ const rotationInDegrees = computed({
         <el-input-number v-model="rotationInDegrees" :controls="false" style="width: 100%" />
       </div>
     </div>
+    <el-button @click="handleReplaceBackground">取代背景</el-button>
+    <div class="additional">
+      <AIPanel></AIPanel>
+    </div>
   </div>
 </template>
 
@@ -72,10 +87,12 @@ const rotationInDegrees = computed({
   align-items: center;
   overflow: auto;
   padding-top: 10px;
+  gap: 10px;
   &::-webkit-scrollbar {
     display: none;
   }
 }
+.additional,
 .properties {
   width: 260px;
   display: flex;
@@ -90,6 +107,15 @@ const rotationInDegrees = computed({
     display: flex;
     align-items: center;
     width: 260px;
+  }
+  .view {
+    width: 100%;
+    height: 100px;
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      }
   }
 }
 </style>

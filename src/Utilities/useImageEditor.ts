@@ -264,6 +264,11 @@ export const getTransformHandles = (ctx: CanvasRenderingContext2D, element: Text
     const tr_r = rotatePoint(halfW, -halfH, angle);
     const bl_r = rotatePoint(-halfW, halfH, angle);
     const br_r = rotatePoint(halfW, halfH, angle);
+    // Handles for sides
+    const tm_r = rotatePoint(0, -halfH, angle); // Top-middle
+    const bm_r = rotatePoint(0, halfH, angle);  // Bottom-middle
+    const ml_r = rotatePoint(-halfW, 0, angle); // Middle-left
+    const mr_r = rotatePoint(halfW, 0, angle);  // Middle-right
     const rot_r = rotatePoint(0, -halfH - 20, angle); // Rotation handle 20px above top-middle
     const del_r = rotatePoint(halfW + 20, -halfH - 20, angle); // Delete handle outside top-right
 
@@ -281,6 +286,10 @@ export const getTransformHandles = (ctx: CanvasRenderingContext2D, element: Text
             tr: { x: cx + tr_r.x, y: cy + tr_r.y },
             bl: { x: cx + bl_r.x, y: cy + bl_r.y },
             br: { x: cx + br_r.x, y: cy + br_r.y },
+            tm: { x: cx + tm_r.x, y: cy + tm_r.y },
+            bm: { x: cx + bm_r.x, y: cy + bm_r.y },
+            ml: { x: cx + ml_r.x, y: cy + ml_r.y },
+            mr: { x: cx + mr_r.x, y: cy + mr_r.y },
             rot: { x: cx + rot_r.x, y: cy + rot_r.y },
             del: { x: cx + del_r.x, y: cy + del_r.y },
         }
@@ -301,28 +310,53 @@ export const drawTransformHandles = (ctx: CanvasRenderingContext2D, element: Tex
     // Draw handles
     Object.entries(handles.points).forEach(([key, p]) => {
         if (!p) return;
-
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, 6, 0, 2 * Math.PI);
-
+ 
+        const sideHandles = ['tm', 'bm', 'ml', 'mr'];
+        ctx.save();
+        // 將原點移動到控制點中心以便繪製和旋轉
+        ctx.translate(p.x, p.y);
+ 
         if (key === 'del') {
             // 繪製刪除按鈕
+            ctx.beginPath();
+            ctx.arc(0, 0, 6, 0, 2 * Math.PI);
             ctx.fillStyle = '#f56c6c'; // Element Plus danger color
             ctx.fill();
-
+ 
             // 繪製 'X' (使用預載入的 SVG 圖示)
             const iconSize = 8; // 圖示在按鈕中的大小
             if (imagesStore.deleteIcon.complete) { // 確保圖片已載入完成
-                ctx.drawImage(imagesStore.deleteIcon, p.x - iconSize / 2, p.y - iconSize / 2, iconSize, iconSize);
+                ctx.drawImage(imagesStore.deleteIcon, -iconSize / 2, -iconSize / 2, iconSize, iconSize);
             }
+        } else if (sideHandles.includes(key)) {
+            // 繪製長方形的側邊控制點
+            const rectWidth = 12;
+            const rectHeight = 6;
+            ctx.rotate(element.rotation || 0); // 與元素一同旋轉
+ 
+            ctx.beginPath();
+            // 根據是水平還是垂直控制點來決定長方形方向
+            if (key === 'tm' || key === 'bm') {
+                ctx.rect(-rectWidth / 2, -rectHeight / 2, rectWidth, rectHeight);
+            } else { // 'ml' or 'mr'
+                ctx.rect(-rectHeight / 2, -rectWidth / 2, rectHeight, rectWidth);
+            }
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fill();
+            ctx.strokeStyle = '#409eff';
+            ctx.lineWidth = 1;
+            ctx.stroke();
         } else {
-            // 繪製其他控制點
+            // 繪製圓形的角落和旋轉控制點
+            ctx.beginPath();
+            ctx.arc(0, 0, 6, 0, 2 * Math.PI);
             ctx.fillStyle = '#FFFFFF';
             ctx.fill();
             ctx.strokeStyle = '#409eff';
             ctx.lineWidth = 1;
             ctx.stroke();
         }
+        ctx.restore();
     });
 };
 /**

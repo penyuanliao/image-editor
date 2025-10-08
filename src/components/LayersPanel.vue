@@ -23,12 +23,18 @@ const reversedElements = computed({
 });
 const onClickLayerHandle = (element: CanvasElement) => {
   console.log(element);
+  imagesStore.selectedElement = element;
 };
 
 </script>
 
 <template>
   <div class="layers-object-container">
+    <div class="layers-wrapper">
+      <div class="layer" style="background-color: white">
+        <img v-if="imagesStore.originalImage" :src="imagesStore.originalImage?.src" alt=""/>
+      </div>
+    </div>
     <draggable
         v-model="reversedElements"
         item-key="id"
@@ -90,7 +96,7 @@ const onClickLayerHandle = (element: CanvasElement) => {
   img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
   }
 }
 .layer:hover {

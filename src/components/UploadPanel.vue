@@ -100,7 +100,8 @@ const selectImageAsBackground = (index: number) => {
   flex-shrink: 0;
   background-color: rgba(80, 80, 80, 0.3);
   border-radius: 4px;
-  background-size: cover;
+  background-size: contain;
+  background-repeat: no-repeat;
   background-position: center;
   cursor: pointer;
   &:active {

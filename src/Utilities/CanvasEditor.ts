@@ -82,7 +82,7 @@ export class CanvasEditor {
             x: 0,
             y: 0,
             width: 800,
-            height: 400,
+            height: 600,
         }
     }
 
@@ -367,35 +367,67 @@ export class CanvasEditor {
         // 處理貼圖縮放
         if (this.isResizing && this.store.selectedElement) {
             // canvas.value.style.cursor = "nesw-resize"; // This could be more specific
-            const dx = x - this.dragStart.x;
-            const dy = y - this.dragStart.y;
-
-            // Project mouse movement onto the vector from center to corner
             const angle = this.dragStart.elementRotation;
             const cos = Math.cos(angle);
             const sin = Math.sin(angle);
-
-            // Get the vector for the dragged corner in its un-rotated state
-            let cornerVectorX = this.isResizing.includes('r') ? 1 : -1;
-            let cornerVectorY = this.isResizing.includes('b') ? 1 : -1;
-
-            // Rotate the corner vector
-            const rotatedCornerVectorX = cornerVectorX * cos - cornerVectorY * sin;
-            const rotatedCornerVectorY = cornerVectorX * sin + cornerVectorY * cos;
-
-            // Dot product of mouse delta and corner vector to find projected distance
-            const projectedDistance = (dx * rotatedCornerVectorX + dy * rotatedCornerVectorY);
-
             const element = this.store.selectedElement;
-            if (element.type === 'sticker') {
-                const newWidth = Math.max(10, this.dragStart.elementWidth + projectedDistance * Math.SQRT2);
-                const newHeight = newWidth / this.dragStart.aspectRatio;
-                (element as StickerElement).width = newWidth;
-                (element as StickerElement).height = newHeight;
-            } else if (element.type === 'text') {
-                (element as TextElement).fontSize = Math.max(10, this.dragStart.elementSize + projectedDistance * Math.SQRT2);
-            } else if (element.type === 'icon') {
-                (element as SVGElement).size = Math.max(10, this.dragStart.elementSize + projectedDistance * Math.SQRT2);
+            const dx = x - this.dragStart.x;
+            const dy = y - this.dragStart.y;
+
+            // Side handles for non-proportional scaling (stickers only)
+            if (element.type === 'sticker' && ['tm', 'bm', 'ml', 'mr'].includes(this.isResizing)) {
+                const sticker = element as StickerElement;
+                if (this.isResizing === 'tm' || this.isResizing === 'bm') {
+                    // Project mouse delta onto element's local Y-axis
+                    const projectedDistance = -dx * sin + dy * cos;
+                    const sign = this.isResizing === 'tm' ? -1 : 1;
+                    const newHeight = Math.max(10, this.dragStart.elementHeight + projectedDistance * sign);
+                    sticker.height = newHeight;
+                    // Adjust position to keep the opposite edge in place
+                    const deltaHeight = (newHeight - this.dragStart.elementHeight) / 2;
+                    sticker.x = this.dragStart.elementX + deltaHeight * sin * sign;
+                    sticker.y = this.dragStart.elementY + deltaHeight * cos * sign;
+                } else { // 'ml' or 'mr'
+                    // Project mouse delta onto element's local X-axis
+                    const projectedDistance = dx * cos + dy * sin;
+                    const sign = this.isResizing === 'ml' ? -1 : 1;
+                    const newWidth = Math.max(10, this.dragStart.elementWidth + projectedDistance * sign);
+                    sticker.width = newWidth;
+                    // Adjust position to keep the opposite edge in place
+                    const deltaWidth = (newWidth - this.dragStart.elementWidth) / 2;
+                    sticker.x = this.dragStart.elementX + deltaWidth * cos * sign;
+                    sticker.y = this.dragStart.elementY - deltaWidth * sin * sign;
+                }
+            } else {
+                // Corner handles (proportional scaling for all types)
+                // Project mouse movement onto the vector from center to corner
+
+                // Get the vector for the dragged corner in its un-rotated state
+                let cornerVectorX = this.isResizing.includes('r') ? 1 : -1;
+                let cornerVectorY = this.isResizing.includes('b') ? 1 : -1;
+
+                // Rotate the corner vector
+                const rotatedCornerVectorX = cornerVectorX * cos - cornerVectorY * sin;
+                const rotatedCornerVectorY = cornerVectorX * sin + cornerVectorY * cos;
+
+                // Dot product of mouse delta and corner vector to find projected distance
+                const projectedDistance = (dx * rotatedCornerVectorX + dy * rotatedCornerVectorY);
+
+                if (element.type === 'sticker') {
+                    // For stickers, scale width and height proportionally
+                    const newWidth = Math.max(10, this.dragStart.elementWidth + projectedDistance * Math.SQRT2);
+                    const newHeight = newWidth / this.dragStart.aspectRatio;
+                    (element as StickerElement).width = newWidth;
+                    (element as StickerElement).height = newHeight;
+                } else if (element.type === 'text') {
+                    // For text, scale font size
+                    const newSize = Math.max(10, this.dragStart.elementSize + projectedDistance * Math.SQRT2);
+                    (element as TextElement).fontSize = newSize;
+                } else if (element.type === 'icon') {
+                    // For icons, scale size
+                    const newSize = Math.max(10, this.dragStart.elementSize + projectedDistance * Math.SQRT2);
+                    (element as SVGElement).size = newSize;
+                }
             }
 
             this.render();
@@ -429,6 +461,12 @@ export class CanvasEditor {
             } else if (action) {
                 // Set cursor based on corner
                 if (action === 'tl' || action === 'br') this.canvas.style.cursor = 'nwse-resize';
+                if (action === 'tm' || action === 'bm') {
+                    this.canvas.style.cursor = 'ns-resize';
+                }
+                if (action === 'ml' || action === 'mr') {
+                    this.canvas.style.cursor = 'ew-resize';
+                }
                 if (action === 'tr' || action === 'bl') this.canvas.style.cursor = 'nesw-resize';
                 return;
             }
