@@ -1,23 +1,29 @@
 import {
+    calculateConstrainedSize,
     type CanvasElement,
-    drawSVG, getTransformHandles,
-    type StickerElement,
-    type SVGElement,
-    type TextElement
-} from './useImageEditor.ts';
-import {
     drawBackground,
     drawControls,
     drawCropMarks,
     drawSticker,
+    drawSVG,
     drawText,
-    getElementBoundingBox
+    getElementBoundingBox,
+    getTransformHandles,
+    type StickerElement,
+    type SVGElement,
+    type TextElement
 } from './useImageEditor.ts';
 import {ErrorMessage} from "./AlertMessage.ts";
 import {createCanvasElement} from "./useCreateCanvasElement.ts";
 import {nextTick} from "vue";
 // 引入 store 的類型，但不直接使用 useImagesStore()
-import type { ImagesStore } from '../store/images';
+import type {ImagesStore} from '../store/images';
+
+interface ICanvasViewport {
+    width: number;
+    height: number;
+    scale: number;
+}
 
 interface IDragStart {
     x: number,
@@ -32,10 +38,11 @@ interface IDragStart {
     elementRotation: number,
     angle: number,
     elementSize: number, // for text and icons
-};
+}
 
 // 這個類別將取代大部分 useImageEditor.ts 和 ImageUploader.vue 中的邏輯
 export class CanvasEditor {
+    protected divContainer?: HTMLDivElement | null = null;
     protected canvas?: HTMLCanvasElement;
     protected ctx?: CanvasRenderingContext2D;
     protected store: ImagesStore; // 儲存 Pinia store 的引用
@@ -44,6 +51,17 @@ export class CanvasEditor {
     public textInput: HTMLInputElement | null = null;
     // 狀態屬性
     public cropBox: { x: number, y: number, width: number, height: number };
+
+    // 縮放與平移狀態
+    public scale: number = 1;
+    public viewOffsetX: number = 0;
+    public viewOffsetY: number = 0;
+
+    public viewport: ICanvasViewport = {
+        width: 800,
+        height: 600,
+        scale: 1,
+    }
 
     public dragStart:IDragStart = {
         x: 0,
@@ -92,10 +110,12 @@ export class CanvasEditor {
         this.canvas?.addEventListener('dblclick', this.handleDoubleClick.bind(this));
         this.canvas?.addEventListener('mouseup', this.handleMouseUpOrLeave.bind(this));
         this.canvas?.addEventListener('mouseleave', this.handleMouseUpOrLeave.bind(this));
+        // this.canvas?.addEventListener('wheel', this.handleWheel.bind(this));
     }
 
-    public setup(canvas: HTMLCanvasElement, store?: ImagesStore) {
+    public setup(canvas: HTMLCanvasElement, div: HTMLDivElement | null, store?: ImagesStore) {
         this.canvas = canvas;
+        this.divContainer = div;
         if (store) this.store = store;
         const context:CanvasRenderingContext2D | null = canvas.getContext('2d');
         if (!context) {
@@ -104,10 +124,19 @@ export class CanvasEditor {
         this.ctx = context;
         this.setupEventListeners();
     }
+
+    // --- 座標轉換 ---
+    private screenToWorld(x: number, y: number): { x: number, y: number } {
+        return {
+            x: (x - this.viewOffsetX) / this.scale,
+            y: (y - this.viewOffsetY) / this.scale,
+        };
+    }
+
+
     // --- 公開方法 (API) ---
     public resetCropMarks() {
         const { canvas, cropBox } = this;
-        console.log('resetCropMarks');
         // 將裁切框重設到畫布中心
         if (canvas) {
             cropBox.x = (canvas.width - cropBox.width) / 2;
@@ -153,7 +182,7 @@ export class CanvasEditor {
         if (!this.canvas) return false;
         const { canvas, cropBox } = this;
         const original = { ...this.cropBox };
-        const minSize = 10;
+        const minSize = 0;
         // 使用 Math.round 避免拖曳時產生小數
         let w = Math.round(Math.max(minSize, cropBox.width));
         let h = Math.round(Math.max(minSize, cropBox.height));
@@ -181,11 +210,18 @@ export class CanvasEditor {
 
         const { ctx, canvas, cropBox, store } = this;
 
-        // 1. 清除畫布並填上白色背景
+        // 1. 清除畫布
         ctx.fillStyle = "#FFFFFF";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // 2. 繪製背景圖
+        // 2. 儲存 context 狀態並套用視圖變換 (縮放/平移)
+        ctx.save();
+        ctx.translate(this.viewOffsetX, this.viewOffsetY);
+        ctx.scale(this.scale, this.scale);
+
+
+        // --- 以下所有繪圖都在世界座標系中進行 ---
+        // 3. 繪製背景圖
         if (store.originalImage) {
             drawBackground(this.canvas, this.ctx, store.originalImage);
         }
@@ -193,7 +229,7 @@ export class CanvasEditor {
         // 3. 繪製裁切框
         drawCropMarks(canvas, ctx, cropBox);
 
-        // 4. 繪製所有元素 (這就是多型的應用)
+        // 4. 繪製所有元素
         store.elements.forEach(element => {
 
             // 如果元素正在被編輯，則不在 canvas 上繪製它，由 input 框取代
@@ -204,7 +240,8 @@ export class CanvasEditor {
             } else if (element.type === 'icon') {
                 drawSVG(ctx, element as SVGElement);
             } else if (element.type === 'sticker') {
-                drawSticker(ctx, element as StickerElement);
+                console.log('viewport', this.viewport);
+                drawSticker(ctx, element as StickerElement, 1);
             }
         });
 
@@ -213,6 +250,9 @@ export class CanvasEditor {
             const box = getElementBoundingBox(ctx, store.selectedElement);
             drawControls(ctx, store.selectedElement, box);
         }
+
+        // 6. 恢復 context 狀態，移除視圖變換
+        ctx.restore();
     }
     // 檢查是否在元素上面
     public isPointInBox(px: number, py: number, box: {x: number, y: number, width: number, height: number}) {
@@ -272,8 +312,8 @@ export class CanvasEditor {
     // --- 事件處理方法 ---
     private handleMouseDown(event: MouseEvent) {
         if (!this.canvas) return;
-        const x = event.offsetX;
-        const y = event.offsetY;
+        const { x, y } = this.screenToWorld(event.offsetX, event.offsetY);
+
         // Check for sticker handle interaction first
         const isTransformable = this.store.selectedElement?.type === 'sticker' || this.store.selectedElement?.type === 'text';
         if (this.store.selectedElement && isTransformable) {
@@ -343,8 +383,7 @@ export class CanvasEditor {
     }
     private handleMouseMove(event: MouseEvent) {
         if (!this.canvas || !this.store.imageUrl) return;
-        const x = event.offsetX;
-        const y = event.offsetY;
+        const { x, y } = this.screenToWorld(event.offsetX, event.offsetY);
 
         // 處理元素拖曳
         if (this.isDraggingElement && this.store.selectedElement) {
@@ -483,19 +522,24 @@ export class CanvasEditor {
     }
     private handleDoubleClick(event: MouseEvent) {
         if (!this.store.imageUrl || !this.ctx) return;
-        const clickedElement = this.findElementAtPosition(event.offsetX, event.offsetY);
+        const { x, y } = this.screenToWorld(event.offsetX, event.offsetY);
+        const clickedElement = this.findElementAtPosition(x, y);
 
         // 只有文字元素可以雙擊編輯
         if (clickedElement && clickedElement.type === 'text') {
             this.store.setSelectedElement(null);
             this.editingElement = clickedElement;
             const box = getElementBoundingBox(this.ctx, clickedElement)!;
+            
+            // 將世界座標轉換回螢幕座標來定位 HTML input
+            const viewX = box.x * this.scale + this.viewOffsetX;
+            const viewY = box.y * this.scale + this.viewOffsetY;
 
             // 設定 input 的樣式和位置
-            this.textInputStyle.left = `${box.x}px`;
-            this.textInputStyle.top = `${box.y}px`;
-            this.textInputStyle.width = `${box.width + 20}px`; // 增加一點寬度方便輸入
-            this.textInputStyle.height = `${box.height}px`;
+            this.textInputStyle.left = `${viewX}px`;
+            this.textInputStyle.top = `${viewY}px`;
+            this.textInputStyle.width = `${(box.width + 20) * this.scale}px`; // 寬高也要縮放
+            this.textInputStyle.height = `${box.height * this.scale}px`;
             this.textInputStyle.fontSize = `${(clickedElement as TextElement).fontSize}px`;
             this.textInputStyle.fontFamily = (clickedElement as TextElement).fontFamily || '';
 
@@ -517,6 +561,52 @@ export class CanvasEditor {
             this.canvas.style.cursor = "default";
         }
     }
+
+    private handleWheel(event: WheelEvent) {
+        event.preventDefault();
+        if (!this.canvas) return;
+
+        const zoomIntensity = 0.05;
+        const delta = -event.deltaY * zoomIntensity;
+        const newScale = this.scale + delta;
+
+        // 限制縮放範圍
+        const minScale = 0.2;
+        const maxScale = 5;
+        const clampedScale = Math.max(minScale, Math.min(newScale, maxScale));
+
+        if (clampedScale === this.scale) return; // 縮放比例未改變
+
+        // 改為使用畫布中心點作為縮放中心
+        const centerX = this.canvas.width / 2;
+        const centerY = this.canvas.height / 2;
+
+        // 計算縮放前，畫布中心點對應的世界座標
+        const worldCenterX = (centerX - this.viewOffsetX) / this.scale;
+        const worldCenterY = (centerY - this.viewOffsetY) / this.scale;
+
+        this.scale = clampedScale;
+        // 更新 viewOffset，使得畫布中心的世界座標點在縮放後仍在畫布中心
+        this.viewOffsetX = centerX - worldCenterX * this.scale;
+        this.viewOffsetY = centerY - worldCenterY * this.scale;
+
+        this.render();
+    }
+    // 同步更新 canvas 的繪圖表面尺寸
+    updateViewportSize(width: number, height: number) {
+        const { canvas, divContainer } = this;
+        this.viewport = calculateConstrainedSize(width, height, 800, 600);
+        if (canvas) {
+            canvas.width = this.viewport.width;
+            canvas.height = this.viewport.height;
+        }
+        if (divContainer) {
+            divContainer.style.width = `${this.viewport.width}px`;
+            divContainer.style.height = `${this.viewport.height}px`;
+        }
+    }
+
+
     // 銷毀時要移除監聽器
     public destroy() {
         this.textInput = null;
@@ -525,6 +615,7 @@ export class CanvasEditor {
         this.canvas?.removeEventListener('dblclick', this.handleDoubleClick.bind(this));
         this.canvas?.removeEventListener('mouseup', this.handleMouseUpOrLeave.bind(this));
         this.canvas?.removeEventListener('mouseleave', this.handleMouseUpOrLeave.bind(this));
+        this.canvas?.removeEventListener('wheel', this.handleWheel.bind(this));
         this.canvas = undefined;
         this.ctx = undefined;
     }

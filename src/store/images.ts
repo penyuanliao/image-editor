@@ -33,7 +33,7 @@ export const useImagesStore = defineStore('images', {
     // --- 互動狀態管理 ---
     selectedElement: null,
     editingElement: null,
-    imageUrl: '',
+    imageUrl: 'xxxxx',
     // --- 預載入控制項圖示 ---
     deleteIcon: new Image(),
   }),

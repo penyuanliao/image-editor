@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {onMounted, reactive, ref, watch} from "vue";
-import type { CanvasElement } from "../Utilities/useImageEditor.ts";
+import {type CanvasElement} from "../Utilities/useImageEditor.ts";
 import {useImagesStore} from "../store/images.ts";
 import {processFile} from "../Utilities/FileProcessor.ts";
 import {CanvasEditor} from "../Utilities/CanvasEditor.ts";
@@ -36,24 +36,11 @@ const textInputStyle = reactive(editor.value.textInputStyle);
 
 onMounted(() => {
   if (canvas.value) {
-    editor.value.setup(canvas.value);
+    editor.value.setup(canvas.value, uploaderContainer.value);
     editor.value.textInput = textInput.value;
-
-    // 建立 ResizeObserver 來監聽容器尺寸變化
-    const resizeObserver = new ResizeObserver(entries => {
-      for (const entry of entries) {
-        // 使用 contentRect 取得包含 padding 的尺寸
-        const { width, height } = entry.contentRect;
-        if (canvas.value) {
-          // 同步更新 canvas 的繪圖表面尺寸
-          canvas.value.width = width;
-          canvas.value.height = height;
-          // 尺寸變更後需要重新繪製所有內容
-          editor.value.render();
-        }
-      }
-    });
-    if (uploaderContainer.value) resizeObserver.observe(uploaderContainer.value);
+    editor.value.updateViewportSize(800, 600);
+    // 尺寸變更後需要重新繪製所有內容
+    editor.value.render();
   }
   document.addEventListener('paste', async () => {
     const image = await pasteImage();
@@ -80,6 +67,9 @@ watch(() => imagesStore.elements, () => {
 }, { deep: true });
 
 watch(() => imagesStore.originalImage, () => {
+  if (imagesStore.originalImage) {
+    editor.value.updateViewportSize(imagesStore.originalImage.width, imagesStore.originalImage.height);
+  }
   editor.value.resetCropMarks();
   editor.value.render(); // 進行初次繪製
 }, { deep: true });
@@ -188,34 +178,34 @@ defineExpose({ addElement, updateSelectedElement });
 <template>
   <div class="editor-wrapper">
     <div class="uploader-container" ref="uploaderContainer">
-    <input
-      ref="fileInput"
-      type="file"
-      @change="onFileChange"
-      accept="image/*"
-      hidden
-    />
-    <canvas
-      ref="canvas"
-      class="editor-canvas"
-    ></canvas>
-    <input
-      v-if="editor.editingElement"
-      ref="textInput"
-      v-model="editor.editingElement.content"
-      :style="textInputStyle"
-      class="text-editor-input"
-      @compositionstart="compositionStart"
-      @compositionend="compositionEnd"
-      @focusout="finishEditing"
-      @keydown.enter.prevent="finishEditing"
-    />
-    <div v-if="!imagesStore.imageUrl" class="upload-prompt-overlay">
-      <div class="prompt-content">
-        <p>點擊下方按鈕上傳圖片</p>
+      <input
+          ref="fileInput"
+          type="file"
+          @change="onFileChange"
+          accept="image/*"
+          hidden
+      />
+      <canvas
+          ref="canvas"
+          class="editor-canvas"
+      ></canvas>
+      <input
+          v-if="editor.editingElement"
+          ref="textInput"
+          v-model="editor.editingElement.content"
+          :style="textInputStyle"
+          class="text-editor-input"
+          @compositionstart="compositionStart"
+          @compositionend="compositionEnd"
+          @focusout="finishEditing"
+          @keydown.enter.prevent="finishEditing"
+      />
+      <div v-if="!imagesStore.imageUrl" class="upload-prompt-overlay">
+        <div class="prompt-content">
+          <p>點擊下方按鈕上傳圖片</p>
+        </div>
       </div>
     </div>
-  </div>
     <div class="actions-bar">
       <button class="upload-button" @click="onContainerClick">
         上傳圖片
@@ -268,9 +258,7 @@ defineExpose({ addElement, updateSelectedElement });
   width: 800px;
   height: 600px;
   max-height: 600px;
-  /* 讓容器自動撐開，或者你可以設定一個 flex-grow: 1 */
-  flex: 1;
-  min-height: 400px; /* 避免過度縮小 */
+  min-height: 200px; /* 避免過度縮小 */
   transition: border-color 0.3s, background-color 0.3s;
   overflow: hidden;
 }

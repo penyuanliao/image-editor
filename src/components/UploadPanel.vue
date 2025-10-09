@@ -16,23 +16,26 @@ const handleFileChange = (event: Event) => {
       img.onload = () => {
         // Now that the image is loaded, push the HTMLImageElement to the store
         imagesStore.addImage(img);
-        imagesStore.addElement({
-          id: Date.now(),
-          type: 'sticker',
-          name:  '新貼圖',
-          content: img.src,
-          x: img.width,
-          y: img.height,
-          width: img.width,
-          height: img.height,
-          img: img,
-          rotation: 0,
-        } as CanvasElement);
+        handleAddingElement(img);
       };
       img.src = imageUrl;
     }
   }
 };
+const handleAddingElement = (img: HTMLImageElement) => {
+  imagesStore.addElement({
+    id: Date.now(),
+    type: 'sticker',
+    name:  '新貼圖',
+    content: img.src,
+    x: img.width,
+    y: img.height,
+    width: img.width,
+    height: img.height,
+    img: img,
+    rotation: 0,
+  } as CanvasElement);
+}
 
 const triggerFileInput = () => {
   fileInput.value?.click();
@@ -64,7 +67,7 @@ const selectImageAsBackground = (index: number) => {
           :key="index"
           class="image"
           :style="{ backgroundImage: `url(${image.src})` }"
-          @click="selectImageAsBackground(index)"
+          @click="handleAddingElement(image)"
         ></div>
       </div>
     </div>

@@ -185,15 +185,16 @@ export const drawSVG = (ctx: CanvasRenderingContext2D, element: SVGElement) => {
  * 繪製圖示
  * @param ctx
  * @param element
+ * @param scale
  */
-export const drawSticker = (ctx: CanvasRenderingContext2D, element: StickerElement) => {
+export const drawSticker = (ctx: CanvasRenderingContext2D, element: StickerElement, scale: number = 1) => {
     if (element.img && element.width && element.height) {
         ctx.save();
         // Translate to the element's center, rotate, and then draw the image
-        ctx.translate(element.x, element.y);
+        ctx.translate(element.x * scale, element.y * scale);
         ctx.rotate(element.rotation || 0);
         // Draw the image centered on the new (0,0) origin
-        ctx.drawImage(element.img, -element.width / 2, -element.height / 2, element.width, element.height);
+        ctx.drawImage(element.img, -element.width * scale / 2, -element.height * scale / 2, element.width * scale, element.height * scale);
         ctx.restore();
     }
 }
