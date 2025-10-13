@@ -1,7 +1,8 @@
 import type {CanvasElement} from "./useImageEditor.ts";
+import {processUrl} from "./FileProcessor.ts";
 // 產生一個新的 CanvasElement
-export const createCanvasElement = (element: any, canvas: { width: number, height: number }) => {
-    return new Promise<CanvasElement>((resolve, reject) => {
+export const createCanvasElement = (element: any, canvas: { width: number, height: number }, scale: number = 1) => {
+    return new Promise<CanvasElement>(async (resolve, reject) => {
         if (element.type === 'text') {
             resolve({
                 id: Date.now(),
@@ -39,33 +40,25 @@ export const createCanvasElement = (element: any, canvas: { width: number, heigh
                 color: 'black',
             } as CanvasElement);
         } else if (element.type === 'sticker') {
-            const img = new Image();
-            img.onload = () => {
-                if (!canvas) return reject('canvas is undefined');
-                const MAX_DIMENSION = 150;
-                const ratio = img.naturalWidth / img.naturalHeight;
-                let width, height;
-                if (ratio > 1) {
-                    width = MAX_DIMENSION;
-                    height = MAX_DIMENSION / ratio;
-                } else {
-                    height = MAX_DIMENSION;
-                    width = MAX_DIMENSION * ratio;
-                }
-                resolve({
-                    id: Date.now(),
-                    type: 'sticker',
-                    name: element.name || '新貼圖',
-                    content: element.payload,
-                    x: canvas.width / 2,
-                    y: canvas.height / 2,
-                    width: width,
-                    height: height,
-                    img: img,
-                    rotation: 0,
-                } as CanvasElement);
-            };
-            img.src = element.payload;
+            console.log('element', element);
+            let img: HTMLImageElement;
+            if (element.img) {
+                img = element.img;
+            } else {
+                img = await processUrl(element.payload);
+            }
+            resolve({
+                id: Date.now(),
+                type: 'sticker',
+                name: element.name || '新貼圖',
+                content: element.img ? element.img.src : element.payload,
+                x: canvas.width / 2,
+                y: canvas.height / 2,
+                width: img.naturalWidth * scale,
+                height: img.naturalHeight * scale,
+                img: img,
+                rotation: 0,
+            } as CanvasElement);
         }
     })
 };

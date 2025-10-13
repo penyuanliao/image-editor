@@ -59,7 +59,10 @@ const handleUpdateElement = (newProps: Partial<TextElement>) => {
           v-if="selected === ImageEditorTypes.sticker"
           @add-element="handleAddElement"
       />
-      <UploadPanel v-if="selected === ImageEditorTypes.upload"/>
+      <UploadPanel
+          v-if="selected === ImageEditorTypes.upload"
+          @add-element="handleAddElement"
+      />
     </div>
     <div class="editor-area">
       <ImageEditor

@@ -36,3 +36,12 @@ export const processBlob = (blob: Blob) => {
         pngImage.src = URL.createObjectURL(blob);
     });
 }
+export const processUrl = (url: string) => {
+    return new Promise<HTMLImageElement>(async (resolve) => {
+        const image = new Image();
+        image.onload = () => {
+            resolve(image);
+        };
+        image.src = url;
+    });
+}

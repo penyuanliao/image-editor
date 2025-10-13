@@ -3,6 +3,9 @@ import { ref } from "vue";
 import { UploadFilled } from "@element-plus/icons-vue";
 import { useImagesStore } from "../store/images";
 import type {CanvasElement} from "../Utilities/useImageEditor.ts";
+import type {StickerElement} from "../types.ts";
+
+const emit = defineEmits<{ (e: 'add-element', action: StickerElement): void }>();
 
 const imagesStore = useImagesStore();
 const fileInput = ref<HTMLInputElement | null>(null);
@@ -23,27 +26,14 @@ const handleFileChange = (event: Event) => {
   }
 };
 const handleAddingElement = (img: HTMLImageElement) => {
-  imagesStore.addElement({
-    id: Date.now(),
-    type: 'sticker',
-    name:  '新貼圖',
-    content: img.src,
-    x: img.width,
-    y: img.height,
-    width: img.width,
-    height: img.height,
-    img: img,
-    rotation: 0,
-  } as CanvasElement);
+  // imagesStore.addElement(imagesStore.createStickerElement(img));
+  emit('add-element', { type: 'sticker', img, name: '新圖片' });
 }
 
 const triggerFileInput = () => {
   fileInput.value?.click();
 };
 
-const selectImageAsBackground = (index: number) => {
-  imagesStore.setOriginalImage(index);
-};
 </script>
 
 <template>

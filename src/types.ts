@@ -24,6 +24,7 @@ export interface TextElement {
 export interface StickerElement {
     type: 'sticker',
     payload?: string;
+    img?: HTMLImageElement;
     name?: string;
 }
 

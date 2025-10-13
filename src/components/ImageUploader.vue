@@ -5,6 +5,7 @@ import {useImagesStore} from "../store/images.ts";
 import {processFile} from "../Utilities/FileProcessor.ts";
 import {CanvasEditor} from "../Utilities/CanvasEditor.ts";
 import {pasteImage} from "../Utilities/useClipboard.ts";
+import {type CroppedExportOptions, exportCroppedArea} from "../Utilities/useCanvasExporter.ts";
 
 const imagesStore = useImagesStore();
 const emit = defineEmits(['element-selected']);
@@ -111,39 +112,27 @@ const saveImage = () => {
     alert('沒有可儲存的圖片。');
     return;
   }
-
-  // 1. 建立一個暫時的 canvas 來繪製裁切後的結果
-  const tempCanvas = document.createElement('canvas');
-  const tempCtx = tempCanvas.getContext('2d');
-
-  if (!tempCtx) {
-    alert('無法建立圖片，您的瀏覽器可能不支援此功能。');
-    return;
+  const scaleFactor = 1 / editor.value.viewport.scale;
+  const href =  exportCroppedArea({
+    store: imagesStore,
+    editorCanvas: canvas.value,
+    cropBox: {
+      x: cropBox.x,
+      y: cropBox.y,
+      width: cropBox.width,
+      height: cropBox.height
+    },
+    scaleFactor
+  } as CroppedExportOptions);
+  if (href) {
+    // 4. 將暫時畫布的內容轉換為圖片的 data URL 並觸發下載
+    const link = document.createElement('a');
+    link.href = href;
+    link.download = `edited-image-${Date.now()}.png`; // 加上時間戳避免檔名重複
+    document.body.appendChild(link); // Firefox 需要將 link 加入 DOM
+    link.click();
+    document.body.removeChild(link); // 清理 DOM
   }
-
-  // 2. 設定暫時 canvas 的尺寸等於裁切框的尺寸
-  tempCanvas.width = cropBox.width;
-  tempCanvas.height = cropBox.height;
-
-  // 3. 使用 drawImage 將主畫布中，裁切框內的區域，繪製到暫時畫布上
-  tempCtx.drawImage(
-    canvas.value,      // 來源是我們的主畫布
-    cropBox.x,         // 從主畫布的 cropBox.x 開始擷取
-    cropBox.y,         // 從主畫布的 cropBox.y 開始擷取
-    cropBox.width,     // 擷取寬度
-    cropBox.height,    // 擷取高度
-    0, 0,              // 繪製到暫時畫布的 (0,0) 位置
-    cropBox.width,     // 繪製寬度
-    cropBox.height     // 繪製高度
-  );
-
-  // 4. 將暫時畫布的內容轉換為圖片的 data URL 並觸發下載
-  const link = document.createElement('a');
-  link.href = tempCanvas.toDataURL('image/png');
-  link.download = `edited-image-${Date.now()}.png`; // 加上時間戳避免檔名重複
-  document.body.appendChild(link); // Firefox 需要將 link 加入 DOM
-  link.click();
-  document.body.removeChild(link); // 清理 DOM
 };
 
 // --- 供外部呼叫的方法 ---
@@ -258,7 +247,7 @@ defineExpose({ addElement, updateSelectedElement });
   width: 800px;
   height: 600px;
   max-height: 600px;
-  min-height: 200px; /* 避免過度縮小 */
+  min-height: 50px; /* 避免過度縮小 */
   transition: border-color 0.3s, background-color 0.3s;
   overflow: hidden;
 }

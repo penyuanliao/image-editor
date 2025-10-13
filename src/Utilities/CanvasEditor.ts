@@ -149,6 +149,9 @@ export class CanvasEditor {
         // this.store.setOriginalImage(index);
         // this.render();
         if (!this.canvas) return;
+        // 根據當前 viewport 的縮放比例來調整新貼圖的初始尺寸
+        const initialScale = this.viewport.scale || 1;
+
         this.store.addImage(image);
         this.store.addElement({
             id: Date.now(),
@@ -157,8 +160,8 @@ export class CanvasEditor {
             content: image.src,
             x: this.canvas.width / 2,
             y: this.canvas.height / 2,
-            width: image.width,
-            height: image.height,
+            width: image.width * initialScale,
+            height: image.height * initialScale,
             img: image,
             rotation: 0,
         } as CanvasElement);
@@ -171,7 +174,7 @@ export class CanvasEditor {
             ErrorMessage('請先上傳一張圖片！');
             return;
         }
-        const el = await createCanvasElement(element, this.canvas);
+        const el = await createCanvasElement(element, this.canvas, this.viewport.scale);
         if (el) {
             this.store.addElement(el); // 使用 action 新增
             this.render();
@@ -240,8 +243,7 @@ export class CanvasEditor {
             } else if (element.type === 'icon') {
                 drawSVG(ctx, element as SVGElement);
             } else if (element.type === 'sticker') {
-                console.log('viewport', this.viewport);
-                drawSticker(ctx, element as StickerElement, 1);
+                drawSticker(ctx, element as StickerElement);
             }
         });
 
@@ -604,6 +606,7 @@ export class CanvasEditor {
             divContainer.style.width = `${this.viewport.width}px`;
             divContainer.style.height = `${this.viewport.height}px`;
         }
+        console.log(this.viewport);
     }
 
 

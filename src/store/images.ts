@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import type { CanvasElement } from "../Utilities/useImageEditor.ts";
 
-// 建立一個代表 1x1 白色像素的 Data URL
+// 建立一個代表 800x600 白色像素的 Data URL
 const WHITE_BG_SRC = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 
 // 建立一個虛擬的白色圖片物件，用於預設狀態
