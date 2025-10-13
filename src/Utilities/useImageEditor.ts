@@ -402,7 +402,7 @@ export const calculateConstrainedSize = (
 
     // 如果原始尺寸已經在限制內，則不需要縮放，直接回傳原始尺寸
     if (scale >= 1) {
-        return {width: originalWidth, height: originalHeight, scale};
+        return {width: originalWidth, height: originalHeight, scale: 1};
     }
 
     // 使用較小的比例計算新的寬高

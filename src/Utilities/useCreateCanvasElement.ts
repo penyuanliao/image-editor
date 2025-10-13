@@ -2,7 +2,7 @@ import type {CanvasElement} from "./useImageEditor.ts";
 import {processUrl} from "./FileProcessor.ts";
 // 產生一個新的 CanvasElement
 export const createCanvasElement = (element: any, canvas: { width: number, height: number }, scale: number = 1) => {
-    return new Promise<CanvasElement>(async (resolve, reject) => {
+    return new Promise<CanvasElement>(async (resolve) => {
         if (element.type === 'text') {
             resolve({
                 id: Date.now(),

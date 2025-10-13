@@ -27,7 +27,8 @@ const handleAddElement = (element: ImageEditorAction) => {
 };
 
 const boxItemClickHandle = (value: string) => {
-  selected.value = value;
+  if (selected.value === value) selected.value = '';
+  else selected.value = value;
 };
 
 // Handler for when an element is selected on the canvas

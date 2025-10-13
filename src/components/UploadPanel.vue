@@ -2,7 +2,6 @@
 import { ref } from "vue";
 import { UploadFilled } from "@element-plus/icons-vue";
 import { useImagesStore } from "../store/images";
-import type {CanvasElement} from "../Utilities/useImageEditor.ts";
 import type {StickerElement} from "../types.ts";
 
 const emit = defineEmits<{ (e: 'add-element', action: StickerElement): void }>();

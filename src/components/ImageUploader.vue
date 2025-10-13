@@ -4,7 +4,6 @@ import {type CanvasElement} from "../Utilities/useImageEditor.ts";
 import {useImagesStore} from "../store/images.ts";
 import {processFile} from "../Utilities/FileProcessor.ts";
 import {CanvasEditor} from "../Utilities/CanvasEditor.ts";
-import {pasteImage} from "../Utilities/useClipboard.ts";
 import {type CroppedExportOptions, exportCroppedArea} from "../Utilities/useCanvasExporter.ts";
 
 const imagesStore = useImagesStore();
@@ -39,18 +38,13 @@ onMounted(() => {
   if (canvas.value) {
     editor.value.setup(canvas.value, uploaderContainer.value);
     editor.value.textInput = textInput.value;
+    // 預設畫布大小
     editor.value.updateViewportSize(800, 600);
+    // 支援貼圖Ctrl+V
+    editor.value.enablePasteSupport();
     // 尺寸變更後需要重新繪製所有內容
     editor.value.render();
   }
-  document.addEventListener('paste', async () => {
-    const image = await pasteImage();
-    console.log('paste:', image);
-    if (image) {
-      editor.value.setImage(image);
-      editor.value.render();
-    }
-  })
 
 })
 
@@ -112,8 +106,10 @@ const saveImage = () => {
     alert('沒有可儲存的圖片。');
     return;
   }
+  // 計算比例
   const scaleFactor = 1 / editor.value.viewport.scale;
-  const href =  exportCroppedArea({
+  // 輸出圖片的 URL
+  const href = exportCroppedArea({
     store: imagesStore,
     editorCanvas: canvas.value,
     cropBox: {
@@ -137,7 +133,7 @@ const saveImage = () => {
 
 // --- 供外部呼叫的方法 ---
 const addElement = async (element: any) => {
-  editor.value.addElement(element);
+  await editor.value.addElement(element);
 };
 
 const updateSelectedElement = (newProps: Partial<CanvasElement>) => {
@@ -219,6 +215,7 @@ defineExpose({ addElement, updateSelectedElement });
           <label for="crop-height">高:</label>
           <input id="crop-height" type="number" v-model.number="cropBox.height" />
         </div>
+        <div style="color:#000;">{{ `${Math.floor(editor.viewport.scale * 100)}%` }}</div>
       </div>
     </div>
   </div>

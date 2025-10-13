@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import {computed, reactive, watch} from "vue";
 import type { TextElement } from "../types";
+import { useImagesStore } from "../store/images.ts";
+import { Delete } from "@element-plus/icons-vue";
 
 const props = defineProps<{ 
   selectedElement: TextElement | null
@@ -8,7 +10,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits(['addElement', 'update-element']);
-
+const imagesStore = useImagesStore();
 // --- Font Data ---
 const availableFonts = [
   'Arial',
@@ -159,6 +161,9 @@ watch([textProps, shadow, stroke, gradient], () => {
 // --- Methods ---
 
 const addText = () => {
+
+  imagesStore.selectedElement = null;
+
   const element: any = {
     type: 'text',
     ...textProps,
@@ -215,12 +220,18 @@ const rotationInDegrees = computed({
     }
   },
 });
+
+const handleRemoveTextElement = () => {
+  imagesStore.removeElement(imagesStore.selectedElement!.id);
+  imagesStore.selectedElement = null;
+}
+
 </script>
 
 <template>
   <div class="text-panel-container">
     <div class="categories" v-if="!props.controlEnabled">
-      <el-button @click="addText" :disabled="!!selectedElement">+ 添加文字</el-button>
+      <el-button @click="addText">+ 添加文字</el-button>
     </div>
     <div class="categories" v-if="props.controlEnabled">
       <div class="ctrl">
@@ -328,6 +339,12 @@ const rotationInDegrees = computed({
           <el-slider v-model="stroke.width" :min="1" :max="20" style="width: 140px;" />
         </div>
       </div>
+
+      <div class="ctrl center">
+        <el-tooltip content="刪除" placement="top" effect="dark">
+          <el-button type="danger" :icon="Delete" circle @click="handleRemoveTextElement" />
+        </el-tooltip>
+      </div>
     </div>
   </div>
 </template>
@@ -377,6 +394,11 @@ const rotationInDegrees = computed({
       align-items: center;
     }
   }
+}
+.center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 

@@ -18,6 +18,7 @@ import {createCanvasElement} from "./useCreateCanvasElement.ts";
 import {nextTick} from "vue";
 // 引入 store 的類型，但不直接使用 useImagesStore()
 import type {ImagesStore} from '../store/images';
+import {pasteImage} from "./useClipboard.ts";
 
 interface ICanvasViewport {
     width: number;
@@ -42,6 +43,7 @@ interface IDragStart {
 
 // 這個類別將取代大部分 useImageEditor.ts 和 ImageUploader.vue 中的邏輯
 export class CanvasEditor {
+    private handlePaste:((event: ClipboardEvent) => Promise<void>) | null = null;
     protected divContainer?: HTMLDivElement | null = null;
     protected canvas?: HTMLCanvasElement;
     protected ctx?: CanvasRenderingContext2D;
@@ -169,16 +171,18 @@ export class CanvasEditor {
         this.render();
     }
 
-    public async addElement(element: any) {
+    public async addElement(element: any):Promise<boolean> {
         if (!this.canvas || !this.store.imageUrl) {
             ErrorMessage('請先上傳一張圖片！');
-            return;
+            return false;
         }
         const el = await createCanvasElement(element, this.canvas, this.viewport.scale);
         if (el) {
             this.store.addElement(el); // 使用 action 新增
             this.render();
+            return true;
         }
+        return false;
     };
     // --- 統一的約束與重繪邏輯 ---
     public constrainCropBox() {
@@ -608,7 +612,23 @@ export class CanvasEditor {
         }
         console.log(this.viewport);
     }
+    public enablePasteSupport() {
 
+        if (this.handlePaste) return;
+
+        this.handlePaste = async () => {
+            const image = await pasteImage();
+            if (image) {
+                this.setImage(image);
+                this.render();
+            }
+        }
+        document.addEventListener('paste', this.handlePaste);
+    }
+    public disablePasteSupport() {
+        if (!this.handlePaste) return;
+        document.removeEventListener('paste', this.handlePaste);
+    }
 
     // 銷毀時要移除監聽器
     public destroy() {
@@ -619,6 +639,7 @@ export class CanvasEditor {
         this.canvas?.removeEventListener('mouseup', this.handleMouseUpOrLeave.bind(this));
         this.canvas?.removeEventListener('mouseleave', this.handleMouseUpOrLeave.bind(this));
         this.canvas?.removeEventListener('wheel', this.handleWheel.bind(this));
+        this.disablePasteSupport();
         this.canvas = undefined;
         this.ctx = undefined;
     }
