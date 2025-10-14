@@ -24,6 +24,8 @@ interface ICanvasViewport {
     width: number;
     height: number;
     scale: number;
+    originalWidth: number;
+    originalHeight: number;
 }
 
 interface IDragStart {
@@ -63,6 +65,8 @@ export class CanvasEditor {
         width: 800,
         height: 600,
         scale: 1,
+        originalWidth: 0,
+        originalHeight: 0
     }
 
     public dragStart:IDragStart = {
@@ -185,7 +189,7 @@ export class CanvasEditor {
         return false;
     };
     // --- 統一的約束與重繪邏輯 ---
-    public constrainCropBox() {
+    public constrainCropBox(size?: { width: number, height: number }) {
         if (!this.canvas) return false;
         const { canvas, cropBox } = this;
         const original = { ...this.cropBox };
@@ -194,13 +198,15 @@ export class CanvasEditor {
         let w = Math.round(Math.max(minSize, cropBox.width));
         let h = Math.round(Math.max(minSize, cropBox.height));
 
+        let width: number = size?.width || canvas.width;
+        let height: number = size?.height || canvas.height;
         // 確保尺寸不超過畫布
-        w = Math.min(w, canvas.width);
-        h = Math.min(h, canvas.height);
+        w = Math.min(w, width);
+        h = Math.min(h, height);
 
         // 確保位置在邊界內
-        let x = Math.round(Math.max(0, Math.min(cropBox.x, canvas.width - w)));
-        let y = Math.round(Math.max(0, Math.min(cropBox.y, canvas.height - h)));
+        let x = Math.round(Math.max(0, Math.min(cropBox.x, width - w)));
+        let y = Math.round(Math.max(0, Math.min(cropBox.y, height - h)));
 
         // 應用約束後的值
         this.cropBox.width = w;

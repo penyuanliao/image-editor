@@ -127,17 +127,19 @@ export const drawText = (ctx: CanvasRenderingContext2D, element: TextElement) =>
 
     // Apply gradient or solid color fill
     if (element.gradientEnabled && element.gradientStartColor && element.gradientEndColor) {
+        // 三角函數角度轉換弧度
+        // x = Math.cos(弧度) * 半徑, y = Math.sin(弧度) * 半徑
         const mathAngleRad = ((element.gradientAngle || 90) - 90) * Math.PI / 180;
         const halfW = textWidth / 2;
         const halfH = totalTextHeight / 2;
-        const c = Math.cos(mathAngleRad);
-        const s = Math.sin(mathAngleRad);
-        const len = Math.abs(halfW * c) + Math.abs(halfH * s);
+        const c = Math.cos(mathAngleRad); // 計算 cos 值
+        const s = Math.sin(mathAngleRad); // 計算 sin 值
+        const len = Math.abs(halfW * c) + Math.abs(halfH * s); // 漸層最大距離
         const x0 = -len * c;
         const y0 = -len * s;
         const x1 = len * c;
         const y1 = len * s;
-
+        // 建立漸層
         const gradient = ctx.createLinearGradient(x0, y0, x1, y1);
         gradient.addColorStop(0, element.gradientStartColor);
         gradient.addColorStop(1, element.gradientEndColor);
@@ -393,7 +395,7 @@ export const calculateConstrainedSize = (
     originalHeight: number,
     maxWidth: number,
     maxHeight: number
-): { width: number; height: number, scale: number } => {
+): { width: number; height: number, scale: number, originalWidth: number, originalHeight: number } => {
     const widthRatio = maxWidth / originalWidth;
     const heightRatio = maxHeight / originalHeight;
 
@@ -402,12 +404,12 @@ export const calculateConstrainedSize = (
 
     // 如果原始尺寸已經在限制內，則不需要縮放，直接回傳原始尺寸
     if (scale >= 1) {
-        return {width: originalWidth, height: originalHeight, scale: 1};
+        return { width: originalWidth, height: originalHeight, scale: 1, originalWidth, originalHeight };
     }
 
     // 使用較小的比例計算新的寬高
     const newWidth = Math.round(originalWidth * scale);
     const newHeight = Math.round(originalHeight * scale);
 
-    return {width: newWidth, height: newHeight, scale};
+    return {width: newWidth, height: newHeight, scale, originalWidth, originalHeight};
 }

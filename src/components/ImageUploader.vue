@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {onMounted, reactive, ref, watch} from "vue";
+import {computed, onMounted, reactive, ref, watch} from "vue";
 import {type CanvasElement} from "../Utilities/useImageEditor.ts";
 import {useImagesStore} from "../store/images.ts";
 import {processFile} from "../Utilities/FileProcessor.ts";
@@ -26,6 +26,33 @@ imagesStore.deleteIcon.src = `data:image/svg+xml;base64,${btoa(deleteIconSVG)}`;
 
 // 裁切框的狀態
 const cropBox = reactive(editor.value.cropBox);
+
+// 建立一個給 UI 使用的 computed 屬性，它包含 getter 和 setter
+const displayCropBox = computed(() => {
+  // 當 UI 讀取值時，我們回傳原始值，因為縮放轉換在 CanvasEditor 內部處理更佳
+  // 如果未來需要在 UI 顯示不同單位的值，可以在這裡進行轉換
+  const scaleFactor = 1 / editor.value.viewport.scale;
+  return {
+    x: Math.round(cropBox.x * scaleFactor),
+    y: Math.round(cropBox.y * scaleFactor),
+    width: Math.min(Math.round(cropBox.width * scaleFactor * 100) / 100, editor.value.viewport.originalWidth),
+    height: Math.min(Math.round(cropBox.height * scaleFactor * 100) / 100, editor.value.viewport.originalHeight)
+  };
+});
+const handleChange = (key: string, currentValue: number) => {
+  if (key === 'x') {
+    editor.value.cropBox.x = currentValue * editor.value.viewport.scale;
+  }
+  if (key === 'y') {
+    editor.value.cropBox.y = currentValue * editor.value.viewport.scale;
+  }
+  if (key === 'width') {
+    editor.value.cropBox.width = currentValue * editor.value.viewport.scale;
+  }
+  if (key === 'height') {
+    editor.value.cropBox.height = currentValue * editor.value.viewport.scale;
+  }
+}
 
 // --- 互動狀態管理 ---
 const textInput = ref<HTMLInputElement | null>(null);
@@ -192,7 +219,7 @@ defineExpose({ addElement, updateSelectedElement });
       </div>
     </div>
     <div class="actions-bar">
-      <button class="upload-button" @click="onContainerClick">
+      <button class="upload-button" hidden="hidden" @click="onContainerClick">
         上傳圖片
       </button>
       <button v-if="imagesStore.imageUrl" class="save-button" @click="saveImage">
@@ -201,21 +228,22 @@ defineExpose({ addElement, updateSelectedElement });
       <div v-if="imagesStore.imageUrl" class="crop-controls">
         <div class="input-group">
           <label for="crop-x">X:</label>
-          <input id="crop-x" type="number" v-model.number="cropBox.x" />
+          <input id="crop-x" type="number" v-model.number="displayCropBox.x" @change="(e: Event) => handleChange('x', parseInt((e.target as HTMLInputElement)?.value) || 0)"/>
         </div>
         <div class="input-group">
           <label for="crop-y">Y:</label>
-          <input id="crop-y" type="number" v-model.number="cropBox.y" />
+          <input id="crop-y" type="number" v-model.number="displayCropBox.y" @change="(e: Event) => handleChange('y', parseInt((e.target as HTMLInputElement)?.value) || 0)"/>
         </div>
         <div class="input-group">
           <label for="crop-width">寬:</label>
-          <input id="crop-width" type="number" v-model.number="cropBox.width" />
+          <input id="crop-width" type="number" v-model.number="displayCropBox.width" @change="(e: Event) => handleChange('width', parseInt((e.target as HTMLInputElement)?.value) || 0)" />
         </div>
         <div class="input-group">
           <label for="crop-height">高:</label>
-          <input id="crop-height" type="number" v-model.number="cropBox.height" />
+          <input id="crop-height" type="number" v-model.number="displayCropBox.height" @change="(e: Event) => handleChange('height', parseInt((e.target as HTMLInputElement)?.value) || 0)" />
         </div>
-        <div style="color:#000;">{{ `${Math.floor(editor.viewport.scale * 100)}%` }}</div>
+        <div style="color:#808080;">{{ `${editor.viewport.originalWidth}px x ${editor.viewport.originalHeight}px` }}</div>
+        <div style="color:#808080;">{{ `${Math.floor(editor.viewport.scale * 100)}%` }}</div>
       </div>
     </div>
   </div>
@@ -334,7 +362,7 @@ defineExpose({ addElement, updateSelectedElement });
   align-items: center;
   background-color: #fff;
   padding: 0.5rem 1rem;
-  border-radius: 8px;
+  border-radius: 15px;
   border: 1px solid #e0e0e0;
 }
 
