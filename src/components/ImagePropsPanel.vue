@@ -9,7 +9,7 @@ const imagesStore = useImagesStore();
 
 // Only show and operate on the panel if a sticker is selected
 const selectedSticker = computed(() => {
-  if (imagesStore.selectedElement && (imagesStore.selectedElement.type === 'sticker' || imagesStore.selectedElement.type === 'text')) {
+  if (imagesStore.selectedElement && (imagesStore.selectedElement.type === 'sticker' || imagesStore.selectedElement.type === 'background')) {
     return imagesStore.selectedElement as StickerElement;
   }
   return null;
@@ -55,7 +55,7 @@ const handleReplaceBackground = async () => {
 
 <template>
   <div v-if="selectedSticker" class="image-props-container">
-    <div class="properties">
+    <div v-if="selectedSticker.type === 'sticker'" class="properties">
       <div class="view">
         <img :src="imagesStore.selectedElement?.content" alt="">
       </div>
@@ -80,7 +80,7 @@ const handleReplaceBackground = async () => {
         <el-input-number v-model="rotationInDegrees" :controls="false" style="width: 100%" />
       </div>
     </div>
-    <el-button plain @click="handleReplaceBackground">取代背景</el-button>
+    <el-button v-if="selectedSticker.type === 'sticker'" plain @click="handleReplaceBackground">取代背景</el-button>
     <div class="additional">
       <AIPanel></AIPanel>
     </div>

@@ -77,6 +77,36 @@ export default defineComponent({
       </g>
     </svg>
   </template>
+  <template v-else-if="name === 'align-left'">
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none">
+      <path stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v16m3-8h11M7 12l3-3m-3 3 3 3"/>
+    </svg>
+  </template>
+  <template v-else-if="name === 'align-right'">
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none">
+      <path stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 4v16m-3-8H6m11 0-3-3m3 3-3 3"/>
+    </svg>
+  </template>
+  <template v-else-if="name === 'align-center'">
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none">
+      <path stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m4-8h5m-3-3-3 3 3 3M8 12H3m3-3 3 3-3 3"/>
+    </svg>
+  </template>
+  <template v-else-if="name === 'align-middle'">
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none">
+      <path stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12h16m-8-4V3M9 6l3 3 3-3m-3 10v5m-3-3 3-3 3 3"/>
+    </svg>
+  </template>
+  <template v-else-if="name === 'align-top'">
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none">
+      <path stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12h16m-8-4V3M9 6l3 3 3-3m-3 10v5m-3-3 3-3 3 3"/>
+    </svg>
+  </template>
+  <template v-else-if="name === 'align-bottom'">
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none">
+      <path stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12h16m-8-4V3M9 6l3 3 3-3m-3 10v5m-3-3 3-3 3 3"/>
+    </svg>
+  </template>
 </template>
 
 <style scoped lang="scss">

@@ -1,18 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { Search, Opportunity } from "@element-plus/icons-vue";
+import { Opportunity } from "@element-plus/icons-vue";
 import Symbols from "./Symbols.vue";
-const input = ref<String>('');
-
-const materials = ref([
-    { id: 1 },
-    { id: 2 },
-]);
-const selectedMaterial = ref<number | null>(null);
-const selectMaterial = (materialId: number) => {
-    selectedMaterial.value = materialId;
-}
-
 const styles = ref([
   { name: '自訂風格', key: 'custom', url: './assets/themes/img_custom.png' },
   { name: '3D插圖', key: '3d-illustration', url: './assets/themes/img_3d.png' },

@@ -3,7 +3,7 @@ import { useImagesStore } from "../store/images.ts";
 
 export interface AbsoluteElement {
     id: number;
-    type: 'text' | 'icon' | 'sticker';
+    type: 'text' | 'icon' | 'sticker' | 'background';
     name?: string;
     x: number;
     y: number;
@@ -44,7 +44,7 @@ export interface SVGElement extends AbsoluteElement {
 }
 export interface CanvasElement extends StickerElement, TextElement, SVGElement {
     id: number;
-    type: 'text' | 'icon' | 'sticker';
+    type: 'text' | 'icon' | 'sticker' | 'background';
 }
 /**
  * 把上傳的圖片繪製到底圖

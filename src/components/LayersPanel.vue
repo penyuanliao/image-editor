@@ -22,8 +22,18 @@ const reversedElements = computed({
   }
 });
 const onClickLayerHandle = (element: CanvasElement) => {
-  console.log(element);
   imagesStore.selectedElement = element;
+};
+const onClickBGHandle = () => {
+  imagesStore.selectedElement = {
+    id: Date.now(),
+    type: 'background',
+    width: imagesStore.originalImage?.width,
+    height: imagesStore.originalImage?.height,
+    img: imagesStore.originalImage,
+    url: imagesStore.originalImage?.src,
+    content: imagesStore.originalImage?.src
+  } as CanvasElement
 };
 
 </script>
@@ -31,7 +41,7 @@ const onClickLayerHandle = (element: CanvasElement) => {
 <template>
   <div class="layers-object-container">
     <div class="layers-wrapper">
-      <div class="layer" style="background-color: white">
+      <div class="layer" style="background-color: white" @click="onClickBGHandle">
         <img v-if="imagesStore.originalImage" :src="imagesStore.originalImage?.src" alt=""/>
       </div>
     </div>

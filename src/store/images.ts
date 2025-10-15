@@ -66,6 +66,22 @@ export const useImagesStore = defineStore('images', {
         Object.assign(element, props);
       }
     },
+    // 往前一層
+    forwardElement(elementId: number) {
+      const index = this.elements.findIndex(el => el.id === elementId);
+      if (index > 0 && index < this.elements.length - 1) {
+        const moveElement = this.elements.splice(index, 1)[0] as CanvasElement;
+        this.elements.splice(index - 1, 0, moveElement);
+      }
+    },
+    // 往後一層
+    backwardElement(elementId: number) {
+      const index = this.elements.findIndex(el => el.id === elementId);
+      if (index > 0 && index < this.elements.length - 1) {
+        const moveElement = this.elements.splice(index, 1)[0] as CanvasElement;
+        this.elements.splice(index + 1, 0, moveElement);
+      }
+    },
     reorderElements(elements: CanvasElement[]) {
       this.elements = elements;
     },

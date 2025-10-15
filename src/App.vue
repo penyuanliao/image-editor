@@ -83,6 +83,7 @@ const handleUpdateElement = (newProps: Partial<TextElement>) => {
           @update-element="handleUpdateElement"
       />
       <ImagePropsPanel v-if="imagesStore.selectedElement?.type === 'sticker'"/>
+      <ImagePropsPanel v-if="imagesStore.selectedElement?.type === 'background'"/>
     </div>
   </div>
 </template>

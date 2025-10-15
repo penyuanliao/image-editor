@@ -43,6 +43,12 @@ interface IDragStart {
     elementSize: number, // for text and icons
 }
 
+interface IContextMenuEvent {
+    x: number; // 螢幕 X 座標
+    y: number; // 螢幕 Y 座標
+    element: CanvasElement | null;
+}
+
 // 這個類別將取代大部分 useImageEditor.ts 和 ImageUploader.vue 中的邏輯
 export class CanvasEditor {
     private handlePaste:((event: ClipboardEvent) => Promise<void>) | null = null;
@@ -51,6 +57,8 @@ export class CanvasEditor {
     protected ctx?: CanvasRenderingContext2D;
     protected store: ImagesStore; // 儲存 Pinia store 的引用
     public editingElement?: CanvasElement | null = null;
+    // 回應右鍵選單監聽事件
+    public onContextMenu: ((event: IContextMenuEvent) => void) | null = null;
     // 點擊兩下編輯的輸入框
     public textInput: HTMLInputElement | null = null;
     // 狀態屬性
@@ -115,6 +123,7 @@ export class CanvasEditor {
         this.canvas?.addEventListener('mousemove', this.handleMouseMove.bind(this));
         this.canvas?.addEventListener('dblclick', this.handleDoubleClick.bind(this));
         this.canvas?.addEventListener('mouseup', this.handleMouseUpOrLeave.bind(this));
+        this.canvas?.addEventListener('contextmenu', this.handleContextMenu.bind(this));
         this.canvas?.addEventListener('mouseleave', this.handleMouseUpOrLeave.bind(this));
         // this.canvas?.addEventListener('wheel', this.handleWheel.bind(this));
     }
@@ -138,7 +147,6 @@ export class CanvasEditor {
             y: (y - this.viewOffsetY) / this.scale,
         };
     }
-
 
     // --- 公開方法 (API) ---
     public resetCropMarks() {
@@ -322,6 +330,22 @@ export class CanvasEditor {
     }
 
     // --- 事件處理方法 ---
+    private handleContextMenu(event: MouseEvent) {
+        event.preventDefault(); // 阻止瀏覽器預設右鍵選單
+        if (!this.canvas) return;
+
+        const { x, y } = this.screenToWorld(event.offsetX, event.offsetY);
+        const clickedElement = this.findElementAtPosition(x, y);
+
+        // 如果點擊到元素，就選取它
+        if (clickedElement) {
+            this.store.selectedElement = clickedElement;
+            this.render();
+        }
+
+        // 觸發回呼，將事件資訊傳遞給 Vue 元件來顯示 UI
+        this.onContextMenu?.({ x: event.clientX, y: event.clientY, element: clickedElement as CanvasElement });
+    }
     private handleMouseDown(event: MouseEvent) {
         if (!this.canvas) return;
         const { x, y } = this.screenToWorld(event.offsetX, event.offsetY);
@@ -644,6 +668,7 @@ export class CanvasEditor {
         this.canvas?.removeEventListener('dblclick', this.handleDoubleClick.bind(this));
         this.canvas?.removeEventListener('mouseup', this.handleMouseUpOrLeave.bind(this));
         this.canvas?.removeEventListener('mouseleave', this.handleMouseUpOrLeave.bind(this));
+        this.canvas?.removeEventListener('contextmenu', this.handleContextMenu.bind(this));
         this.canvas?.removeEventListener('wheel', this.handleWheel.bind(this));
         this.disablePasteSupport();
         this.canvas = undefined;

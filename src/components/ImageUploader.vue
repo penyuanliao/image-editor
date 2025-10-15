@@ -61,6 +61,14 @@ const isComposing = ref<boolean>(false);
 
 const textInputStyle = reactive(editor.value.textInputStyle);
 
+// 右鍵選單狀態
+const contextMenu = reactive({
+  visible: false,
+  x: 0,
+  y: 0,
+  element: null as CanvasElement | null,
+});
+
 onMounted(() => {
   if (canvas.value) {
     editor.value.setup(canvas.value, uploaderContainer.value);
@@ -71,6 +79,15 @@ onMounted(() => {
     editor.value.enablePasteSupport();
     // 尺寸變更後需要重新繪製所有內容
     editor.value.render();
+
+    // 設定右鍵選單的回呼函式
+    editor.value.onContextMenu = (event) => {
+      contextMenu.visible = true;
+      contextMenu.x = event.x;
+      contextMenu.y = event.y;
+      contextMenu.element = event.element;
+    };
+    window.addEventListener('click', closeContextMenu);
   }
 
 })
@@ -79,6 +96,7 @@ onMounted(() => {
 // 選擇物件刷新畫面
 watch(() => imagesStore.selectedElement, (newSelection) => {
   // Deep copy to avoid downstream mutations affecting the original object
+  console.log('se');
   emit('element-selected', newSelection ? JSON.parse(JSON.stringify(newSelection)) : null);
   editor.value.render();
 }, {deep : true});
@@ -158,6 +176,20 @@ const saveImage = () => {
   }
 };
 
+// --- 右鍵選單方法 ---
+const closeContextMenu = () => {
+  contextMenu.visible = false;
+};
+
+const deleteSelectedElement = () => {
+  if (contextMenu.element) {
+    imagesStore.removeElement(contextMenu.element.id);
+    editor.value.render();
+  }
+  closeContextMenu();
+};
+
+
 // --- 供外部呼叫的方法 ---
 const addElement = async (element: any) => {
   await editor.value.addElement(element);
@@ -212,6 +244,20 @@ defineExpose({ addElement, updateSelectedElement });
           @focusout="finishEditing"
           @keydown.enter.prevent="finishEditing"
       />
+      <!-- 自訂右鍵選單 -->
+      <div
+          v-if="contextMenu.visible && contextMenu.element"
+          class="context-menu"
+          :style="{ top: `${contextMenu.y}px`, left: `${contextMenu.x}px` }"
+          @click.stop
+      >
+        <div class="context-menu-item" @click="deleteSelectedElement">
+          刪除
+        </div>
+        <!-- 在這裡可以新增更多選項，例如： -->
+        <!-- <div class="context-menu-item">上移一層</div> -->
+        <!-- <div class="context-menu-item">下移一層</div> -->
+      </div>
       <div v-if="!imagesStore.imageUrl" class="upload-prompt-overlay">
         <div class="prompt-content">
           <p>點擊下方按鈕上傳圖片</p>
@@ -259,10 +305,10 @@ defineExpose({ addElement, updateSelectedElement });
   flex-direction: column;
   padding: 10px 10px 10px 10px;
   gap: 1.5rem;
-  border-radius: 10px;
   box-sizing: border-box;
   justify-content: center;
   align-items: center;
+  overflow: auto;
 }
 
 .uploader-container {
@@ -346,7 +392,7 @@ defineExpose({ addElement, updateSelectedElement });
 .text-editor-input {
   position: absolute;
   background-color: transparent;
-  border: 1.5px dashed #409eff;
+  border: 1px dashed #409eff;
   padding: 0;
   margin: 0;
   text-align: center;
@@ -399,5 +445,26 @@ defineExpose({ addElement, updateSelectedElement });
 }
 .input-group input[type=number] {
   -moz-appearance: textfield;
+}
+
+.context-menu {
+  position: fixed; /* 使用 fixed 定位，相對於視窗 */
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  padding: 5px 0;
+}
+
+.context-menu-item {
+  padding: 8px 15px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #333;
+}
+
+.context-menu-item:hover {
+  background-color: #f0f0f0;
 }
 </style>
