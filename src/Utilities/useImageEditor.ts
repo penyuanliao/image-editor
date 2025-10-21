@@ -1,5 +1,6 @@
 
 import { useImagesStore } from "../store/images.ts";
+import {gradientStartAndEndPoints} from "./GradientLayer.ts";
 
 export interface AbsoluteElement {
     id: number;
@@ -128,19 +129,9 @@ export const drawText = (ctx: CanvasRenderingContext2D, element: TextElement) =>
     // Apply gradient or solid color fill
     if (element.gradientEnabled && element.gradientStartColor && element.gradientEndColor) {
         // 三角函數角度轉換弧度
-        // x = Math.cos(弧度) * 半徑, y = Math.sin(弧度) * 半徑
-        const mathAngleRad = ((element.gradientAngle || 90) - 90) * Math.PI / 180;
-        const halfW = textWidth / 2;
-        const halfH = totalTextHeight / 2;
-        const c = Math.cos(mathAngleRad); // 計算 cos 值
-        const s = Math.sin(mathAngleRad); // 計算 sin 值
-        const len = Math.abs(halfW * c) + Math.abs(halfH * s); // 漸層最大距離
-        const x0 = -len * c;
-        const y0 = -len * s;
-        const x1 = len * c;
-        const y1 = len * s;
+        const { startPoint, endPoint } = gradientStartAndEndPoints(element.gradientAngle || 0, textWidth, totalTextHeight);
         // 建立漸層
-        const gradient = ctx.createLinearGradient(x0, y0, x1, y1);
+        const gradient = ctx.createLinearGradient(startPoint.x, startPoint.y, endPoint.x, endPoint.y);
         gradient.addColorStop(0, element.gradientStartColor);
         gradient.addColorStop(1, element.gradientEndColor);
         ctx.fillStyle = gradient;
@@ -413,3 +404,4 @@ export const calculateConstrainedSize = (
 
     return {width: newWidth, height: newHeight, scale, originalWidth, originalHeight};
 }
+

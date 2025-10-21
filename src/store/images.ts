@@ -92,6 +92,10 @@ export const useImagesStore = defineStore('images', {
     setDefaultBackground() {
       this.originalImage = createWhiteImage();
       this.imageUrl = WHITE_BG_SRC;
+    },
+    setBackgroundSize(width: number, height: number) {
+      this.originalImage = new Image(width, height);
+      this.imageUrl = 'xxxx';
     }
   },
 });
