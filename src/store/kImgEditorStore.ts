@@ -49,6 +49,11 @@ export interface KonvaImageProps extends KonvaShadowProps, KonvaStrokeProps {
     // 旋轉角度 (radians)
     rotation?: number;
     image?: HTMLImageElement | null;
+    // 裁剪參數
+    cropX?: number;
+    cropY?: number;
+    cropWidth?: number;
+    cropHeight?: number;
 }
 
 export interface KonvaTextConfig extends KonvaTextProps {
