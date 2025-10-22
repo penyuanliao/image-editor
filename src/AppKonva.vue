@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import Konva from "konva";
 import {useImage} from "vue-konva";
-import {ref, reactive, onMounted, computed} from "vue";
+import {ref, reactive, onMounted, computed, watch} from "vue";
+import { useKImgEditorStore } from "./store/kImgEditorStore.ts";
+import FileInputComponent from "./components/konva/FileInputComponent.vue";
+import Popover from "./components/konva/Popover.vue";
+
+const store = useKImgEditorStore();
+
 const container = ref<HTMLDivElement | null>(null);
 const stageRef = ref();
 const transformerRef = ref();
@@ -14,70 +20,47 @@ const stageConfig = reactive({
 
 const [ image ] = useImage('https://konvajs.org/assets/darth-vader.jpg', 'Anonymous');
 
-interface KonvaConfig {
-  draggable: boolean; // 是否可以拖拉
-  name: string; // 收尋檢查用名稱
-}
-
-interface KonvaTextProps {
-  text: string;
-  fontFamily: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  fontSize: number;
-  fontStyle: 'normal' | 'italic' | 'bold' | string;
-  // 旋轉角度 (radians)
-  rotation: number;
-}
-interface KonvaTextShadowProps {
-  shadowEnabled: boolean;
-  shadowColor?: string;
-  shadowBlur?: number;
-  shadowOffsetX?: number;
-  shadowOffsetY?: number;
-  shadowOpacity?: number;
-}
-interface KonvaTextStrokeProps {
-  enabled: boolean;
-  strokeColor?: string;
-  strokeWidth?: number;
-}
-interface KonvaTextGradientProps {
-  fillPriority: 'linear-gradient' | string;
-  fillLinearGradientStartPoint: {
-    x: number;
-    y: number;
-  };
-  fillLinearGradientEndPoint: {
-    x: number;
-    y: number;
-  };
-  fillLinearGradientColorStops: [number, string, number, string];
-}
-
-
 // 1. 建立一個 elements 陣列來管理所有物件
-const elements = ref([
-  {
-    id: 'image1',
-    type: 'image',
-    config: {
-      image: image,
-      x: 80,
-      y: 100,
-      width: 300,
-      height: 100,
-      draggable: true,
-      name: 'selectable-object',
-    }
-  },
-  {
+store.addElement({
+  id: 'text1',
+  type: 'text',
+  config: {
+    // 輸入文字
+    text: '這是中文字',
+    // 選擇字體
+    fontFamily: 'Arial',
+    x: 400,
+    y: 150,
+    fontSize: 24,
+    // 1. 告訴 Konva 優先使用線性漸層
+    fillPriority: 'linear-gradient',
+    fillLinearGradientStartPoint: {
+      x: -97, // 讓漸層從文字左側開始
+      y: 0
+    },
+    fillLinearGradientEndPoint: {
+      x: 97, // 漸層長度為 100px
+      y: 0   // y=0 使其成為水平漸層
+    },
+    fillLinearGradientColorStops: [0, 'red', 1, 'yellow'],
+
+    shadowEnabled: true,
+    shadowColor: 'black',
+    shadowBlur: 5,
+    shadowOffsetX: 2,
+    shadowOffsetY: 2,
+    shadowOpacity: 0.5,
+
+    draggable: true,
+    name: 'selectable-object'
+  }
+});
+watch(image, (newImage) => {
+  store.addElement({
     id: 'image2',
     type: 'image',
     config: {
-      image: image,
+      image: newImage,
       x: 300,
       y: 300,
       width: 150,
@@ -85,42 +68,22 @@ const elements = ref([
       draggable: true,
       name: 'selectable-object',
     }
-  },
-  {
-    id: 'text1',
-    type: 'text',
+  })
+  store.addElement({
+    id: 'image1',
+    type: 'image',
     config: {
-      // 輸入文字
-      text: '這是中文字',
-      // 選擇字體
-      fontFamily: 'Arial',
-      x: 400,
-      y: 150,
-      fontSize: 24,
-      // 1. 告訴 Konva 優先使用線性漸層
-      fillPriority: 'linear-gradient',
-      fillLinearGradientStartPoint: {
-        x: -97, // 讓漸層從文字左側開始
-        y: 0
-      },
-      fillLinearGradientEndPoint: {
-        x: 97, // 漸層長度為 100px
-        y: 0   // y=0 使其成為水平漸層
-      },
-      fillLinearGradientColorStops: [0, 'red', 1, 'yellow'],
-
-      shadowEnabled: true,
-      shadowColor: 'black',
-      shadowBlur: 5,
-      shadowOffsetX: 2,
-      shadowOffsetY: 2,
-      shadowOpacity: 0.5,
-
+      image: newImage,
+      x: 80,
+      y: 100,
+      width: 300,
+      height: 100,
       draggable: true,
-      name: 'selectable-object'
+      name: 'selectable-object',
     }
-  }
-]);
+  })
+})
+
 
 function getCrop(image: any, size: any, clipPosition = 'center-middle') {
   const width = size.width;
@@ -244,7 +207,7 @@ const handleStageMouseUp = (e: Konva.KonvaEventObject<MouseEvent>) => {
 
   transformerNode.nodes(selectedNodes);
 };
-
+// 拖拉框
 const selectionRectConfig = computed(() => ({
   x: Math.min(selection.x1, selection.x2),
   y: Math.min(selection.y1, selection.y2),
@@ -267,7 +230,6 @@ const handleStageMouseDown = (e: Konva.KonvaEventObject<PointerEvent>) => {
     selection.x2 = pos.x;
     selection.y2 = pos.y;
     selection.visible = true;
-
     stage.on('mousemove', handleStageMouseMove);
     stage.on('mouseup', handleStageMouseUp);
     return;
@@ -287,7 +249,7 @@ const handleStageMouseDown = (e: Konva.KonvaEventObject<PointerEvent>) => {
   if (targetNode.hasName('selectable-object')) {
     const isSelected = transformerNode.nodes().indexOf(targetNode) >= 0;
     const metaPressed = e.evt.shiftKey || e.evt.ctrlKey || e.evt.metaKey;
-
+    console.log(`targetNode ${targetNode.getPosition().x}, ${targetNode.getPosition().y}`);
     if (!metaPressed && !isSelected) {
       // 單選：如果沒有按住 shift/ctrl/meta 且物件未被選中，則只選取此物件
       transformerNode.nodes([targetNode]);
@@ -343,6 +305,9 @@ const handleExport = () => {
   link.click();
   document.body.removeChild(link);
 };
+const handleFileInputChange = (list: HTMLImageElement[]) => {
+  store.backgroundImage = list[0] as HTMLImageElement | null;
+}
 
 </script>
 
@@ -351,7 +316,9 @@ const handleExport = () => {
     <div class="controls">
       寬度: <el-input-number v-model="stageConfig.width" :min="100" size="small"></el-input-number>
       高度: <el-input-number v-model="stageConfig.height" :min="100" size="small"></el-input-number>
+      <FileInputComponent v-model:images="store.imageList" @change="handleFileInputChange"/>
       <el-button type="primary" @click="handleExport">匯出圖片 (透明背景)</el-button>
+      <Popover/>
     </div>
     <v-stage :config="stageConfig" ref="stageRef" class="stage" @mousedown="handleStageMouseDown">
       <!-- 背景層 -->
@@ -364,11 +331,21 @@ const handleExport = () => {
           fill: '#f0f0f0', // 在這裡設定你想要的背景顏色
           listening: false, // 讓背景不回應滑鼠事件，很重要！
         }" />
+        <v-image
+            :config="{
+              x: 0,
+              y: 0,
+              width: stageConfig.width,
+              height: stageConfig.height,
+              image: store.backgroundImage,
+              listening: false, // 讓背景不回應滑鼠事件，很重要！
+            }"
+        />
       </v-layer>
       <!-- 互動層 -->
       <v-layer name="content-layer">
         <!-- 2. 使用 v-for 迴圈來渲染所有物件 -->
-        <template v-for="element in elements" :key="element.id">
+        <template v-for="element in store.elements" :key="element.id">
           <v-image
               v-if="element.type === 'image'"
               :config="{ ...element.config, ...getCrop(element.config.image, element.config) }"
