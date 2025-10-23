@@ -7,14 +7,18 @@ import {ElMessageBox} from "element-plus";
 
 const imagesStore = useImagesStore();
 
+const selectedElement = computed(() => {
+  if (imagesStore.selectedElements.length <= 0) return null;
+  if (imagesStore.selectedElements.length > 1) return null;
+  return imagesStore.selectedElements[0];
+});
 // Only show and operate on the panel if a sticker is selected
 const selectedSticker = computed(() => {
-  if (imagesStore.selectedElement && (imagesStore.selectedElement.type === 'sticker' || imagesStore.selectedElement.type === 'background')) {
-    return imagesStore.selectedElement as StickerElement;
+  if (selectedElement.value && (selectedElement.value.type === 'sticker' || selectedElement.value.type === 'background')) {
+    return selectedElement.value as StickerElement;
   }
   return null;
 });
-
 // Computed property to handle degree-radian conversion for the rotation slider
 const rotationInDegrees = computed({
   get() {
@@ -45,10 +49,10 @@ const handleReplaceBackground = async () => {
       }
   ).catch(() => 'cancel');
   if (result === 'cancel') return;
-  imagesStore.originalImage = imagesStore.selectedElement?.img;
-  imagesStore.imageUrl = imagesStore.selectedElement?.img?.src || null;
-  imagesStore.removeElement(imagesStore.selectedElement?.id);
-  imagesStore.selectedElement = null;
+  imagesStore.originalImage = selectedElement.value?.img;
+  imagesStore.imageUrl = selectedElement.value?.img?.src || null;
+  imagesStore.removeElement(selectedElement.value?.id);
+  imagesStore.selectedElements = [];
 }
 
 </script>
@@ -57,7 +61,7 @@ const handleReplaceBackground = async () => {
   <div v-if="selectedSticker" class="image-props-container">
     <div v-if="selectedSticker.type === 'sticker'" class="properties">
       <div class="view">
-        <img :src="imagesStore.selectedElement?.content" alt="">
+        <img :src="selectedElement?.content" alt="">
       </div>
       <div class="ctrl">
         <span>X：</span>

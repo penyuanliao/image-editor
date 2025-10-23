@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import {computed, ref} from 'vue';
 import ImageEditor from './components/ImageUploader.vue';
 import type { ImageEditorAction, TextElement } from "./types";
 import { ImageEditorTypes } from "./types";
@@ -41,6 +41,12 @@ const handleUpdateElement = (newProps: Partial<TextElement>) => {
   editor.value?.updateSelectedElement(newProps);
 };
 
+const selectedElement = computed(() => {
+  if (imagesStore.selectedElements.length <= 0) return null;
+  if (imagesStore.selectedElements.length > 1) return null;
+  return imagesStore.selectedElements[0];
+})
+
 </script>
 
 <template>
@@ -76,14 +82,13 @@ const handleUpdateElement = (newProps: Partial<TextElement>) => {
     </div>
     <div class="properties">
       <TextPanel
-          v-if="imagesStore.selectedElement?.type === 'text'"
+          v-if="selectedElement?.type === 'text'"
           :controlEnabled="true"
           :selected-element="selectedElementForPanel"
           @add-element="handleAddElement"
           @update-element="handleUpdateElement"
       />
-      <ImagePropsPanel v-if="imagesStore.selectedElement?.type === 'sticker'"/>
-      <ImagePropsPanel v-if="imagesStore.selectedElement?.type === 'background'"/>
+      <ImagePropsPanel v-if="selectedElement?.type === 'sticker'"/>
     </div>
   </div>
 </template>

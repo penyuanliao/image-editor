@@ -265,9 +265,11 @@ export class CanvasEditor {
         });
 
         // 5. 繪製控制項
-        if (store.selectedElement && !this.editingElement) {
-            const box = getElementBoundingBox(ctx, store.selectedElement);
-            drawControls(ctx, store.selectedElement, box);
+        if (store.selectedElements.length > 0 && !this.editingElement) {
+            store.selectedElements.forEach(selected => {
+                const box = getElementBoundingBox(ctx, selected);
+                drawControls(ctx, selected, box, store.selectedElements.length > 1);
+            });
         }
 
         // 6. 恢復 context 狀態，移除視圖變換
@@ -336,39 +338,62 @@ export class CanvasEditor {
         const { x, y } = this.screenToWorld(event.offsetX, event.offsetY);
         const clickedElement = this.findElementAtPosition(x, y);
 
-        // 如果點擊到元素，就選取它
+        // 如果點擊到元素，就將其設為單獨選取
         if (clickedElement) {
-            this.store.selectedElement = clickedElement;
+            this.store.setSelectedElements([clickedElement]);
             this.render();
         }
 
         // 觸發回呼，將事件資訊傳遞給 Vue 元件來顯示 UI
         this.onContextMenu?.({ x: event.clientX, y: event.clientY, element: clickedElement as CanvasElement });
     }
+
     private handleMouseDown(event: MouseEvent) {
         if (!this.canvas) return;
         const { x, y } = this.screenToWorld(event.offsetX, event.offsetY);
+        const isShiftPressed = event.shiftKey;
 
-        // Check for sticker handle interaction first
-        const isTransformable = this.store.selectedElement?.type === 'sticker' || this.store.selectedElement?.type === 'text';
-        if (this.store.selectedElement && isTransformable) {
-            const action = this.getActionForHandle(x, y, this.store.selectedElement);
+        // 優先處理控制項的點擊 (只有在單選時才允許變形)
+        if (this.store.selectedElements.length === 1) {
+            const selectedElement = this.store.selectedElements[0];
+            const action = this.getActionForHandle(x, y, selectedElement);
             if (action) {
                 if (action === 'del') {
-                    // 執行刪除操作
-                    this.store.removeElement(this.store.selectedElement!.id);
+                    this.store.removeElements([selectedElement.id]);
                     this.render();
                     return;
                 }
-                this.handleTransformStart(x, y, action, this.store.selectedElement);
+                this.handleTransformStart(x, y, action, selectedElement);
                 return;
             }
         }
 
         const clickedElement = this.findElementAtPosition(x, y);
 
-        // Handle element selection
-        this.store.selectedElement = clickedElement || null;
+        if (isShiftPressed) {
+            if (clickedElement) {
+                // 按住 Shift 點擊物件
+                if (this.store.selectedElements.some(el => el.id === clickedElement.id)) {
+                    // 如果已選取，則取消選取
+                    this.store.removeFromSelection(clickedElement.id);
+                } else {
+                    // 如果未選取，則加入選取
+                    this.store.addToSelection(clickedElement);
+                }
+            }
+            // 按住 Shift 點擊空白處，不做任何事
+        } else {
+            // 沒有按 Shift 點擊
+            if (clickedElement) {
+                // 如果點擊的物件未被選取，則只選取它
+                if (!this.store.selectedElements.some(el => el.id === clickedElement.id)) {
+                    this.store.setSelectedElements([clickedElement]);
+                }
+            } else {
+                // 點擊空白處，取消所有選取
+                this.store.clearSelection();
+            }
+        }
 
         if (clickedElement) {
             this.isDraggingElement = true;
@@ -376,7 +401,7 @@ export class CanvasEditor {
             this.dragStart.y = y;
             this.dragStart.elementX = clickedElement.x;
             this.dragStart.elementY = clickedElement.y;
-        } else if (this.isPointInCropBox(x, y)) {
+        } else if (!isShiftPressed && this.isPointInCropBox(x, y)) {
             this.isDraggingCropBox = true;
             this.dragStart.x = event.offsetX;
             this.dragStart.y = event.offsetY;
@@ -386,6 +411,7 @@ export class CanvasEditor {
 
         this.render();
     }
+
     private handleTransformStart(x: number, y: number, action: string, element: CanvasElement) {
         this.dragStart.x = x;
         this.dragStart.y = y;
@@ -420,31 +446,43 @@ export class CanvasEditor {
         if (!this.canvas || !this.store.imageUrl) return;
         const { x, y } = this.screenToWorld(event.offsetX, event.offsetY);
 
-        // 處理元素拖曳
-        if (this.isDraggingElement && this.store.selectedElement) {
+        // 處理元素拖曳 (可多選)
+        if (this.isDraggingElement && this.store.selectedElements.length > 0) {
             this.canvas.style.cursor = "move";
             const dx = x - this.dragStart.x;
             const dy = y - this.dragStart.y;
-            this.store.selectedElement.x = this.dragStart.elementX + dx;
-            this.store.selectedElement.y = this.dragStart.elementY + dy;
+
+            // 遍歷所有選中的元素並移動它們
+            this.store.selectedElements.forEach(el => {
+                // 每個元素都基於它自己的初始位置進行移動
+                // 注意：這裡假設所有元素一起拖動，所以我們需要儲存每個元素的初始位置。
+                // 簡化：我們假設 dragStart 儲存的是第一個點擊元素的位置，然後所有元素都應用相同的位移。
+                // 為了正確實現，handleMouseDown 應該記錄下所有選中元素的初始位置。
+                // 目前的簡化實現：
+                el.x += dx;
+                el.y += dy;
+            });
+            // 更新 dragStart 以便下次 mousemove 計算增量
+            this.dragStart.x = x;
+            this.dragStart.y = y;
             this.render();
             return;
         }
-        // 處理貼圖旋轉
-        if (this.isRotating && this.store.selectedElement) {
+        // 處理貼圖旋轉 (單選)
+        if (this.isRotating && this.store.selectedElements.length === 1) {
             this.canvas.style.cursor = "grabbing";
-            const currentAngle = Math.atan2(y - this.store.selectedElement.y, x - this.store.selectedElement.x);
-            this.store.selectedElement.rotation = currentAngle - this.dragStart.angle;
+            const selectedElement = this.store.selectedElements[0];
+            const currentAngle = Math.atan2(y - selectedElement.y, x - selectedElement.x);
+            selectedElement.rotation = currentAngle - this.dragStart.angle;
             this.render();
             return;
         }
-        // 處理貼圖縮放
-        if (this.isResizing && this.store.selectedElement) {
-            // canvas.value.style.cursor = "nesw-resize"; // This could be more specific
+        // 處理貼圖縮放 (單選)
+        if (this.isResizing && this.store.selectedElements.length === 1) {
             const angle = this.dragStart.elementRotation;
             const cos = Math.cos(angle);
             const sin = Math.sin(angle);
-            const element = this.store.selectedElement;
+            const element = this.store.selectedElements[0];
             const dx = x - this.dragStart.x;
             const dy = y - this.dragStart.y;
 
@@ -522,26 +560,26 @@ export class CanvasEditor {
         }
 
         // 根據滑鼠位置改變指標樣式 (Hover)
-        const isTransformable = this.store.selectedElement?.type === 'sticker' || this.store.selectedElement?.type === 'text';
-
-        if (this.store.selectedElement && isTransformable) {
-            const action = this.getActionForHandle(x, y, this.store.selectedElement);
+        // 只有單選時才顯示變形指標
+        if (this.store.selectedElements.length === 1) {
+            const selectedElement = this.store.selectedElements[0];
+            const action = this.getActionForHandle(x, y, selectedElement);
             if (action === 'del') {
                 this.canvas.style.cursor = 'pointer';
                 return;
             } else if (action === 'rot') {
-                this.canvas.style.cursor = 'grabbing'; // Or a custom rotation cursor
+                this.canvas.style.cursor = 'grabbing';
                 return;
             } else if (action) {
                 // Set cursor based on corner
                 if (action === 'tl' || action === 'br') this.canvas.style.cursor = 'nwse-resize';
+                else if (action === 'tr' || action === 'bl') this.canvas.style.cursor = 'nesw-resize';
                 if (action === 'tm' || action === 'bm') {
                     this.canvas.style.cursor = 'ns-resize';
                 }
                 if (action === 'ml' || action === 'mr') {
                     this.canvas.style.cursor = 'ew-resize';
                 }
-                if (action === 'tr' || action === 'bl') this.canvas.style.cursor = 'nesw-resize';
                 return;
             }
         }
@@ -562,7 +600,7 @@ export class CanvasEditor {
 
         // 只有文字元素可以雙擊編輯
         if (clickedElement && clickedElement.type === 'text') {
-            this.store.setSelectedElement(null);
+            this.store.clearSelection(); // 進入編輯模式時取消選取
             this.editingElement = clickedElement;
             const box = getElementBoundingBox(this.ctx, clickedElement)!;
             

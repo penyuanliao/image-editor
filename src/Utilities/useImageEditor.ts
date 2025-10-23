@@ -289,7 +289,7 @@ export const getTransformHandles = (ctx: CanvasRenderingContext2D, element: Text
     };
 };
 // 產生編輯用的邊框
-export const drawTransformHandles = (ctx: CanvasRenderingContext2D, element: TextElement | StickerElement) => {
+export const drawTransformHandles = (ctx: CanvasRenderingContext2D, element: TextElement | StickerElement, multiple: boolean = false) => {
     const handles = getTransformHandles(ctx, element);
     if (!handles) return null;
 
@@ -308,16 +308,20 @@ export const drawTransformHandles = (ctx: CanvasRenderingContext2D, element: Tex
         ctx.save();
         // 將原點移動到控制點中心以便繪製和旋轉
         ctx.translate(p.x, p.y);
- 
+
+        // 不支援多選編輯
+        if (multiple) return ctx.restore();
+
         if (key === 'del') {
+            // 繪製 'X' (使用預載入的 SVG 圖示)
+            const iconSize:number = 16; // 圖示在按鈕中的大小
+
             // 繪製刪除按鈕
             ctx.beginPath();
-            ctx.arc(0, 0, 6, 0, 2 * Math.PI);
+            ctx.arc(0, 0, iconSize - 4, 0, 2 * Math.PI);
             ctx.fillStyle = '#f56c6c'; // Element Plus danger color
             ctx.fill();
- 
-            // 繪製 'X' (使用預載入的 SVG 圖示)
-            const iconSize = 8; // 圖示在按鈕中的大小
+
             if (imagesStore.deleteIcon.complete) { // 確保圖片已載入完成
                 ctx.drawImage(imagesStore.deleteIcon, -iconSize / 2, -iconSize / 2, iconSize, iconSize);
             }
@@ -357,14 +361,19 @@ export const drawTransformHandles = (ctx: CanvasRenderingContext2D, element: Tex
  * @param ctx
  * @param element
  * @param box
+ * @param multiple
  */
-export const drawControls = (ctx: CanvasRenderingContext2D, element: AbsoluteElement, box: { x: number, y: number, width: number, height: number } | null) => {
+export const drawControls = (ctx: CanvasRenderingContext2D,
+                             element: AbsoluteElement,
+                             box: { x: number, y: number, width: number, height: number } | null,
+                             multiple: boolean = false
+) => {
     if (box) { // Draw a simple dashed box for non-sticker elements
         ctx.strokeStyle = '#409eff';
         ctx.lineWidth = 2;
         const isTransformable = element.type === 'sticker' || element.type === 'text';
         if (isTransformable) {
-            drawTransformHandles(ctx, element as TextElement | StickerElement);
+            drawTransformHandles(ctx, element as TextElement | StickerElement, multiple);
         } else { // Draw simple dashed box for other types like 'icon'
             ctx.setLineDash([6, 3]);
             ctx.strokeRect(box.x - 5, box.y - 5, box.width + 10, box.height + 10);

@@ -94,12 +94,12 @@ onMounted(() => {
 
 // --- Event Emitters and Watchers ---
 // 選擇物件刷新畫面
-watch(() => imagesStore.selectedElement, (newSelection) => {
+watch(() => imagesStore.selectedElements, (newSelection) => {
   // Deep copy to avoid downstream mutations affecting the original object
   console.log('se');
-  emit('element-selected', newSelection ? JSON.parse(JSON.stringify(newSelection)) : null);
+  emit('element-selected', newSelection.length > 0 ? JSON.parse(JSON.stringify(newSelection)) : []);
   editor.value.render();
-}, {deep : true});
+}, { deep: true });
 
 // 這邊檢查物件有異動就刷新畫面
 watch(() => imagesStore.elements, () => {
@@ -183,7 +183,7 @@ const closeContextMenu = () => {
 
 const deleteSelectedElement = () => {
   if (contextMenu.element) {
-    imagesStore.removeElement(contextMenu.element.id);
+    imagesStore.removeElements([contextMenu.element.id]);
     editor.value.render();
   }
   closeContextMenu();
@@ -196,9 +196,11 @@ const addElement = async (element: any) => {
 };
 
 const updateSelectedElement = (newProps: Partial<CanvasElement>) => {
-  if (!imagesStore.selectedElement) return;
-
-  Object.assign(imagesStore.selectedElement, newProps);
+  // Now updates all selected elements
+  if (imagesStore.selectedElements.length === 0) return;
+  imagesStore.selectedElements.forEach(element => {
+    Object.assign(element, newProps);
+  });
 
   editor.value.render();
 };

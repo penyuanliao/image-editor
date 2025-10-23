@@ -18,7 +18,7 @@ interface ImagesStoreState {
   imageList: HTMLImageElement[];
   originalImage: HTMLImageElement | null | undefined;
   elements: CanvasElement[];
-  selectedElement: CanvasElement | null;
+  selectedElements: CanvasElement[]; // 將用此完全取代 selectedElement
   editingElement: CanvasElement | null;
   imageUrl: string | null;
   deleteIcon: HTMLImageElement;
@@ -31,8 +31,8 @@ export const useImagesStore = defineStore('images', {
     // 畫布上的元素 (文字、圖形等)
     elements: [],
     // --- 互動狀態管理 ---
-    selectedElement: null,
-    editingElement: null,
+    selectedElements: [],
+    editingElement: null, // 用於文字雙擊編輯
     imageUrl: 'xxxxx',
     // --- 預載入控制項圖示 ---
     deleteIcon: new Image(),
@@ -51,14 +51,14 @@ export const useImagesStore = defineStore('images', {
     },
     addElement(element: CanvasElement) {
       this.elements.push(element);
-      this.selectedElement = element; // 新增後自動選取
+      this.selectedElements = [element]; // 新增後自動選取
     },
     // 執行刪除操作
-    removeElement(elementId: number) {
-      this.elements = this.elements.filter(el => el.id !== elementId);
-      if (this.selectedElement?.id === elementId) {
-        this.selectedElement = null;
-      }
+    removeElements(elementIds: number[]) {
+      this.elements = this.elements.filter(el => !elementIds.includes(el.id));
+      this.selectedElements = this.selectedElements.filter(
+        el => !elementIds.includes(el.id)
+      );
     },
     updateElement(elementId: number, props: Partial<CanvasElement>) {
       const element = this.elements.find(el => el.id === elementId);
@@ -85,10 +85,22 @@ export const useImagesStore = defineStore('images', {
     reorderElements(elements: CanvasElement[]) {
       this.elements = elements;
     },
-    // 設定選擇的物件
-    setSelectedElement(element: CanvasElement | null) {
-      this.selectedElement = element;
+    setSelectedElements(elements: CanvasElement[]) {
+      this.selectedElements = elements;
     },
+    addToSelection(element: CanvasElement) {
+      if (!this.selectedElements.some(el => el.id === element.id)) {
+        this.selectedElements.push(element);
+      }
+    },
+    removeFromSelection(elementId: number) {
+      this.selectedElements = this.selectedElements.filter(el => el.id !== elementId);
+    },
+    clearSelection() {
+      this.selectedElements = [];
+    },
+
+
     setDefaultBackground() {
       this.originalImage = createWhiteImage();
       this.imageUrl = WHITE_BG_SRC;
