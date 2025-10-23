@@ -58,7 +58,6 @@ const selectedElement = computed(() => {
       <TextPanel
           v-if="selected === ImageEditorTypes.text"
           :controlEnabled="false"
-          :selected-element="selectedElementForPanel"
           @add-element="handleAddElement"
           @update-element="handleUpdateElement"
       />
@@ -84,7 +83,6 @@ const selectedElement = computed(() => {
       <TextPanel
           v-if="selectedElement?.type === 'text'"
           :controlEnabled="true"
-          :selected-element="selectedElementForPanel"
           @add-element="handleAddElement"
           @update-element="handleUpdateElement"
       />

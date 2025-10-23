@@ -18,6 +18,20 @@ const stageConfig = reactive({
   height: 600,
 } as Konva.StageConfig);
 
+// 裁切功能相關狀態
+const isCropping = ref(false); // 是否處於裁切模式
+const cropRectRef = ref(); // 裁切框的 ref
+const cropRect = reactive({
+  x: 0,
+  y: 0,
+  width: stageConfig.width,
+  height: stageConfig.height,
+});
+
+const toggleCropMode = () => {
+  isCropping.value = !isCropping.value;
+};
+
 const [ image ] = useImage('https://konvajs.org/assets/darth-vader.jpg', 'Anonymous');
 
 // 1. 建立一個 elements 陣列來管理所有物件
@@ -158,6 +172,12 @@ const handleStageMouseDown = (e: Konva.KonvaEventObject<PointerEvent>) => {
   const stage = e.target.getStage();
   if (!stage) return;
 
+  // 如果在裁切模式下，點擊任何地方都不觸發物件選取
+  if (isCropping.value) {
+    transformerRef.value?.getNode().nodes([]); // 清空選取
+    return;
+  }
+
   // 1. 點擊到舞台空白處 -> 開始框選
   if (e.target === stage) {
     const pos = stage.getPointerPosition();
@@ -222,21 +242,39 @@ const handleExport = () => {
   const backgroundNode = backgroundRectRef.value?.getNode();
   if (!stage || !backgroundNode) return;
 
-  // 2. 在匯出前，隱藏背景矩形
-  backgroundNode.visible(false);
-
   // 確保 Transformer 也被隱藏，這樣匯出的圖片才不會有藍色的框線
   const transformerNode = transformerRef.value?.getNode() as Konva.Transformer;
   transformerNode.nodes([]); // 清空選取來隱藏它
 
-  const dataURL = stage.toDataURL({ pixelRatio: 2 });
+  // 準備匯出設定 (讓 TypeScript 自動推斷類型)
+  const exportConfig = { pixelRatio: 2 } as Konva.NodeConfig;
 
-  // 3. 匯出後，立刻將背景矩形顯示回來
+  // 在匯出前，隱藏不必要的元素
+  backgroundNode.visible(false); // 隱藏灰色背景
+  if (isCropping.value) {
+    // 如果在裁切模式，設定匯出區域並隱藏裁切框
+    exportConfig.x = cropRect.x;
+    exportConfig.y = cropRect.y;
+    exportConfig.width = cropRect.width;
+    exportConfig.height = cropRect.height;
+    cropRectRef.value?.getNode().visible(false);
+  }
+
+  // 執行匯出
+  const dataURL = stage.toDataURL(exportConfig);
+
+  // 匯出後，立刻將隱藏的元素顯示回來，恢復畫布狀態
   backgroundNode.visible(true);
+  if (isCropping.value) {
+    cropRectRef.value?.getNode().visible(true);
+  }
+
+  // 建立檔名
+  const fileName = isCropping.value ? 'canvas-image-cropped.png' : 'canvas-image-transparent.png';
 
   // 建立臨時連結並觸發下載
   const link = document.createElement('a');
-  link.download = 'canvas-image-transparent.png'; // 修改檔名以茲區別
+  link.download = fileName;
   link.href = dataURL;
   document.body.appendChild(link);
   link.click();
@@ -246,13 +284,26 @@ const handleFileInputChange = (list: HTMLImageElement[]) => {
   store.backgroundImage = list[0] as HTMLImageElement | null;
 }
 
+// 當裁切框被拖曳結束時，更新其位置
+const handleCropDragEnd = (e: Konva.KonvaEventObject<DragEvent>) => {
+  cropRect.x = e.target.x();
+  cropRect.y = e.target.y();
+};
+
 </script>
 
 <template>
   <div class="main-container" ref="container">
     <div class="controls">
-      寬度: <el-input-number v-model="stageConfig.width" :min="100" size="small"></el-input-number>
-      高度: <el-input-number v-model="stageConfig.height" :min="100" size="small"></el-input-number>
+      <div>
+        畫布寬度: <el-input-number v-model="stageConfig.width" :min="100" size="small"></el-input-number>
+        畫布高度: <el-input-number v-model="stageConfig.height" :min="100" size="small"></el-input-number>
+      </div>
+      <div class="crop-controls">
+        <el-button @click="toggleCropMode" :type="isCropping ? 'success' : ''">{{ isCropping ? '停用裁切' : '啟用裁切' }}</el-button>
+        <span v-if="isCropping">裁切寬度: <el-input-number v-model="cropRect.width" :min="10" size="small"></el-input-number></span>
+        <span v-if="isCropping">裁切高度: <el-input-number v-model="cropRect.height" :min="10" size="small"></el-input-number></span>
+      </div>
       <FileInputComponent v-model:images="store.imageList" @change="handleFileInputChange"/>
       <el-button type="primary" @click="handleExport">匯出圖片 (透明背景)</el-button>
       <Popover/>
@@ -300,6 +351,37 @@ const handleFileInputChange = (list: HTMLImageElement[]) => {
             ref="selectionRectRef"
             :config="selectionRectConfig" />
         <!-- 用於編輯框選的 Transformer -->
+        <!-- 裁切功能群組 -->
+        <v-group v-if="isCropping">
+          <!-- 1. 灰色半透明遮罩 (反向) -->
+          <v-shape
+              :config="{
+                listening: false, // 這個遮罩不回應滑鼠事件
+                sceneFunc: (context: CanvasRenderingContext2D) => {
+                  // 先畫一個覆蓋整個畫布的半透明灰色矩形
+                  context.beginPath();
+                  context.rect(0, 0, stageConfig.width || 0, stageConfig.height || 0);
+                  context.fillStyle = 'rgba(0, 0, 0, 0.5)';
+
+                  // 接著定義內矩形 (裁切區)
+                  context.rect(cropRect.x, cropRect.y, cropRect.width || 0, cropRect.height || 0);
+
+                  // 使用 evenodd 填充規則來產生挖洞效果
+                  context.fill('evenodd');
+                }
+              }"
+          />
+          <!-- 2. 可拖曳的裁切框 (只有邊框，中間透明) -->
+          <v-rect
+              ref="cropRectRef"
+              :config="{
+                ...cropRect,
+                fill: 'transparent', // 中間必須是透明的，才能看到下面的內容
+                stroke: 'white',
+                strokeWidth: 2,
+                draggable: true
+              }" @dragend="handleCropDragEnd" />
+        </v-group>
         <v-transformer
             ref="transformerRef"
             :config="{
@@ -314,9 +396,17 @@ const handleFileInputChange = (list: HTMLImageElement[]) => {
 
 <style scoped>
   .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: center;
     padding: 10px;
     background-color: #fafafa;
     border-bottom: 1px solid #eee;
+  }
+  .crop-controls {
+    display: flex;
+    gap: 10px;
   }
   .main-container {
     width: 100%;

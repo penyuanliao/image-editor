@@ -23,6 +23,7 @@ export interface TextElement extends AbsoluteElement {
     fontSize?: number;
     fontFamily?: string;
     fontWeight?: 'normal' | 'bold';
+    fontItalic?: boolean;
     lineHeight?: number;
     // 陰影屬性
     shadowColor?: string;

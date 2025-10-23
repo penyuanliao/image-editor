@@ -25,11 +25,10 @@ export interface CroppedExportOptions extends ExportOptions {
  */
 export function exportCroppedArea(options: CroppedExportOptions): string | null {
     const { store, cropBox, scaleFactor } = options;
-
+    console.log(options);
     if (!store.originalImage) {
         // ErrorMessage('沒有圖片可供匯出。');
         // return null;
-        store.setDefaultBackground();
     }
 
     // 1. 建立一個離線的、高解析度的 Canvas

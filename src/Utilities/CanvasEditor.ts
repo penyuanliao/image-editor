@@ -356,6 +356,7 @@ export class CanvasEditor {
         // 優先處理控制項的點擊 (只有在單選時才允許變形)
         if (this.store.selectedElements.length === 1) {
             const selectedElement = this.store.selectedElements[0];
+            if (!selectedElement) return;
             const action = this.getActionForHandle(x, y, selectedElement);
             if (action) {
                 if (action === 'del') {
@@ -472,8 +473,10 @@ export class CanvasEditor {
         if (this.isRotating && this.store.selectedElements.length === 1) {
             this.canvas.style.cursor = "grabbing";
             const selectedElement = this.store.selectedElements[0];
-            const currentAngle = Math.atan2(y - selectedElement.y, x - selectedElement.x);
-            selectedElement.rotation = currentAngle - this.dragStart.angle;
+            if (selectedElement) {
+                const currentAngle = Math.atan2(y - selectedElement.y, x - selectedElement.x);
+                selectedElement.rotation = currentAngle - this.dragStart.angle;
+            }
             this.render();
             return;
         }
@@ -485,7 +488,7 @@ export class CanvasEditor {
             const element = this.store.selectedElements[0];
             const dx = x - this.dragStart.x;
             const dy = y - this.dragStart.y;
-
+            if (!element) return;
             // Side handles for non-proportional scaling (stickers only)
             if (element.type === 'sticker' && ['tm', 'bm', 'ml', 'mr'].includes(this.isResizing)) {
                 const sticker = element as StickerElement;
@@ -533,12 +536,10 @@ export class CanvasEditor {
                     (element as StickerElement).height = newHeight;
                 } else if (element.type === 'text') {
                     // For text, scale font size
-                    const newSize = Math.max(10, this.dragStart.elementSize + projectedDistance * Math.SQRT2);
-                    (element as TextElement).fontSize = newSize;
+                    (element as TextElement).fontSize = Math.max(10, this.dragStart.elementSize + projectedDistance * Math.SQRT2);
                 } else if (element.type === 'icon') {
                     // For icons, scale size
-                    const newSize = Math.max(10, this.dragStart.elementSize + projectedDistance * Math.SQRT2);
-                    (element as SVGElement).size = newSize;
+                    (element as SVGElement).size = Math.max(10, this.dragStart.elementSize + projectedDistance * Math.SQRT2);
                 }
             }
 
@@ -563,6 +564,7 @@ export class CanvasEditor {
         // 只有單選時才顯示變形指標
         if (this.store.selectedElements.length === 1) {
             const selectedElement = this.store.selectedElements[0];
+            if (!selectedElement) return;
             const action = this.getActionForHandle(x, y, selectedElement);
             if (action === 'del') {
                 this.canvas.style.cursor = 'pointer';

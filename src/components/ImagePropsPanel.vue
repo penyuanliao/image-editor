@@ -3,7 +3,6 @@ import { computed } from 'vue';
 import { useImagesStore } from '../store/images';
 import type { StickerElement } from '../Utilities/useImageEditor.ts';
 import AIPanel from "./AIPanel.vue";
-import {ElMessageBox} from "element-plus";
 
 const imagesStore = useImagesStore();
 
@@ -36,25 +35,6 @@ const rotationInDegrees = computed({
   },
 });
 
-const handleReplaceBackground = async () => {
-  if (!imagesStore.selectedElement) return;
-
-  const result = await ElMessageBox.confirm(
-      '確定取代背景？',
-      '設定背景確認',
-      {
-        confirmButtonText: '確定',
-        cancelButtonText: '取消',
-        type: 'warning',
-      }
-  ).catch(() => 'cancel');
-  if (result === 'cancel') return;
-  imagesStore.originalImage = selectedElement.value?.img;
-  imagesStore.imageUrl = selectedElement.value?.img?.src || null;
-  imagesStore.removeElement(selectedElement.value?.id);
-  imagesStore.selectedElements = [];
-}
-
 </script>
 
 <template>
@@ -84,7 +64,6 @@ const handleReplaceBackground = async () => {
         <el-input-number v-model="rotationInDegrees" :controls="false" style="width: 100%" />
       </div>
     </div>
-    <el-button v-if="selectedSticker.type === 'sticker'" plain @click="handleReplaceBackground">取代背景</el-button>
     <div class="additional">
       <AIPanel></AIPanel>
     </div>

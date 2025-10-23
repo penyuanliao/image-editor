@@ -96,7 +96,6 @@ onMounted(() => {
 // 選擇物件刷新畫面
 watch(() => imagesStore.selectedElements, (newSelection) => {
   // Deep copy to avoid downstream mutations affecting the original object
-  console.log('se');
   emit('element-selected', newSelection.length > 0 ? JSON.parse(JSON.stringify(newSelection)) : []);
   editor.value.render();
 }, { deep: true });

@@ -5,7 +5,6 @@ import { useImagesStore } from "../store/images.ts";
 import { Delete } from "@element-plus/icons-vue";
 
 const props = defineProps<{ 
-  selectedElement: TextElement | null
   controlEnabled: boolean
 }>();
 
@@ -65,16 +64,22 @@ const shadow = reactive(getDefaultShadow());
 const stroke = reactive(getDefaultStroke());
 const gradient = reactive(getDefaultGradient());
 
+const selectedElement = computed(() => {
+  if (imagesStore.selectedElements.length <= 0) return null;
+  if (imagesStore.selectedElements.length > 1) return null;
+  return imagesStore.selectedElements[0];
+});
+
 // --- Watchers for State Synchronization ---
 
 // Watch for incoming element changes and update the panel UI
-watch(() => props.selectedElement, (newEl) => {
+watch(() => selectedElement.value, (newEl) => {
   if (newEl && newEl.type === 'text') {
     // Update text properties
     textProps.content = newEl.content;
     textProps.color = newEl.color;
     textProps.isBold = newEl.fontWeight === 'bold';
-    textProps.fontSize = newEl.fontSize;
+    textProps.fontSize = newEl.fontSize || 12;
     textProps.fontFamily = newEl.fontFamily || 'Arial';
     textProps.lineHeight = newEl.lineHeight || 1.2;
     textProps.rotation = newEl.rotation || 0;
@@ -114,7 +119,7 @@ watch(() => props.selectedElement, (newEl) => {
 
 // Watch for panel UI changes and emit updates to the parent
 watch([textProps, shadow, stroke, gradient], () => {
-  if (props.selectedElement) {
+  if (selectedElement.value) {
     const payload: any = {
       ...textProps,
       fontWeight: textProps.isBold ? 'bold' : 'normal',
@@ -162,7 +167,7 @@ watch([textProps, shadow, stroke, gradient], () => {
 
 const addText = () => {
 
-  imagesStore.selectedElement = null;
+  imagesStore.selectedElements = [];
 
   const element: any = {
     type: 'text',
@@ -222,8 +227,8 @@ const rotationInDegrees = computed({
 });
 
 const handleRemoveTextElement = () => {
-  imagesStore.removeElement(imagesStore.selectedElement!.id);
-  imagesStore.selectedElement = null;
+  imagesStore.removeElements([imagesStore.selectedElements[0]!.id]);
+  imagesStore.selectedElements = [];
 }
 
 </script>
