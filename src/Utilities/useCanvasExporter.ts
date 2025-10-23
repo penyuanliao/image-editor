@@ -27,8 +27,9 @@ export function exportCroppedArea(options: CroppedExportOptions): string | null 
     const { store, cropBox, scaleFactor } = options;
 
     if (!store.originalImage) {
-        ErrorMessage('沒有圖片可供匯出。');
-        return null;
+        // ErrorMessage('沒有圖片可供匯出。');
+        // return null;
+        store.setDefaultBackground();
     }
 
     // 1. 建立一個離線的、高解析度的 Canvas
@@ -45,20 +46,24 @@ export function exportCroppedArea(options: CroppedExportOptions): string | null 
     }
 
     // 2. 在高解析度畫布上重新繪製所有內容
-    exportCtx.fillStyle = "#FFFFFF";
+    exportCtx.clearRect(0, 0, exportCanvas.width, exportCanvas.height);
+    // 1. 清除畫布
+    exportCtx.fillStyle = "transparent";
     exportCtx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
 
     // 繪製背景圖
-    exportCtx.drawImage(
-        store.originalImage,
-        cropX * scaleFactor, // 直接使用傳入的放大倍率來回推原始座標
-        cropY * scaleFactor,
-        cropWidth * scaleFactor,
-        cropHeight * scaleFactor,
-        0, 0,
-        exportCanvas.width,
-        exportCanvas.height
-    );
+    if (store.originalImage) {
+        exportCtx.drawImage(
+            store.originalImage,
+            cropX * scaleFactor, // 直接使用傳入的放大倍率來回推原始座標
+            cropY * scaleFactor,
+            cropWidth * scaleFactor,
+            cropHeight * scaleFactor,
+            0, 0,
+            exportCanvas.width,
+            exportCanvas.height
+        );
+    }
 
     // 繪製所有元素
     store.elements.forEach(element => {
