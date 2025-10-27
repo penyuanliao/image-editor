@@ -1,6 +1,5 @@
 import {
     calculateConstrainedSize,
-    type CanvasElement,
     drawBackground,
     drawControls,
     drawCropMarks,
@@ -9,9 +8,6 @@ import {
     drawText,
     getElementBoundingBox,
     getTransformHandles,
-    type StickerElement,
-    type SVGElement,
-    type TextElement
 } from './useImageEditor.ts';
 import {ErrorMessage} from "./AlertMessage.ts";
 import {createCanvasElement} from "./useCreateCanvasElement.ts";
@@ -19,6 +15,7 @@ import {nextTick} from "vue";
 // 引入 store 的類型，但不直接使用 useImagesStore()
 import type {ImagesStore} from '../store/images';
 import {pasteImage} from "./useClipboard.ts";
+import {ElementTypesEnum, type ICanvasElement, type IImageConfig, type ISVGConfig, type ITextConfig} from "../types.ts";
 
 interface ICanvasViewport {
     width: number;
@@ -46,7 +43,7 @@ interface IDragStart {
 interface IContextMenuEvent {
     x: number; // 螢幕 X 座標
     y: number; // 螢幕 Y 座標
-    element: CanvasElement | null;
+    element: ICanvasElement | null;
 }
 
 // 這個類別將取代大部分 useImageEditor.ts 和 ImageUploader.vue 中的邏輯
@@ -56,7 +53,7 @@ export class CanvasEditor {
     protected canvas?: HTMLCanvasElement;
     protected ctx?: CanvasRenderingContext2D;
     protected store: ImagesStore; // 儲存 Pinia store 的引用
-    public editingElement?: CanvasElement | null = null;
+    public editingElement?: ICanvasElement | null = null;
     // 回應右鍵選單監聽事件
     public onContextMenu: ((event: IContextMenuEvent) => void) | null = null;
     // 點擊兩下編輯的輸入框
@@ -169,16 +166,18 @@ export class CanvasEditor {
         this.store.addImage(image);
         this.store.addElement({
             id: Date.now(),
-            type: 'sticker',
+            type: ElementTypesEnum.Image,
             name:  '新貼圖',
-            content: image.src,
-            x: this.canvas.width / 2,
-            y: this.canvas.height / 2,
-            width: image.width * initialScale,
-            height: image.height * initialScale,
-            img: image,
-            rotation: 0,
-        } as CanvasElement);
+            config: {
+                content: image.src,
+                x: this.canvas.width / 2,
+                y: this.canvas.height / 2,
+                width: image.width * initialScale,
+                height: image.height * initialScale,
+                img: image,
+                rotation: 0,
+            }
+        } as ICanvasElement);
         this.store.imageUrl = image.src;
         this.render();
     }
@@ -255,12 +254,12 @@ export class CanvasEditor {
             // 如果元素正在被編輯，則不在 canvas 上繪製它，由 input 框取代
             if (this.editingElement?.id === element.id) return;
 
-            if (element.type === 'text') {
-                drawText(ctx, element as TextElement);
-            } else if (element.type === 'icon') {
-                drawSVG(ctx, element as SVGElement);
-            } else if (element.type === 'sticker') {
-                drawSticker(ctx, element as StickerElement);
+            if (element.type === ElementTypesEnum.Text) {
+                drawText(ctx, element);
+            } else if (element.type === ElementTypesEnum.SVG) {
+                drawSVG(ctx, element);
+            } else if (element.type === ElementTypesEnum.Image) {
+                drawSticker(ctx, element);
             }
         });
 
@@ -297,12 +296,12 @@ export class CanvasEditor {
 
         // 從後往前找，確保點擊到最上層的元素
         return [...this.store.elements].reverse().find(el => {
-            if ((el.type === 'sticker' || el.type === 'text') && el.rotation) {
+            if ((el.type === ElementTypesEnum.Text || el.type === ElementTypesEnum.Image) && el.config.rotation) {
                 // For rotated stickers, we need to check against the rotated bounding box
                 // A simpler way is to transform the click point into the element's local coordinate system
-                const angle = el.rotation || 0;
-                const dx = x - el.x;
-                const dy = y - el.y;
+                const angle = el.config.rotation || 0;
+                const dx = x - (el.config.x || 0);
+                const dy = y - (el.config.y || 0);
                 const localX = dx * Math.cos(-angle) - dy * Math.sin(-angle);
                 const localY = dx * Math.sin(-angle) + dy * Math.cos(-angle);
 
@@ -316,7 +315,7 @@ export class CanvasEditor {
             }
         });
     }
-    public getActionForHandle(x: number, y: number, element: CanvasElement) {
+    public getActionForHandle(x: number, y: number, element: ICanvasElement) {
         const ctx = this.ctx;
         if (!ctx) return null;
         const handles = getTransformHandles(ctx, element);
@@ -345,7 +344,7 @@ export class CanvasEditor {
         }
 
         // 觸發回呼，將事件資訊傳遞給 Vue 元件來顯示 UI
-        this.onContextMenu?.({ x: event.clientX, y: event.clientY, element: clickedElement as CanvasElement });
+        this.onContextMenu?.({ x: event.clientX, y: event.clientY, element: clickedElement as ICanvasElement });
     }
 
     private handleMouseDown(event: MouseEvent) {
@@ -400,8 +399,8 @@ export class CanvasEditor {
             this.isDraggingElement = true;
             this.dragStart.x = x;
             this.dragStart.y = y;
-            this.dragStart.elementX = clickedElement.x;
-            this.dragStart.elementY = clickedElement.y;
+            this.dragStart.elementX = clickedElement.config.x;
+            this.dragStart.elementY = clickedElement.config.y;
         } else if (!isShiftPressed && this.isPointInCropBox(x, y)) {
             this.isDraggingCropBox = true;
             this.dragStart.x = event.offsetX;
@@ -413,31 +412,32 @@ export class CanvasEditor {
         this.render();
     }
 
-    private handleTransformStart(x: number, y: number, action: string, element: CanvasElement) {
+    private handleTransformStart(x: number, y: number, action: string, element: ICanvasElement) {
         this.dragStart.x = x;
         this.dragStart.y = y;
-        this.dragStart.elementX = element.x;
-        this.dragStart.elementY = element.y;
+        this.dragStart.elementX = element.config.x;
+        this.dragStart.elementY = element.config.y;
         // For text, we scale fontSize. For stickers, we scale size.
-        this.dragStart.elementRotation = element.rotation || 0;
+        this.dragStart.elementRotation = element.config.rotation || 0;
 
-        if (element.type === 'sticker') {
-            const sticker = element as StickerElement;
-            this.dragStart.elementWidth = sticker.width;
-            this.dragStart.elementHeight = sticker.height;
-            this.dragStart.aspectRatio = sticker.width && sticker.height ? sticker.width / sticker.height : 1;
-        } else if (element.type === 'text') {
-            const text = element as TextElement;
+        if (element.type === ElementTypesEnum.Image) {
+            const image = element.config as IImageConfig;
+            this.dragStart.elementWidth = image.width || 1;
+            this.dragStart.elementHeight = image.height || 1;
+            this.dragStart.aspectRatio = image.width && image.height ? image.width / image.height : 1;
+        } else if (element.type === ElementTypesEnum.Text) {
+            const text = element.config as ITextConfig;
             this.dragStart.elementSize = text.fontSize || 32;
-        } else if (element.type === 'icon') {
-            const icon = element as SVGElement;
-            this.dragStart.elementSize = icon.size || 50;
+        } else if (element.type === ElementTypesEnum.SVG) {
+            const icon = element.config as ISVGConfig;
+            this.dragStart.elementWidth = icon.width || 50;
+            this.dragStart.elementHeight = icon.height || 50;
         }
 
         if (action === 'rot') {
             this.isRotating = true;
             // Calculate initial angle between center and mouse
-            this.dragStart.angle = Math.atan2(y - element.y, x - element.x) - this.dragStart.elementRotation;
+            this.dragStart.angle = Math.atan2(y - element.config.y, x - element.config.x) - this.dragStart.elementRotation;
         } else {
             this.isResizing = action; // 'tl', 'tr', 'bl', 'br'
         }
@@ -460,8 +460,8 @@ export class CanvasEditor {
                 // 簡化：我們假設 dragStart 儲存的是第一個點擊元素的位置，然後所有元素都應用相同的位移。
                 // 為了正確實現，handleMouseDown 應該記錄下所有選中元素的初始位置。
                 // 目前的簡化實現：
-                el.x += dx;
-                el.y += dy;
+                el.config.x += dx;
+                el.config.y += dy;
             });
             // 更新 dragStart 以便下次 mousemove 計算增量
             this.dragStart.x = x;
@@ -474,8 +474,8 @@ export class CanvasEditor {
             this.canvas.style.cursor = "grabbing";
             const selectedElement = this.store.selectedElements[0];
             if (selectedElement) {
-                const currentAngle = Math.atan2(y - selectedElement.y, x - selectedElement.x);
-                selectedElement.rotation = currentAngle - this.dragStart.angle;
+                const currentAngle = Math.atan2(y - selectedElement.config.y, x - selectedElement.config.x);
+                selectedElement.config.rotation = currentAngle - this.dragStart.angle;
             }
             this.render();
             return;
@@ -490,8 +490,8 @@ export class CanvasEditor {
             const dy = y - this.dragStart.y;
             if (!element) return;
             // Side handles for non-proportional scaling (stickers only)
-            if (element.type === 'sticker' && ['tm', 'bm', 'ml', 'mr'].includes(this.isResizing)) {
-                const sticker = element as StickerElement;
+            if (element.type === ElementTypesEnum.Image && ['tm', 'bm', 'ml', 'mr'].includes(this.isResizing)) {
+                const sticker = element.config as IImageConfig;
                 if (this.isResizing === 'tm' || this.isResizing === 'bm') {
                     // Project mouse delta onto element's local Y-axis
                     const projectedDistance = -dx * sin + dy * cos;
@@ -528,18 +528,18 @@ export class CanvasEditor {
                 // Dot product of mouse delta and corner vector to find projected distance
                 const projectedDistance = (dx * rotatedCornerVectorX + dy * rotatedCornerVectorY);
 
-                if (element.type === 'sticker') {
+                if (element.type === ElementTypesEnum.Image) {
                     // For stickers, scale width and height proportionally
                     const newWidth = Math.max(10, this.dragStart.elementWidth + projectedDistance * Math.SQRT2);
                     const newHeight = newWidth / this.dragStart.aspectRatio;
-                    (element as StickerElement).width = newWidth;
-                    (element as StickerElement).height = newHeight;
-                } else if (element.type === 'text') {
+                    (element.config as IImageConfig).width = newWidth;
+                    (element.config as IImageConfig).height = newHeight;
+                } else if (element.type === ElementTypesEnum.Text) {
                     // For text, scale font size
-                    (element as TextElement).fontSize = Math.max(10, this.dragStart.elementSize + projectedDistance * Math.SQRT2);
-                } else if (element.type === 'icon') {
+                    (element.config as ITextConfig).fontSize = Math.max(10, this.dragStart.elementSize + projectedDistance * Math.SQRT2);
+                } else if (element.type === ElementTypesEnum.SVG) {
                     // For icons, scale size
-                    (element as SVGElement).size = Math.max(10, this.dragStart.elementSize + projectedDistance * Math.SQRT2);
+                    (element.config as ISVGConfig).width = (element.config as ISVGConfig).height = Math.max(10, this.dragStart.elementSize + projectedDistance * Math.SQRT2);
                 }
             }
 
@@ -601,7 +601,7 @@ export class CanvasEditor {
         const clickedElement = this.findElementAtPosition(x, y);
 
         // 只有文字元素可以雙擊編輯
-        if (clickedElement && clickedElement.type === 'text') {
+        if (clickedElement && clickedElement.type === ElementTypesEnum.Text) {
             this.store.clearSelection(); // 進入編輯模式時取消選取
             this.editingElement = clickedElement;
             const box = getElementBoundingBox(this.ctx, clickedElement)!;
@@ -615,8 +615,8 @@ export class CanvasEditor {
             this.textInputStyle.top = `${viewY}px`;
             this.textInputStyle.width = `${(box.width + 20) * this.scale}px`; // 寬高也要縮放
             this.textInputStyle.height = `${box.height * this.scale}px`;
-            this.textInputStyle.fontSize = `${(clickedElement as TextElement).fontSize}px`;
-            this.textInputStyle.fontFamily = (clickedElement as TextElement).fontFamily || '';
+            this.textInputStyle.fontSize = `${(clickedElement.config as ITextConfig).fontSize}px`;
+            this.textInputStyle.fontFamily = (clickedElement.config as ITextConfig).fontFamily || '';
 
             this.render(); // 重新繪製，隱藏 canvas 上的文字
 

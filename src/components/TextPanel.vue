@@ -1,8 +1,13 @@
 <script setup lang="ts">
-import {computed, reactive, watch} from "vue";
-import type { TextElement } from "../types";
+import {computed, reactive, ref, watch} from "vue";
 import { useImagesStore } from "../store/images.ts";
 import { Delete } from "@element-plus/icons-vue";
+import { ColorPicker } from "colorpickers";
+import {ElementTypesEnum, type ICanvasElement, type ITextConfig} from "../types.ts";
+// import { ColorInputWithoutInstance } from "tinycolor2";
+
+const gradientColor = ref("linear-gradient(90deg, rgba(255, 0, 0, 1) 0%, rgba(0, 0, 255, 1) 100%)");
+const gradientData = ref({});
 
 const props = defineProps<{ 
   controlEnabled: boolean
@@ -31,6 +36,7 @@ const getDefaultTextProps = () => ({
   name: '文字',
   color: '#000000',
   isBold: false,
+  isItalic: false,
   fontSize: 32,
   fontFamily: 'Arial',
   lineHeight: 1.2,
@@ -55,6 +61,7 @@ const getDefaultGradient = () => ({
   enabled: false,
   startColor: '#FF0000',
   endColor: '#0000FF',
+  stops: [0, '#FF0000', 1, '#0000FF'],
   angle: 90
 });
 
@@ -74,38 +81,39 @@ const selectedElement = computed(() => {
 
 // Watch for incoming element changes and update the panel UI
 watch(() => selectedElement.value, (newEl) => {
-  if (newEl && newEl.type === 'text') {
+  if (newEl && newEl.type === ElementTypesEnum.Text) {
+    const newConfig = newEl.config as ITextConfig;
     // Update text properties
-    textProps.content = newEl.content;
-    textProps.color = newEl.color;
-    textProps.isBold = newEl.fontWeight === 'bold';
-    textProps.fontSize = newEl.fontSize || 12;
-    textProps.fontFamily = newEl.fontFamily || 'Arial';
-    textProps.lineHeight = newEl.lineHeight || 1.2;
-    textProps.rotation = newEl.rotation || 0;
+    textProps.content = newConfig.content;
+    textProps.color = newConfig.color;
+    textProps.isBold = newConfig.fontWeight === 'bold';
+    textProps.fontSize = newConfig.fontSize || 12;
+    textProps.fontFamily = newConfig.fontFamily || 'Arial';
+    textProps.lineHeight = newConfig.lineHeight || 1.2;
+    textProps.rotation = newConfig.rotation || 0;
 
     // Update shadow properties
-    shadow.enabled = !!newEl.shadowColor;
+    shadow.enabled = !!newConfig.shadowColor;
     if (shadow.enabled) {
-      shadow.color = newEl.shadowColor || '#000000';
-      shadow.blur = newEl.shadowBlur || 0;
-      shadow.offsetX = newEl.shadowOffsetX || 0;
-      shadow.offsetY = newEl.shadowOffsetY || 0;
+      shadow.color = newConfig.shadowColor || '#000000';
+      shadow.blur = newConfig.shadowBlur || 0;
+      shadow.offsetX = newConfig.shadowOffsetX || 0;
+      shadow.offsetY = newConfig.shadowOffsetY || 0;
     }
 
     // Update stroke properties
-    stroke.enabled = !!newEl.strokeColor;
+    stroke.enabled = !!newConfig.strokeColor;
     if (stroke.enabled) {
-      stroke.color = newEl.strokeColor || '#000000';
-      stroke.width = newEl.strokeWidth || 1;
+      stroke.color = newConfig.strokeColor || '#000000';
+      stroke.width = newConfig.strokeWidth || 1;
     }
 
     // Update gradient properties
-    gradient.enabled = !!newEl.gradientEnabled;
+    gradient.enabled = !!newConfig.gradientEnabled;
     if (gradient.enabled) {
-      gradient.startColor = newEl.gradientStartColor || '#FF0000';
-      gradient.endColor = newEl.gradientEndColor || '#0000FF';
-      gradient.angle = newEl.gradientAngle || 90;
+      gradient.startColor = newConfig.gradientStartColor || '#FF0000';
+      gradient.endColor = newConfig.gradientEndColor || '#0000FF';
+      gradient.angle = newConfig.gradientAngle || 90;
     }
 
   } else {
@@ -170,28 +178,31 @@ const addText = () => {
   imagesStore.selectedElements = [];
 
   const element: any = {
-    type: 'text',
-    ...textProps,
-    fontWeight: textProps.isBold ? 'bold' : 'normal',
+    type: ElementTypesEnum.Text,
+    name: '新文字',
+    config: {
+      ...textProps,
+      fontWeight: textProps.isBold ? 'bold' : 'normal',
+    }
   };
 
   if (shadow.enabled) {
-    element.shadowColor = shadow.color;
-    element.shadowBlur = shadow.blur;
-    element.shadowOffsetX = shadow.offsetX;
-    element.shadowOffsetY = shadow.offsetY;
+    element.config.shadowColor = shadow.color;
+    element.config.shadowBlur = shadow.blur;
+    element.config.shadowOffsetX = shadow.offsetX;
+    element.config.shadowOffsetY = shadow.offsetY;
   }
 
   if (stroke.enabled) {
-    element.strokeColor = stroke.color;
-    element.strokeWidth = stroke.width;
+    element.config.strokeColor = stroke.color;
+    element.config.strokeWidth = stroke.width;
   }
 
   if (gradient.enabled) {
-    element.gradientEnabled = true;
-    element.gradientStartColor = gradient.startColor;
-    element.gradientEndColor = gradient.endColor;
-    element.gradientAngle = gradient.angle;
+    element.config.gradientEnabled = true;
+    element.config.gradientStartColor = gradient.startColor;
+    element.config.gradientEndColor = gradient.endColor;
+    element.config.gradientAngle = gradient.angle;
   }
 
   emit('addElement', element);
@@ -231,6 +242,85 @@ const handleRemoveTextElement = () => {
   imagesStore.selectedElements = [];
 }
 
+interface ParsedGradient {
+  type: string;
+  angle: number;
+  stops: (string | number)[];
+}
+
+/**
+ * 將 linear-gradient 字串轉換為包含角度和顏色停止點的物件
+ * @param gradientString - 例如 "linear-gradient(90deg, rgba(0,0,0,1) 0%, #fff 100%)"
+ * @returns - 例如 { type: 'linear', angle: 90, stops: [0, 'rgba(0,0,0,1)', 1, '#fff'] }
+ */
+const parseGradientString = (gradientString: string): ParsedGradient | null => {
+  // 1. 匹配漸層類型和內容
+  const gradientMatch = gradientString.match(/(linear|radial)-gradient\((.*)\)/);
+  if (!gradientMatch) return null;
+
+  const type = gradientMatch[1]; // 'linear' 或 'radial'
+  const inner = gradientMatch[2] || '';
+
+  // 2. 分割出角度和顏色停止點
+  const parts = inner.split(/,(?![^\(]*\))/); // 用逗號分割，但忽略括號內的逗號
+
+  // 3. 提取並解析角度
+  const angleString = (parts[0] || '').trim();
+  let angle = 180; // CSS 預設 'to bottom' 是 180deg
+  let stopsString = inner; // 預設整個 inner 都是 stops
+
+  if (!type) return null;
+
+  if (type === 'linear') {
+    const angleMatch = angleString.match(/^(-?\d*\.?\d+)deg$/);
+    if (angleMatch) {
+      // 如果第一部分是角度，則解析它
+      angle = parseFloat(angleMatch[1] || '180');
+      stopsString = parts.slice(1).join(','); // 剩下的部分是顏色停止點
+    }
+  }
+
+  // 4. 匹配所有顏色停止點 (例如 "rgba(...) 50%")
+  const stopRegex = /(rgba?\(.+?\)|#[\da-fA-F]{3,8})\s*(\d*\.?\d+)%/g;
+  const stops: { position: number; color: string }[] = [];
+  let match;
+  
+  while ((match = stopRegex.exec(stopsString || '')) !== null) {
+    stops.push({
+      color: match[1] || '0',
+      position: parseFloat(match[2] || '0') / 100, // 將 "100%" 轉為 1，並處理小數
+    });
+  }
+
+  // 5. 根據位置排序
+  stops.sort((a, b) => a.position - b.position);
+
+  // 6. 扁平化為 [position, color, position, color, ...] 的格式
+  const flatStops = stops.flatMap(stop => [stop.position, stop.color]);
+
+  return {
+    type,
+    angle,
+    stops: flatStops,
+  };
+};
+
+const gradientColorChange = (value: string) => {
+  const parsedResult = parseGradientString(value);
+  console.log('gradientColorChange (raw):', gradientData.value);
+  console.log('gradientColorChange (parsed):', parsedResult);
+  if (parsedResult) {
+    gradient.angle = parsedResult.angle;
+    gradient.stops = parsedResult.stops;
+  }
+  if (selectedElement.value) {
+    const config = selectedElement.value.config as ITextConfig;
+    config.gradientAngle = gradient.angle;
+    config.gradientType = parsedResult?.type || 'linear';
+    config.gradientStops = gradient.stops;
+  }
+}
+
 </script>
 
 <template>
@@ -258,7 +348,8 @@ const handleRemoveTextElement = () => {
       
       <div class="ctrl">
         <span>顏色：</span>
-        <el-color-picker v-model="textProps.color" :disabled="gradient.enabled" />
+<!--        <el-color-picker v-model="textProps.color" :disabled="gradient.enabled" />-->
+        <ColorPicker use-type="pure" format="hex" v-model:pureColor="textProps.color"/>
       </div>
 
       <div class="ctrl">
@@ -267,16 +358,12 @@ const handleRemoveTextElement = () => {
       </div>
       <div v-if="gradient.enabled" class="sub-controls">
         <div>
-          <span>開始顏色：</span>
-          <el-color-picker v-model="gradient.startColor" />
-        </div>
-        <div>
-          <span>結束顏色：</span>
-          <el-color-picker v-model="gradient.endColor" />
-        </div>
-        <div>
-          <span>角度：</span>
-          <el-slider v-model="gradient.angle" :min="0" :max="360" style="width: 140px;" />
+          <span>顏色：</span>
+          <ColorPicker
+              use-type="gradient"
+              v-model:gradientColor="gradientColor"
+              @gradientColorChange="gradientColorChange"
+          />
         </div>
       </div>
       
@@ -284,7 +371,10 @@ const handleRemoveTextElement = () => {
         <span>粗體：</span>
         <el-switch v-model="textProps.isBold" />
       </div>
-      
+      <div>
+        <span>斜體：</span>
+        <el-switch v-model="textProps.isItalic"/>
+      </div>
       <div class="ctrl">
         <span style="flex-shrink: 0;">大小：</span>
         <el-select v-model="textProps.fontSize" placeholder="Select" style="width: 100%;">

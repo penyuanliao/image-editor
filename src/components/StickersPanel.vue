@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import {computed, ref} from "vue";
 import { Search } from "@element-plus/icons-vue";
-import type { StickerElement } from "../types.ts";
 import {useImagesStore} from "../store/images.ts";
+import {ElementTypesEnum} from "../types.ts";
 const imagesStore = useImagesStore();
 
-const emit = defineEmits<{ (e: 'add-element', action: StickerElement): void }>();
+const emit = defineEmits<{ (e: 'add-element', action: any): void }>();
 
 const input = ref<String>('');
 
@@ -57,7 +57,14 @@ const customizedGallery = computed(() => {
 })
 
 const onStickerClick = (stickerUrl: string, filename: string) => {
-  emit('add-element', { type: 'sticker', payload: stickerUrl, name: filename });
+  emit('add-element', {
+    type: ElementTypesEnum.Image,
+    config: {
+      url: stickerUrl,
+      x: 0,
+      y: 0,
+    }, name: filename
+  });
 };
 
 </script>

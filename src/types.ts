@@ -1,55 +1,77 @@
-export interface TextElement {
-  type: "text";
-  name?: string;
-  content: string;
-  x: number;
-  y: number;
-  fontSize: number;
-  fontFamily: string;
-  color: string;
-  fontWeight?: 'normal' | 'bold';
-  lineHeight?: number; // As a multiplier of font size, e.g., 1.2
-  rotation?: number;
-  shadowColor?: string;
-  shadowBlur?: number;
-  shadowOffsetX?: number;
-  shadowOffsetY?: number;
-  strokeColor?: string;
-  strokeWidth?: number;
-  gradientEnabled?: boolean;
-  gradientStartColor?: string;
-  gradientEndColor?: string;
-  gradientAngle?: number;
-}
-export interface StickerElement {
-    type: 'sticker',
-    payload?: string;
-    img?: HTMLImageElement;
+
+export const ElementTypesEnum = {
+    Stage: 'stage',
+    Text: 'text',
+    Image: 'image',
+    Sticker: 'image',
+    SVG: 'svg'
+} as const;
+
+export type ICanvasTypes = typeof ElementTypesEnum[keyof typeof ElementTypesEnum];
+
+export interface ICanvasElement {
+    id: number;
+    type: ICanvasTypes;
     name?: string;
+    config: StageConfig | IImageConfig | ITextConfig;
 }
 
-export type ImageEditorElement = TextElement; // Add other element types here in the future
+export interface StageConfig extends AbsoluteConfig{
+    width: number;
+    height: number;
+    color: string;
+}
 
-export interface ImageEditorAction {
-    type: "icon" | "text" | "sticker" | "image";
-    content?: string;
-    color?: string;
-    fontSize?: number;
+export interface AbsoluteConfig {
+    name?: string;
+    width?: number;
+    height?: number;
+    x: number;
+    y: number;
+    rotation?: number; // 旋轉角度 (radians)
+}
+
+export interface IImageConfig extends AbsoluteConfig {
+    img?: HTMLImageElement;
+    url?: string;
+}
+
+export interface ITextConfig extends AbsoluteConfig {
+    content: string;
+    color: string;
     fontFamily?: string;
+    // 文字屬性
+    fontSize?: number;
     fontWeight?: 'normal' | 'bold';
+    fontItalic?: boolean;
     lineHeight?: number;
+
+    // 陰影屬性
     shadowColor?: string;
     shadowBlur?: number;
     shadowOffsetX?: number;
     shadowOffsetY?: number;
+
+    // 外框屬性
     strokeColor?: string;
     strokeWidth?: number;
-    payload?: string;
+
+    // 漸層屬性
     gradientEnabled?: boolean;
+    gradientType?: 'linear' | 'radial' | string;
     gradientStartColor?: string;
     gradientEndColor?: string;
+    gradientStops?: (string | number)[];
     gradientAngle?: number;
+
 }
+
+export interface ISVGConfig extends AbsoluteConfig {
+    content: string;
+    color: string;
+}
+
+
 
 export const ImageEditorTypes: {
     [key: string]: string

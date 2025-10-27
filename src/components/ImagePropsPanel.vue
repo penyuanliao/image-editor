@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useImagesStore } from '../store/images';
-import type { StickerElement } from '../Utilities/useImageEditor.ts';
 import AIPanel from "./AIPanel.vue";
+import {ElementTypesEnum, type ICanvasElement, type IImageConfig} from "../types.ts";
 
 const imagesStore = useImagesStore();
 
@@ -13,24 +13,24 @@ const selectedElement = computed(() => {
 });
 // Only show and operate on the panel if a sticker is selected
 const selectedSticker = computed(() => {
-  if (selectedElement.value && (selectedElement.value.type === 'sticker' || selectedElement.value.type === 'background')) {
-    return selectedElement.value as StickerElement;
+  if (selectedElement.value && (selectedElement.value.type === ElementTypesEnum.Image || selectedElement.value.type === ElementTypesEnum.Stage)) {
+    return selectedElement.value as ICanvasElement;
   }
   return null;
 });
 // Computed property to handle degree-radian conversion for the rotation slider
 const rotationInDegrees = computed({
   get() {
-    if (selectedSticker.value && selectedSticker.value.rotation) {
+    if (selectedSticker.value && selectedSticker.value.config.rotation) {
       // Convert radians to degrees and round to nearest integer
-      return Math.round((selectedSticker.value.rotation * 180) / Math.PI);
+      return Math.round((selectedSticker.value.config.rotation * 180) / Math.PI);
     }
     return 0;
   },
   set(degrees: number) {
     if (selectedSticker.value) {
       // Convert degrees to radians
-      selectedSticker.value.rotation = (degrees * Math.PI) / 180;
+      selectedSticker.value.config.rotation = (degrees * Math.PI) / 180;
     }
   },
 });
@@ -39,25 +39,25 @@ const rotationInDegrees = computed({
 
 <template>
   <div v-if="selectedSticker" class="image-props-container">
-    <div v-if="selectedSticker.type === 'sticker'" class="properties">
+    <div v-if="selectedSticker.type === ElementTypesEnum.Image" class="properties">
       <div class="view">
-        <img :src="selectedElement?.content" alt="">
+        <img :src="(selectedElement?.config as IImageConfig)?.url" alt="">
       </div>
       <div class="ctrl">
         <span>X：</span>
-        <el-input-number v-model="selectedSticker.x" :controls="false" style="width: 100%" />
+        <el-input-number v-model="selectedSticker.config.x" :controls="false" style="width: 100%" />
       </div>
       <div class="ctrl">
         <span>Y：</span>
-        <el-input-number v-model="selectedSticker.y" :controls="false" style="width: 100%" />
+        <el-input-number v-model="selectedSticker.config.y" :controls="false" style="width: 100%" />
       </div>
       <div class="ctrl">
         <span>寬：</span>
-        <el-input-number v-model="selectedSticker.width" :controls="false" style="width: 100%" />
+        <el-input-number v-model="selectedSticker.config.width" :controls="false" style="width: 100%" />
       </div>
       <div class="ctrl">
         <span>高：</span>
-        <el-input-number v-model="selectedSticker.height" :controls="false" style="width: 100%" />
+        <el-input-number v-model="selectedSticker.config.height" :controls="false" style="width: 100%" />
       </div>
       <div class="ctrl">
         <span>旋轉角度：</span>

@@ -2,7 +2,7 @@
 import { computed } from "vue";
 import { useImagesStore } from "../store/images.ts";
 import draggable from 'vuedraggable';
-import type {CanvasElement} from "../Utilities/useImageEditor.ts";
+import {ElementTypesEnum, type ICanvasElement} from "../types.ts";
 
 const imagesStore = useImagesStore();
 
@@ -21,19 +21,21 @@ const reversedElements = computed({
     // imagesStore.originalImage = firstElement?.img;
   }
 });
-const onClickLayerHandle = (element: CanvasElement) => {
-  imagesStore.selectedElement = element;
+const onClickLayerHandle = (element: ICanvasElement) => {
+  imagesStore.addToSelection(element);
 };
 const onClickBGHandle = () => {
-  imagesStore.selectedElement = {
+  const el = {
     id: Date.now(),
-    type: 'background',
-    width: imagesStore.originalImage?.width,
-    height: imagesStore.originalImage?.height,
-    img: imagesStore.originalImage,
-    url: imagesStore.originalImage?.src,
-    content: imagesStore.originalImage?.src
-  } as CanvasElement
+    type: ElementTypesEnum.Stage,
+    name: 'stage',
+    config: {
+      width: imagesStore.originalImage?.width,
+      height: imagesStore.originalImage?.height,
+      x: 0,
+      y: 0,
+    }
+  } as ICanvasElement;
 };
 
 </script>
@@ -53,8 +55,8 @@ const onClickBGHandle = () => {
     >
       <template #item="{ element }">
         <div class="layer" @click="onClickLayerHandle(element)">
-          <img v-if="element.type === 'sticker'" :src="element.content" alt=""/>
-          <span v-else>{{ element.content }}</span>
+          <img v-if="element.type === ElementTypesEnum.Image" :src="element.config.url" alt=""/>
+          <span v-else>{{ element.config.content }}</span>
         </div>
       </template>
     </draggable>

@@ -1,53 +1,14 @@
 
 import { useImagesStore } from "../store/images.ts";
 import {gradientStartAndEndPoints} from "./GradientLayer.ts";
+import {
+    type ICanvasElement,
+    type ITextConfig,
+    type IImageConfig,
+    type ISVGConfig,
+    ElementTypesEnum
+} from "../types.ts";
 
-export interface AbsoluteElement {
-    id: number;
-    type: 'text' | 'icon' | 'sticker' | 'background';
-    name?: string;
-    x: number;
-    y: number;
-    rotation?: number; // 旋轉角度 (radians)
-}
-export interface StickerElement extends AbsoluteElement {
-    width: number;
-    height: number;
-    img?: HTMLImageElement;
-    url?: string;
-}
-export interface TextElement extends AbsoluteElement {
-    content: string;
-    color: string;
-    // 文字屬性
-    fontSize?: number;
-    fontFamily?: string;
-    fontWeight?: 'normal' | 'bold';
-    fontItalic?: boolean;
-    lineHeight?: number;
-    // 陰影屬性
-    shadowColor?: string;
-    shadowBlur?: number;
-    shadowOffsetX?: number;
-    shadowOffsetY?: number;
-    // 外框屬性
-    strokeColor?: string;
-    strokeWidth?: number;
-    // 漸層屬性
-    gradientEnabled?: boolean;
-    gradientStartColor?: string;
-    gradientEndColor?: string;
-    gradientAngle?: number;
-}
-export interface SVGElement extends AbsoluteElement {
-    content: string;
-    color: string;
-    size?: number;
-}
-export interface CanvasElement extends StickerElement, TextElement, SVGElement {
-    id: number;
-    type: 'text' | 'icon' | 'sticker' | 'background';
-}
 /**
  * 把上傳的圖片繪製到底圖
  * @param canvasEl
@@ -102,25 +63,28 @@ export const drawCropMarks = (canvasEl: HTMLCanvasElement, ctx: CanvasRenderingC
  * @param ctx
  * @param element
  */
-export const drawText = (ctx: CanvasRenderingContext2D, element: TextElement) => {
+export const drawText = (ctx: CanvasRenderingContext2D, element: ICanvasElement) => {
+    if (!element) return;
+    const config: ITextConfig = element.config as ITextConfig;
+
     ctx.save();
     // Translate to the element's center, rotate, and then draw the text
-    ctx.translate(element.x, element.y);
-    ctx.rotate(element.rotation || 0);
+    ctx.translate(config.x, config.y);
+    ctx.rotate(config.rotation || 0);
 
     // Common text styles
-    ctx.font = `${element.fontWeight || 'normal'} ${element.fontSize || 32}px ${element.fontFamily || 'Arial'}`;
+    ctx.font = `${config.fontWeight || 'normal'} ${config.fontSize || 32}px ${config.fontFamily || 'Arial'}`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
     // Apply shadow if properties exist
-    ctx.shadowColor = element.shadowColor || 'transparent';
-    ctx.shadowBlur = element.shadowBlur || 0;
-    ctx.shadowOffsetX = element.shadowOffsetX || 0;
-    ctx.shadowOffsetY = element.shadowOffsetY || 0;
-    const lines = element.content.split('\n');
-    const lineHeight = element.lineHeight || 1.2;
-    const fontSize = element.fontSize || 32;
+    ctx.shadowColor = config.shadowColor || 'transparent';
+    ctx.shadowBlur = config.shadowBlur || 0;
+    ctx.shadowOffsetX = config.shadowOffsetX || 0;
+    ctx.shadowOffsetY = config.shadowOffsetY || 0;
+    const lines = config.content.split('\n');
+    const lineHeight = config.lineHeight || 1.2;
+    const fontSize = config.fontSize || 32;
     const totalTextHeight = lines.length * fontSize * lineHeight;
 
     // Calculate text block's width for gradient calculation
@@ -128,16 +92,39 @@ export const drawText = (ctx: CanvasRenderingContext2D, element: TextElement) =>
     const textWidth = Math.max(...textMetrics.map(m => m.width));
 
     // Apply gradient or solid color fill
-    if (element.gradientEnabled && element.gradientStartColor && element.gradientEndColor) {
-        // 三角函數角度轉換弧度
-        const { startPoint, endPoint } = gradientStartAndEndPoints(element.gradientAngle || 0, textWidth, totalTextHeight);
-        // 建立漸層
-        const gradient = ctx.createLinearGradient(startPoint.x, startPoint.y, endPoint.x, endPoint.y);
-        gradient.addColorStop(0, element.gradientStartColor);
-        gradient.addColorStop(1, element.gradientEndColor);
+    if (config.gradientEnabled && config.gradientStartColor && config.gradientEndColor) {
+        let gradient: CanvasGradient;
+
+        if (config.gradientType === 'radial') {
+            const centerX = 0; // 相對於旋轉後的中心點
+            const centerY = 0;
+            const startRadius = 0;
+            const endRadius = Math.max(textWidth, totalTextHeight) / 2;
+            gradient = ctx.createRadialGradient(centerX, centerY, startRadius, centerX, centerY, endRadius);
+        } else { // 預設為 linear
+            // 三角函數角度轉換弧度
+            const { startPoint, endPoint } = gradientStartAndEndPoints(config.gradientAngle || 0, textWidth, totalTextHeight);
+            // 建立漸層
+            gradient = ctx.createLinearGradient(startPoint.x, startPoint.y, endPoint.x, endPoint.y);
+        }
+
+        // 應用顏色停止點
+        if (config.gradientStops && config.gradientStops.length > 0) {
+            for (let i = 0; i < config.gradientStops.length; i += 2) {
+                const stop = config.gradientStops[i] as number;
+                const color = config.gradientStops[i + 1] as string;
+                gradient.addColorStop(stop, color);
+            }
+        } else {
+            // 如果沒有 stops，則使用舊的 start/end color 做為備用
+            gradient.addColorStop(0, config.gradientStartColor);
+            gradient.addColorStop(1, config.gradientEndColor);
+        }
+
         ctx.fillStyle = gradient;
+
     } else {
-        ctx.fillStyle = element.color;
+        ctx.fillStyle = config.color;
     }
 
     // Draw relative to the new (0,0) origin
@@ -145,9 +132,9 @@ export const drawText = (ctx: CanvasRenderingContext2D, element: TextElement) =>
 
     lines.forEach((line) => {
         // Apply stroke if properties exist
-        if (element.strokeColor && element.strokeWidth) {
-            ctx.strokeStyle = element.strokeColor;
-            ctx.lineWidth = element.strokeWidth;
+        if (config.strokeColor && config.strokeWidth) {
+            ctx.strokeStyle = config.strokeColor;
+            ctx.lineWidth = config.strokeWidth;
             ctx.strokeText(line, 0, currentLineY);
         }
 
@@ -159,19 +146,16 @@ export const drawText = (ctx: CanvasRenderingContext2D, element: TextElement) =>
 
     ctx.restore();
 }
-export const drawSVG = (ctx: CanvasRenderingContext2D, element: SVGElement) => {
-    if (!element.size) return;
-    const path = new Path2D(element.content);
-    ctx.fillStyle = element.color;
+export const drawSVG = (ctx: CanvasRenderingContext2D, element: ICanvasElement) => {
+    if (!element) return;
+    const config: ISVGConfig = element.config as ISVGConfig;
 
-    // 為了讓圖示可以被正確縮放和定位，我們需要做一些轉換
-    // SVG 的 viewBox 是 1024x1024，我們將其縮放到指定的 size
-    const scale = element.size / 1024;
+    const path = new Path2D(config.content);
+    ctx.fillStyle = config.color;
+
     ctx.save();
-    // 將原點移動到繪製中心，然後縮放，再移回來
-    ctx.translate(element.x, element.y);
-    ctx.scale(scale, scale);
-    ctx.translate(-512, -512); // SVG viewBox 的中心是 512,512
+    ctx.translate(config.x, config.y);
+    ctx.translate(0, 0);
     ctx.fill(path);
     ctx.restore();
 }
@@ -180,48 +164,51 @@ export const drawSVG = (ctx: CanvasRenderingContext2D, element: SVGElement) => {
  * @param ctx
  * @param element
  */
-export const drawSticker = (ctx: CanvasRenderingContext2D, element: StickerElement) => {
-    if (element.img && element.width && element.height) {
+export const drawSticker = (ctx: CanvasRenderingContext2D, element: ICanvasElement) => {
+    if (!element) return;
+    const config: IImageConfig = element.config as IImageConfig;
+
+    if (config.img && config.width && config.height) {
         ctx.save();
         // Translate to the element's center, rotate, and then draw the image
-        ctx.translate(element.x, element.y);
-        ctx.rotate(element.rotation || 0);
+        ctx.translate(config.x, config.y);
+        ctx.rotate(config.rotation || 0);
         // Draw the image centered on the new (0,0) origin
-        ctx.drawImage(element.img, -element.width / 2, -element.height / 2, element.width, element.height);
+        ctx.drawImage(config.img, -config.width / 2, -config.height / 2, config.width, config.height);
         ctx.restore();
     }
 }
 // --- 元素互動輔助函式 ---
-export const getElementBoundingBox = (ctx: CanvasRenderingContext2D, el: CanvasElement) => {
-    if (!ctx) return null;
+export const getElementBoundingBox = (ctx: CanvasRenderingContext2D, el: ICanvasElement) => {
+    if (!ctx || !el) return null;
     let width: number = 0;
     let height: number = 0;
     let x: number = 0;
     let y: number = 0;
 
-    if (el.type === 'text') {
-        const element: TextElement = el as TextElement;
-        ctx.font = `${element.fontWeight || 'normal'} ${element.fontSize}px ${element.fontFamily}`;
-        const lines = element.content.split('\n');
+    if (el.type === ElementTypesEnum.Text) {
+        const config: ITextConfig = el.config as ITextConfig;
+        ctx.font = `${config.fontWeight || 'normal'} ${config.fontSize}px ${config.fontFamily}`;
+        const lines = config.content.split('\n');
         const metrics = lines.map(line => ctx.measureText(line));
         width = Math.max(...metrics.map(m => m.width));
-        const lineHeight = element.lineHeight || 1.2;
-        height = lines.length * (element.fontSize || 1) * lineHeight;
-        x = el.x - width / 2;
-        y = el.y - height / 2;
+        const lineHeight = config.lineHeight || 1.2;
+        height = lines.length * (config.fontSize || 1) * lineHeight;
+        x = config.x - width / 2;
+        y = config.y - height / 2;
 
-    } else if (el.type === 'sticker') {
-        const element: StickerElement = el as StickerElement;
-        width = element.width || 1;
-        height = element.height || 1;
-        x = element.x - width / 2;
-        y = element.y - height / 2;
-    } else if (el.type === 'icon') {
-        const element: SVGElement = el as SVGElement;
-        width = element.size || 1;
-        height = element.size || 1;
-        x = element.x - width / 2;
-        y = element.y - height / 2;
+    } else if (el.type === ElementTypesEnum.Image) {
+        const config: IImageConfig = el.config as IImageConfig;
+        width = config.width || 1;
+        height = config.height || 1;
+        x = config.x - width / 2;
+        y = config.y - height / 2;
+    } else if (el.type === ElementTypesEnum.SVG) {
+        const config: ISVGConfig = el.config as ISVGConfig;
+        width = config.width || 1;
+        height = config.height || 1;
+        x = config.x - width / 2;
+        y = config.y - height / 2;
     }
 
     // 因為文字是中心對齊的，所以要從中心點計算左上角座標
@@ -233,14 +220,16 @@ export const getElementBoundingBox = (ctx: CanvasRenderingContext2D, el: CanvasE
     };
 }
 //
-export const getTransformHandles = (ctx: CanvasRenderingContext2D, element: TextElement | StickerElement) => {
-    const box = getElementBoundingBox(ctx, element as CanvasElement);
+export const getTransformHandles = (ctx: CanvasRenderingContext2D, element: ICanvasElement) => {
+    if (!element) return null;
+    const box = getElementBoundingBox(ctx, element as ICanvasElement);
     if (!box) return null;
-
+    const config = element.config;
+    if (!config) return null;
     const { width: w, height: h } = box;
-    const cx = element.x;
-    const cy = element.y;
-    const angle = element.rotation || 0;
+    const cx = config.x;
+    const cy = config.y;
+    const angle = config.rotation || 0;
 
     const rotatePoint = (x: number, y: number, angle: number) => {
         const cos = Math.cos(angle);
@@ -290,7 +279,7 @@ export const getTransformHandles = (ctx: CanvasRenderingContext2D, element: Text
     };
 };
 // 產生編輯用的邊框
-export const drawTransformHandles = (ctx: CanvasRenderingContext2D, element: TextElement | StickerElement, multiple: boolean = false) => {
+export const drawTransformHandles = (ctx: CanvasRenderingContext2D, element: ICanvasElement, multiple: boolean = false) => {
     const handles = getTransformHandles(ctx, element);
     if (!handles) return null;
 
@@ -330,7 +319,7 @@ export const drawTransformHandles = (ctx: CanvasRenderingContext2D, element: Tex
             // 繪製長方形的側邊控制點
             const rectWidth = 12;
             const rectHeight = 6;
-            ctx.rotate(element.rotation || 0); // 與元素一同旋轉
+            ctx.rotate(element.config.rotation || 0); // 與元素一同旋轉
  
             ctx.beginPath();
             // 根據是水平還是垂直控制點來決定長方形方向
@@ -365,16 +354,16 @@ export const drawTransformHandles = (ctx: CanvasRenderingContext2D, element: Tex
  * @param multiple
  */
 export const drawControls = (ctx: CanvasRenderingContext2D,
-                             element: AbsoluteElement,
+                             element: ICanvasElement,
                              box: { x: number, y: number, width: number, height: number } | null,
                              multiple: boolean = false
 ) => {
     if (box) { // Draw a simple dashed box for non-sticker elements
         ctx.strokeStyle = '#409eff';
         ctx.lineWidth = 2;
-        const isTransformable = element.type === 'sticker' || element.type === 'text';
+        const isTransformable = element.type === ElementTypesEnum.Image || element.type === ElementTypesEnum.Text;
         if (isTransformable) {
-            drawTransformHandles(ctx, element as TextElement | StickerElement, multiple);
+            drawTransformHandles(ctx, element, multiple);
         } else { // Draw simple dashed box for other types like 'icon'
             ctx.setLineDash([6, 3]);
             ctx.strokeRect(box.x - 5, box.y - 5, box.width + 10, box.height + 10);
@@ -414,4 +403,3 @@ export const calculateConstrainedSize = (
 
     return {width: newWidth, height: newHeight, scale, originalWidth, originalHeight};
 }
-

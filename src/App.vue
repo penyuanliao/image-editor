@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import {computed, ref} from 'vue';
 import ImageEditor from './components/ImageUploader.vue';
-import type { ImageEditorAction, TextElement } from "./types";
-import { ImageEditorTypes } from "./types";
+import {type ICanvasElement, ImageEditorTypes} from "./types";
 import BoxBar from "./components/BoxBar.vue";
 import ImagesPanel from "./components/ImagesPanel.vue";
 import AIPanel from "./components/AIPanel.vue";
@@ -18,9 +17,9 @@ const editor = ref<InstanceType<typeof ImageEditor> | null>(null);
 const selected = ref<string>('');
 
 // State to hold the currently selected element from the canvas
-const selectedElementForPanel = ref<TextElement | null>(null);
+const selectedElementForPanel = ref<any | null>(null);
 
-const handleAddElement = (element: ImageEditorAction) => {
+const handleAddElement = (element: any) => {
   if (element) {
     editor.value?.addElement(element);
   }
@@ -32,12 +31,12 @@ const boxItemClickHandle = (value: string) => {
 };
 
 // Handler for when an element is selected on the canvas
-const handleElementSelected = (element: TextElement | null) => {
+const handleElementSelected = (element: ICanvasElement | null) => {
   selectedElementForPanel.value = element;
 };
 
 // Handler for when the text panel wants to update the selected element
-const handleUpdateElement = (newProps: Partial<TextElement>) => {
+const handleUpdateElement = (newProps: Partial<ICanvasElement>) => {
   editor.value?.updateSelectedElement(newProps);
 };
 

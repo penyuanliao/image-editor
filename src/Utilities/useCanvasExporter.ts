@@ -1,12 +1,11 @@
 import type { ImagesStore } from '../store/images';
 import {
-    drawBackground,
     drawSticker,
     drawSVG,
     drawText,
-    type StickerElement
 } from './useImageEditor';
 import { ErrorMessage } from "./AlertMessage.ts";
+import {ElementTypesEnum, type ICanvasElement, type IImageConfig} from "../types.ts";
 
 interface ExportOptions {
     store: ImagesStore;
@@ -66,85 +65,27 @@ export function exportCroppedArea(options: CroppedExportOptions): string | null 
 
     // 繪製所有元素
     store.elements.forEach(element => {
-        const scaledElement = JSON.parse(JSON.stringify(element));
-        scaledElement.x = (element.x - cropX) * scaleFactor;
-        scaledElement.y = (element.y - cropY) * scaleFactor;
+        const config = element.config;
+        const scaledElement = JSON.parse(JSON.stringify(config));
+        scaledElement.x = (config.x - cropX) * scaleFactor;
+        scaledElement.y = (config.y - cropY) * scaleFactor;
 
-        if (scaledElement.type === 'sticker') {
-            (scaledElement as StickerElement).width *= scaleFactor;
-            (scaledElement as StickerElement).height *= scaleFactor;
+        if (scaledElement.type === ElementTypesEnum.Image) {
+            scaledElement.width *= scaleFactor;
+            scaledElement.height *= scaleFactor;
             const originalElement = store.elements.find(e => e.id === element.id);
-            if (originalElement && (originalElement as StickerElement).img) {
-                scaledElement.img = (originalElement as StickerElement).img;
+            if (originalElement && (originalElement.config as IImageConfig).img) {
+                scaledElement.img = (originalElement.config as IImageConfig).img;
                 drawSticker(exportCtx, scaledElement);
             }
-        } else if (scaledElement.type === 'text') {
+        } else if (scaledElement.type === ElementTypesEnum.Text) {
             if (scaledElement.fontSize) {
                 scaledElement.fontSize *= scaleFactor;
             }
             drawText(exportCtx, scaledElement);
-        } else if (scaledElement.type === 'icon') {
-            if (scaledElement.size) {
-                scaledElement.size *= scaleFactor;
-            }
-            drawSVG(exportCtx, scaledElement);
-        }
-    });
-
-    return exportCanvas.toDataURL('image/png');
-}
-
-/**
- * 匯出包含所有元素的完整原始尺寸圖片。
- * @param options - 包含 store 和編輯器畫布的物件。
- * @returns {string | null} - 圖片的 Data URL，或在失敗時返回 null。
- */
-export function exportFullResolution(options: ExportOptions): string | null {
-    const { store, editorCanvas } = options;
-
-    if (!store.originalImage) {
-        ErrorMessage('沒有原始圖片可供匯出。');
-        return null;
-    }
-
-    const exportCanvas = document.createElement('canvas');
-    const targetWidth = store.originalImage.naturalWidth;
-    const targetHeight = store.originalImage.naturalHeight;
-    exportCanvas.width = targetWidth;
-    exportCanvas.height = targetHeight;
-
-    const exportCtx = exportCanvas.getContext('2d');
-    if (!exportCtx) return null;
-
-    const scaleX = targetWidth / editorCanvas.width;
-    const scaleY = targetHeight / editorCanvas.height;
-
-    exportCtx.fillStyle = "#FFFFFF";
-    exportCtx.fillRect(0, 0, targetWidth, targetHeight);
-    drawBackground(exportCanvas, exportCtx, store.originalImage);
-
-    store.elements.forEach(element => {
-        const scaledElement = JSON.parse(JSON.stringify(element));
-        scaledElement.x *= scaleX;
-        scaledElement.y *= scaleY;
-
-        if (scaledElement.type === 'sticker') {
-            (scaledElement as StickerElement).width *= scaleX;
-            (scaledElement as StickerElement).height *= scaleY;
-            const originalElement = store.elements.find(e => e.id === element.id);
-            if (originalElement && (originalElement as StickerElement).img) {
-                scaledElement.img = (originalElement as StickerElement).img;
-                drawSticker(exportCtx, scaledElement);
-            }
-        } else if (scaledElement.type === 'text') {
-            if (scaledElement.fontSize) {
-                scaledElement.fontSize *= scaleY;
-            }
-            drawText(exportCtx, scaledElement);
-        } else if (scaledElement.type === 'icon') {
-            if (scaledElement.size) {
-                scaledElement.size *= scaleY;
-            }
+        } else if (scaledElement.type === ElementTypesEnum.SVG) {
+            scaledElement.width *= scaleFactor;
+            scaledElement.height *= scaleFactor;
             drawSVG(exportCtx, scaledElement);
         }
     });

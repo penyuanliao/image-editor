@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import {computed, onMounted, reactive, ref, watch} from "vue";
-import {type CanvasElement} from "../Utilities/useImageEditor.ts";
 import {useImagesStore} from "../store/images.ts";
 import {processFile} from "../Utilities/FileProcessor.ts";
 import {CanvasEditor} from "../Utilities/CanvasEditor.ts";
 import {type CroppedExportOptions, exportCroppedArea} from "../Utilities/useCanvasExporter.ts";
+import type {ICanvasElement, ITextConfig} from "../types.ts";
 
 const imagesStore = useImagesStore();
 const emit = defineEmits(['element-selected']);
@@ -66,7 +66,7 @@ const contextMenu = reactive({
   visible: false,
   x: 0,
   y: 0,
-  element: null as CanvasElement | null,
+  element: null as ICanvasElement | null,
 });
 
 onMounted(() => {
@@ -130,7 +130,7 @@ const finishEditing = () => {
   if (isComposing.value) return;
   if (!editor.value.editingElement) return;
   // 如果編輯後文字為空，則移除該元素
-  if (editor.value.editingElement.content.trim() === '') {
+  if ((editor.value.editingElement.config as ITextConfig).content.trim() === '') {
     imagesStore.elements = imagesStore.elements.filter(el => el.id !== editor.value.editingElement!.id);
   }
   editor.value.editingElement = null;
@@ -190,11 +190,11 @@ const deleteSelectedElement = () => {
 
 
 // --- 供外部呼叫的方法 ---
-const addElement = async (element: any) => {
+const addElement = async (element: ICanvasElement) => {
   await editor.value.addElement(element);
 };
 
-const updateSelectedElement = (newProps: Partial<CanvasElement>) => {
+const updateSelectedElement = (newProps: Partial<ICanvasElement>) => {
   // Now updates all selected elements
   if (imagesStore.selectedElements.length === 0) return;
   imagesStore.selectedElements.forEach(element => {
@@ -237,7 +237,7 @@ defineExpose({ addElement, updateSelectedElement });
       <input
           v-if="editor.editingElement"
           ref="textInput"
-          v-model="editor.editingElement.content"
+          v-model="(editor.editingElement.config as ITextConfig).content"
           :style="textInputStyle"
           class="text-editor-input"
           @compositionstart="compositionStart"

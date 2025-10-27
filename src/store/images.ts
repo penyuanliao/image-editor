@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import type { CanvasElement } from "../Utilities/useImageEditor.ts";
+import type { ICanvasElement } from "../types.ts";
 
 // 建立一個代表 800x600 白色像素的 Data URL
 const WHITE_BG_SRC = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
@@ -17,9 +17,9 @@ export type ImagesStore = ReturnType<typeof useImagesStore>;
 interface ImagesStoreState {
   imageList: HTMLImageElement[];
   originalImage: HTMLImageElement | null | undefined;
-  elements: CanvasElement[];
-  selectedElements: CanvasElement[]; // 將用此完全取代 selectedElement
-  editingElement: CanvasElement | null;
+  elements: ICanvasElement[];
+  selectedElements: ICanvasElement[]; // 將用此完全取代 selectedElement
+  editingElement: ICanvasElement | null;
   imageUrl: string | null;
   deleteIcon: HTMLImageElement;
 }
@@ -49,7 +49,7 @@ export const useImagesStore = defineStore('images', {
         this.imageUrl = this.imageList[index]?.src || null;
       }
     },
-    addElement(element: CanvasElement) {
+    addElement(element: ICanvasElement) {
       this.elements.push(element);
       this.selectedElements = [element]; // 新增後自動選取
     },
@@ -60,7 +60,7 @@ export const useImagesStore = defineStore('images', {
         el => !elementIds.includes(el.id)
       );
     },
-    updateElement(elementId: number, props: Partial<CanvasElement>) {
+    updateElement(elementId: number, props: Partial<ICanvasElement>) {
       const element = this.elements.find(el => el.id === elementId);
       if (element) {
         Object.assign(element, props);
@@ -70,7 +70,7 @@ export const useImagesStore = defineStore('images', {
     forwardElement(elementId: number) {
       const index = this.elements.findIndex(el => el.id === elementId);
       if (index > 0 && index < this.elements.length - 1) {
-        const moveElement = this.elements.splice(index, 1)[0] as CanvasElement;
+        const moveElement = this.elements.splice(index, 1)[0] as ICanvasElement;
         this.elements.splice(index - 1, 0, moveElement);
       }
     },
@@ -78,17 +78,17 @@ export const useImagesStore = defineStore('images', {
     backwardElement(elementId: number) {
       const index = this.elements.findIndex(el => el.id === elementId);
       if (index > 0 && index < this.elements.length - 1) {
-        const moveElement = this.elements.splice(index, 1)[0] as CanvasElement;
+        const moveElement = this.elements.splice(index, 1)[0] as ICanvasElement;
         this.elements.splice(index + 1, 0, moveElement);
       }
     },
-    reorderElements(elements: CanvasElement[]) {
+    reorderElements(elements: ICanvasElement[]) {
       this.elements = elements;
     },
-    setSelectedElements(elements: CanvasElement[]) {
+    setSelectedElements(elements: ICanvasElement[]) {
       this.selectedElements = elements;
     },
-    addToSelection(element: CanvasElement) {
+    addToSelection(element: ICanvasElement) {
       if (!this.selectedElements.some(el => el.id === element.id)) {
         this.selectedElements.push(element);
       }
