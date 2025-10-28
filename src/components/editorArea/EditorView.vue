@@ -176,8 +176,10 @@ const updateTextareaSize = () => {
   // 根據內容捲動寬高來設定新的寬高
   const scrollHeight = textarea.scrollHeight;
   const scrollWidth = textarea.scrollWidth;
+  const w = Math.max(scrollWidth, minWidth.value);
   textarea.style.height = `${scrollHeight}px`;
-  textarea.style.width = `${Math.max(scrollWidth, minWidth.value)}px`;
+  textarea.style.width = `${w * 2}px`;
+  textarea.style.transform = `translateX(${w/2 * -1}px)`;
 };
 
 // --- 文字編輯方法 ---

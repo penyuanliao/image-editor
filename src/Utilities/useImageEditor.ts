@@ -86,7 +86,6 @@ export const drawText = (ctx: CanvasRenderingContext2D, element: ICanvasElement)
     const lineHeight = config.lineHeight || 1.2;
     const fontSize = config.fontSize || 32;
     const totalTextHeight = lines.length * fontSize * lineHeight;
-
     // Calculate text block's width for gradient calculation
     const textMetrics = lines.map(line => ctx.measureText(line));
     const textWidth = Math.max(...textMetrics.map(m => m.width));
@@ -233,7 +232,11 @@ export const getTransformHandles = (ctx: CanvasRenderingContext2D, element: ICan
     if (!box) return null;
     const config = element.config;
     if (!config) return null;
-    const { width: w, height: h } = box;
+    let { width: w, height: h } = box;
+    // 為了 textAlign 控制項，將文字元素的邊框寬度增加
+    if (element.type === ElementTypesEnum.Text) {
+        w *= 2;
+    }
     const cx = config.x;
     const cy = config.y;
     const angle = config.rotation || 0;
