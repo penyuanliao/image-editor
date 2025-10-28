@@ -41,6 +41,7 @@ const getDefaultTextProps = () => ({
   fontFamily: 'Arial',
   lineHeight: 1.2,
   rotation: 0,
+  letterSpacing: 0,
 });
 
 const getDefaultShadow = () => ({
@@ -396,10 +397,14 @@ const gradientColorChange = (value: string) => {
         <span style="flex-shrink: 0;">行距：</span>
         <el-slider v-model="textProps.lineHeight" :min="0.5" :max="3" :step="0.1" style="width: 100%;"/>
       </div>
+      <div class="ctrl">
+        <span style="flex-shrink: 0;">字距：</span>
+        <el-input-number v-model="textProps.letterSpacing" :controls="true" style="width: 100%;"/>
+      </div>
       
       <div class="ctrl">
         <span style="flex-shrink: 0;">旋轉角度：</span>
-        <el-input-number v-model="rotationInDegrees" :controls="false" style="width: 100%;"/>
+        <el-input-number v-model="rotationInDegrees" :controls="true" style="width: 100%;"/>
       </div>
 
       <div class="ctrl">
