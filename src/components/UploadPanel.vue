@@ -2,9 +2,9 @@
 import { ref } from "vue";
 import { UploadFilled } from "@element-plus/icons-vue";
 import { useImagesStore } from "../store/images";
-import type {StickerElement} from "../types.ts";
+import {ElementTypesEnum} from "../types.ts";
 
-const emit = defineEmits<{ (e: 'add-element', action: StickerElement): void }>();
+const emit = defineEmits<{ (e: 'add-element', action: any): void }>();
 
 const imagesStore = useImagesStore();
 const fileInput = ref<HTMLInputElement | null>(null);
@@ -26,7 +26,16 @@ const handleFileChange = (event: Event) => {
 };
 const handleAddingElement = (img: HTMLImageElement) => {
   // imagesStore.addElement(imagesStore.createStickerElement(img));
-  emit('add-element', { type: 'sticker', img, name: '新圖片' });
+  emit('add-element', {
+    type: ElementTypesEnum.Image,
+    name: '新圖片',
+    config: {
+      img,
+      width: img.width,
+      height: img.height,
+      x: 0,
+      y: 0
+    } });
 }
 
 const triggerFileInput = () => {

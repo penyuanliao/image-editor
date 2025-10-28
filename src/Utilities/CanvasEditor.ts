@@ -15,7 +15,13 @@ import {nextTick} from "vue";
 // 引入 store 的類型，但不直接使用 useImagesStore()
 import type {ImagesStore} from '../store/images';
 import {pasteImage} from "./useClipboard.ts";
-import {ElementTypesEnum, type ICanvasElement, type IImageConfig, type ISVGConfig, type ITextConfig} from "../types.ts";
+import {
+    ElementTypesEnum,
+    type ICanvasElement,
+    type IImageConfig,
+    type ISVGConfig,
+    type ITextConfig,
+} from "../types.ts";
 
 interface ICanvasViewport {
     width: number;
@@ -23,6 +29,7 @@ interface ICanvasViewport {
     scale: number;
     originalWidth: number;
     originalHeight: number;
+    color: string;
 }
 
 interface IDragStart {
@@ -44,6 +51,7 @@ interface IContextMenuEvent {
     x: number; // 螢幕 X 座標
     y: number; // 螢幕 Y 座標
     element: ICanvasElement | null;
+    visible?: boolean;
 }
 
 // 這個類別將取代大部分 useImageEditor.ts 和 ImageUploader.vue 中的邏輯
@@ -56,6 +64,7 @@ export class CanvasEditor {
     public editingElement?: ICanvasElement | null = null;
     // 回應右鍵選單監聽事件
     public onContextMenu: ((event: IContextMenuEvent) => void) | null = null;
+    public onPopOverMenu: ((event: IContextMenuEvent) => void) | null = null;
     // 點擊兩下編輯的輸入框
     public textInput: HTMLInputElement | null = null;
     // 狀態屬性
@@ -71,7 +80,8 @@ export class CanvasEditor {
         height: 600,
         scale: 1,
         originalWidth: 0,
-        originalHeight: 0
+        originalHeight: 0,
+        color: "transparent"
     }
 
     public dragStart:IDragStart = {
@@ -119,9 +129,9 @@ export class CanvasEditor {
         this.canvas?.addEventListener('mousedown', this.handleMouseDown.bind(this));
         this.canvas?.addEventListener('mousemove', this.handleMouseMove.bind(this));
         this.canvas?.addEventListener('dblclick', this.handleDoubleClick.bind(this));
-        this.canvas?.addEventListener('mouseup', this.handleMouseUpOrLeave.bind(this));
+        this.canvas?.addEventListener('mouseup', this.handleMouseUp.bind(this));
         this.canvas?.addEventListener('contextmenu', this.handleContextMenu.bind(this));
-        this.canvas?.addEventListener('mouseleave', this.handleMouseUpOrLeave.bind(this));
+        this.canvas?.addEventListener('mouseleave', this.handleMouseLeave.bind(this));
         // this.canvas?.addEventListener('wheel', this.handleWheel.bind(this));
     }
 
@@ -176,6 +186,7 @@ export class CanvasEditor {
                 height: image.height * initialScale,
                 img: image,
                 rotation: 0,
+                draggable: true
             }
         } as ICanvasElement);
         this.store.imageUrl = image.src;
@@ -270,8 +281,9 @@ export class CanvasEditor {
                 drawControls(ctx, selected, box, store.selectedElements.length > 1);
             });
         }
-
-        // 6. 恢復 context 狀態，移除視圖變換
+        // 6. 顯示提示選單
+        this.showPopOverMenu(store.selectedElements.length != 0);
+        // 7. 恢復 context 狀態，移除視圖變換
         ctx.restore();
     }
     // 檢查是否在元素上面
@@ -346,11 +358,58 @@ export class CanvasEditor {
         // 觸發回呼，將事件資訊傳遞給 Vue 元件來顯示 UI
         this.onContextMenu?.({ x: event.clientX, y: event.clientY, element: clickedElement as ICanvasElement });
     }
+    public showPopOverMenu(visible: boolean) {
+        if (!this.canvas || !this.ctx) return;
+
+        const selectedElements = this.store.selectedElements;
+
+        if (visible && selectedElements.length > 0) {
+            let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+
+            // 1. 遍歷所有選取物件，計算它們共同的邊界框
+            selectedElements.forEach(el => {
+                const handles = getTransformHandles(this.ctx!, el);
+                if (handles) {
+                    // 考慮旋轉後的情況，檢查所有控制點來確定邊界
+                    // 排除 del 和 rot 控制點，只計算物件本身的邊界
+                    Object.entries(handles.points).forEach(([key, p]) => {
+                        if (p && key !== 'del') {
+                            minX = Math.min(minX, p.x);
+                            minY = Math.min(minY, p.y);
+                            maxX = Math.max(maxX, p.x);
+                            maxY = Math.max(maxY, p.y);
+                        }
+                    });
+                }
+            });
+
+            if (isFinite(minX)) {
+                // 2. 計算邊界框的總寬度和中心點
+                const totalWidth = maxX - minX;
+                const centerX = minX + totalWidth / 2;
+                const topY = minY; // Popover 顯示在最頂部
+
+                console.log(`選取了 ${selectedElements.length} 個物件，總寬度: ${totalWidth.toFixed(2)}`);
+
+                // 3. 觸發 onPopOverMenu 事件，傳遞計算後的位置
+                this.onPopOverMenu?.({ visible: true, x: centerX, y: topY, element: null });
+            }
+        } else {
+            // 如果沒有選取物件或要隱藏 Popover，則發送隱藏事件
+            this.onPopOverMenu?.({
+                visible: false,
+                x: 0,
+                y: 0,
+                element: null
+            });
+        }
+    }
 
     private handleMouseDown(event: MouseEvent) {
         if (!this.canvas) return;
         const { x, y } = this.screenToWorld(event.offsetX, event.offsetY);
         const isShiftPressed = event.shiftKey;
+        this.showPopOverMenu(false);
 
         // 優先處理控制項的點擊 (只有在單選時才允許變形)
         if (this.store.selectedElements.length === 1) {
@@ -369,7 +428,6 @@ export class CanvasEditor {
         }
 
         const clickedElement = this.findElementAtPosition(x, y);
-
         if (isShiftPressed) {
             if (clickedElement) {
                 // 按住 Shift 點擊物件
@@ -626,7 +684,15 @@ export class CanvasEditor {
             }).then(() => {});
         }
     }
-    private handleMouseUpOrLeave() {
+    private handleMouseUp(_: MouseEvent) {
+        this.clear();
+        this.showPopOverMenu(true);
+    }
+    private handleMouseLeave(_: MouseEvent) {
+        this.clear();
+        // this.showPopOverMenu(false);
+    }
+    private clear() {
         this.isDraggingCropBox = false;
         this.isDraggingElement = false;
         this.isResizing = null;
@@ -668,7 +734,7 @@ export class CanvasEditor {
         this.render();
     }
     // 同步更新 canvas 的繪圖表面尺寸
-    updateViewportSize(width: number, height: number) {
+    public updateViewportSize(width: number, height: number, color: string = "transparent") {
         const { canvas, divContainer } = this;
         this.viewport = calculateConstrainedSize(width, height, 800, 600);
         if (canvas) {
@@ -679,6 +745,7 @@ export class CanvasEditor {
             divContainer.style.width = `${this.viewport.width}px`;
             divContainer.style.height = `${this.viewport.height}px`;
         }
+        this.viewport.color = color;
         console.log(this.viewport);
     }
     public enablePasteSupport() {
@@ -705,8 +772,8 @@ export class CanvasEditor {
         this.canvas?.removeEventListener('mousedown', this.handleMouseDown.bind(this));
         this.canvas?.removeEventListener('mousemove', this.handleMouseMove.bind(this));
         this.canvas?.removeEventListener('dblclick', this.handleDoubleClick.bind(this));
-        this.canvas?.removeEventListener('mouseup', this.handleMouseUpOrLeave.bind(this));
-        this.canvas?.removeEventListener('mouseleave', this.handleMouseUpOrLeave.bind(this));
+        this.canvas?.removeEventListener('mouseup', this.handleMouseUp.bind(this));
+        this.canvas?.removeEventListener('mouseleave', this.handleMouseLeave.bind(this));
         this.canvas?.removeEventListener('contextmenu', this.handleContextMenu.bind(this));
         this.canvas?.removeEventListener('wheel', this.handleWheel.bind(this));
         this.disablePasteSupport();

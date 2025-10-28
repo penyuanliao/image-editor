@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {computed, ref} from 'vue';
 import ImageEditor from './components/ImageUploader.vue';
-import {type ICanvasElement, ImageEditorTypes} from "./types";
+import {ElementTypesEnum, type ICanvasElement, ImageEditorTypes} from "./types";
 import BoxBar from "./components/BoxBar.vue";
 import ImagesPanel from "./components/ImagesPanel.vue";
 import AIPanel from "./components/AIPanel.vue";
@@ -12,6 +12,7 @@ import LayersPanel from "./components/LayersPanel.vue";
 
 import { useImagesStore } from "./store/images";
 import ImagePropsPanel from "./components/ImagePropsPanel.vue";
+import StagePropsPanel from "./components/StagePropsPanel.vue";
 const imagesStore = useImagesStore();
 const editor = ref<InstanceType<typeof ImageEditor> | null>(null);
 const selected = ref<string>('');
@@ -80,12 +81,13 @@ const selectedElement = computed(() => {
     </div>
     <div class="properties">
       <TextPanel
-          v-if="selectedElement?.type === 'text'"
+          v-if="selectedElement?.type === ElementTypesEnum.Text"
           :controlEnabled="true"
           @add-element="handleAddElement"
           @update-element="handleUpdateElement"
       />
-      <ImagePropsPanel v-if="selectedElement?.type === 'sticker'"/>
+      <ImagePropsPanel v-if="selectedElement?.type === ElementTypesEnum.Image"/>
+<!--      <StagePropsPanel @update-element="handleUpdateElement"/>-->
     </div>
   </div>
 </template>
@@ -119,5 +121,6 @@ const selectedElement = computed(() => {
   min-width: 280px;
   height: 100%;
   flex-direction: column;
+  overflow: hidden;
 }
 </style>

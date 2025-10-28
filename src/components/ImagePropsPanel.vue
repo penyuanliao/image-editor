@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import { useImagesStore } from '../store/images';
 import AIPanel from "./AIPanel.vue";
 import {ElementTypesEnum, type ICanvasElement, type IImageConfig} from "../types.ts";
+import {Delete, Lock, Unlock} from "@element-plus/icons-vue";
 
 const imagesStore = useImagesStore();
 
@@ -35,6 +36,36 @@ const rotationInDegrees = computed({
   },
 });
 
+const handleHorizontalFlip = () => {
+  if (selectedSticker.value?.config) {
+    if (typeof selectedSticker.value.config.scaleX === "number") {
+      selectedSticker.value.config.scaleX *= -1;
+    } else {
+      selectedSticker.value.config.scaleX = -1;
+    }
+  }
+};
+const handleVerticalFlip = () => {
+  if (selectedSticker.value?.config) {
+    if (typeof selectedSticker.value.config.scaleY === "number") {
+      selectedSticker.value.config.scaleY *= -1;
+    } else {
+      selectedSticker.value.config.scaleY = -1;
+    }
+  }
+};
+
+const handleLockAndUnlock = () => {
+  if (selectedSticker.value?.config) {
+    selectedSticker.value.config.draggable = !selectedSticker.value.config.draggable;
+    if (!selectedSticker.value?.config.draggable) {
+      imagesStore.selectedElements = [];
+    } else {
+      imagesStore.selectedElements = [selectedSticker.value];
+    }
+  }
+}
+
 </script>
 
 <template>
@@ -43,6 +74,7 @@ const rotationInDegrees = computed({
       <div class="view">
         <img :src="(selectedElement?.config as IImageConfig)?.url" alt="">
       </div>
+      <div class="panel-title">圖片屬性</div>
       <div class="ctrl">
         <span>X：</span>
         <el-input-number v-model="selectedSticker.config.x" :controls="false" style="width: 100%" />
@@ -62,6 +94,16 @@ const rotationInDegrees = computed({
       <div class="ctrl">
         <span>旋轉角度：</span>
         <el-input-number v-model="rotationInDegrees" :controls="false" style="width: 100%" />
+      </div>
+      <div class="prop-item center">
+        <el-button @click="handleHorizontalFlip">水平鏡射</el-button>
+        <el-button @click="handleVerticalFlip">垂直鏡射</el-button>
+      </div>
+      <div class="prop-item center">
+        <el-button :icon="selectedSticker.config.draggable ? Unlock : Lock" circle @click="handleLockAndUnlock"/>
+        <el-tooltip content="刪除" placement="top" effect="light">
+          <el-button type="danger" :icon="Delete" circle />
+        </el-tooltip>
       </div>
     </div>
     <div class="additional">
@@ -112,5 +154,11 @@ const rotationInDegrees = computed({
       object-fit: contain;
       }
   }
+}
+
+.center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 </style>

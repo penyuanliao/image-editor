@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import type { ICanvasElement } from "../types.ts";
+import {ElementTypesEnum, type ICanvasElement, type StageConfig} from "../types.ts";
 
 // 建立一個代表 800x600 白色像素的 Data URL
 const WHITE_BG_SRC = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
@@ -15,6 +15,7 @@ const createWhiteImage = (): HTMLImageElement => {
 export type ImagesStore = ReturnType<typeof useImagesStore>;
 
 interface ImagesStoreState {
+  stage: ICanvasElement;
   imageList: HTMLImageElement[];
   originalImage: HTMLImageElement | null | undefined;
   elements: ICanvasElement[];
@@ -26,6 +27,18 @@ interface ImagesStoreState {
 
 export const useImagesStore = defineStore('images', {
   state: (): ImagesStoreState => ({
+    stage: {
+      id: 0,
+      name: '畫布',
+      type: ElementTypesEnum.Stage,
+      config: {
+        width: 800,
+        height: 600,
+        x: 0,
+        y: 0,
+        color: 'transparent'
+      } as StageConfig
+    },
     imageList: [],
     originalImage: null,
     // 畫布上的元素 (文字、圖形等)
@@ -85,10 +98,18 @@ export const useImagesStore = defineStore('images', {
     reorderElements(elements: ICanvasElement[]) {
       this.elements = elements;
     },
+    /**
+     * 這邊不阻擋draggable事件不然無法解開選擇
+     * @param element
+     */
+    setSelectedOnce(element: ICanvasElement) {
+      this.selectedElements = [element];
+    },
     setSelectedElements(elements: ICanvasElement[]) {
-      this.selectedElements = elements;
+      this.selectedElements = elements.filter(el => el.config.draggable);
     },
     addToSelection(element: ICanvasElement) {
+      if (element && !element.config.draggable) return;
       if (!this.selectedElements.some(el => el.id === element.id)) {
         this.selectedElements.push(element);
       }

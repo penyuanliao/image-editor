@@ -22,7 +22,7 @@ const reversedElements = computed({
   }
 });
 const onClickLayerHandle = (element: ICanvasElement) => {
-  imagesStore.addToSelection(element);
+  imagesStore.setSelectedOnce(element);
 };
 const onClickBGHandle = () => {
   const el = {

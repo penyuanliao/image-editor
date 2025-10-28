@@ -4,7 +4,8 @@ import {useImagesStore} from "../store/images.ts";
 import {processFile} from "../Utilities/FileProcessor.ts";
 import {CanvasEditor} from "../Utilities/CanvasEditor.ts";
 import {type CroppedExportOptions, exportCroppedArea} from "../Utilities/useCanvasExporter.ts";
-import type {ICanvasElement, ITextConfig} from "../types.ts";
+import {ElementTypesEnum, type ICanvasElement, type ITextConfig} from "../types.ts";
+import Popover from "./konva/Popover.vue";
 
 const imagesStore = useImagesStore();
 const emit = defineEmits(['element-selected']);
@@ -12,6 +13,7 @@ const emit = defineEmits(['element-selected']);
 const fileInput = ref<HTMLInputElement | null>(null);
 const canvas = ref<HTMLCanvasElement | null>(null);
 const uploaderContainer = ref<HTMLDivElement | null>(null);
+const popOverRef = ref<HTMLDivElement | null>(null);
 
 const editor = ref<CanvasEditor>(new CanvasEditor(imagesStore));
 
@@ -39,6 +41,13 @@ const displayCropBox = computed(() => {
     height: Math.min(Math.round(cropBox.height * scaleFactor * 100) / 100, editor.value.viewport.originalHeight)
   };
 });
+
+const selectedElement = computed(() => {
+  if (imagesStore.selectedElements.length <= 0) return null;
+  if (imagesStore.selectedElements.length > 1) return null;
+  return imagesStore.selectedElements[0];
+});
+
 const handleChange = (key: string, currentValue: number) => {
   if (key === 'x') {
     editor.value.cropBox.x = currentValue * editor.value.viewport.scale;
@@ -68,6 +77,16 @@ const contextMenu = reactive({
   y: 0,
   element: null as ICanvasElement | null,
 });
+// PopOver選單狀態
+const popOverMenu = reactive({
+  visible: false,
+  x: 0,
+  y: 0,
+  offset: {
+    x: -50,
+    y: -50
+  },
+});
 
 onMounted(() => {
   if (canvas.value) {
@@ -87,6 +106,11 @@ onMounted(() => {
       contextMenu.y = event.y;
       contextMenu.element = event.element;
     };
+    editor.value.onPopOverMenu = (event) => {
+      popOverMenu.visible = event.visible || false;
+      popOverMenu.x = event.x + popOverMenu.offset.x;
+      popOverMenu.y = event.y + popOverMenu.offset.y;
+    };
     window.addEventListener('click', closeContextMenu);
   }
 
@@ -98,6 +122,7 @@ watch(() => imagesStore.selectedElements, (newSelection) => {
   // Deep copy to avoid downstream mutations affecting the original object
   emit('element-selected', newSelection.length > 0 ? JSON.parse(JSON.stringify(newSelection)) : []);
   editor.value.render();
+  // popOverMenu.visible = (newSelection.length === 1);
 }, { deep: true });
 
 // 這邊檢查物件有異動就刷新畫面
@@ -187,23 +212,6 @@ const deleteSelectedElement = () => {
   }
   closeContextMenu();
 };
-
-
-// --- 供外部呼叫的方法 ---
-const addElement = async (element: ICanvasElement) => {
-  await editor.value.addElement(element);
-};
-
-const updateSelectedElement = (newProps: Partial<ICanvasElement>) => {
-  // Now updates all selected elements
-  if (imagesStore.selectedElements.length === 0) return;
-  imagesStore.selectedElements.forEach(element => {
-    Object.assign(element, newProps);
-  });
-
-  editor.value.render();
-};
-
 const onContainerClick = () => {
   fileInput.value?.click();
 };
@@ -214,6 +222,27 @@ const onFileChange = async (event: Event) => {
     const info = await processFile(target.files[0]);
     editor.value.setImage(info.image);
   }
+};
+
+// --- 供外部呼叫的方法 ---
+const addElement = async (element: ICanvasElement) => {
+  await editor.value.addElement(element);
+};
+// 更新在這邊處理
+const updateSelectedElement = (newProps: Partial<any>) => {
+
+  if (newProps.type === ElementTypesEnum.Stage) {
+    const config = newProps.config;
+    editor.value.updateViewportSize(config.width, config.height, config.color);
+    return;
+  }
+
+  // Now updates all selected elements
+  if (imagesStore.selectedElements.length === 0) return;
+  imagesStore.selectedElements.forEach(element => {
+    Object.assign(element.config, newProps);
+  });
+  editor.value.render();
 };
 
 defineExpose({ addElement, updateSelectedElement });
@@ -245,6 +274,12 @@ defineExpose({ addElement, updateSelectedElement });
           @focusout="finishEditing"
           @keydown.enter.prevent="finishEditing"
       />
+      <Popover
+          ref="popOverRef"
+          v-show="popOverMenu.visible && selectedElement?.type !== ElementTypesEnum.Stage "
+               :style="{
+                  transform: `translate(${popOverMenu.x}px, ${popOverMenu.y}px)`
+               }"/>
       <!-- 自訂右鍵選單 -->
       <div
           v-if="contextMenu.visible && contextMenu.element"
@@ -314,6 +349,7 @@ defineExpose({ addElement, updateSelectedElement });
 
 .uploader-container {
   position: relative;
+  display: flex;
   border: 2px dashed #ccc;
   border-radius: 10px;
   width: 800px;
@@ -392,7 +428,7 @@ defineExpose({ addElement, updateSelectedElement });
 
 .text-editor-input {
   position: absolute;
-  background-color: transparent;
+  background-color: white;
   border: 1px dashed #409eff;
   padding: 0;
   margin: 0;
@@ -400,6 +436,7 @@ defineExpose({ addElement, updateSelectedElement });
   outline: none;
   box-sizing: border-box;
   z-index: 10;
+  color: black;
 }
 
 .crop-controls,

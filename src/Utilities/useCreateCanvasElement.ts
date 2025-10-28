@@ -3,7 +3,6 @@ import {ElementTypesEnum, type ICanvasElement, type IImageConfig, type ISVGConfi
 // 產生一個新的 CanvasElement
 export const createCanvasElement = (element: ICanvasElement, canvas: { width: number, height: number }, scale: number = 1) => {
     return new Promise<ICanvasElement>(async (resolve) => {
-        console.log(element);
         if (element.type === ElementTypesEnum.Text) {
             const config = element.config as ITextConfig;
             resolve({
@@ -30,24 +29,12 @@ export const createCanvasElement = (element: ICanvasElement, canvas: { width: nu
                     gradientStartColor: config.gradientStartColor,
                     gradientEndColor: config.gradientEndColor,
                     gradientAngle: config.gradientAngle,
+                    opacity: Math.min(Math.max(config.opacity || 0, 0), 1.0),
+                    draggable: true
                 } as ITextConfig
             });
-        } else if (element.type === ElementTypesEnum.SVG) {
-            const config: ISVGConfig = element.config as ISVGConfig;
-            resolve({
-                id: Date.now(),
-                type: element.type,
-                name: element.name || '新貼圖',
-                config: {
-                    content: config.content || '',
-                    x: canvas.width / 2,
-                    y: canvas.height / 2,
-                    width: 50,
-                    height: 50,
-                    color: 'black',
-                }
-            });
-        } else if (element.type === ElementTypesEnum.Image) {
+        }
+        else if (element.type === ElementTypesEnum.Image) {
             const config: IImageConfig = element.config;
             let img: HTMLImageElement;
             if (config.img) {
@@ -67,6 +54,26 @@ export const createCanvasElement = (element: ICanvasElement, canvas: { width: nu
                     width: img.naturalWidth * scale,
                     height: img.naturalHeight * scale,
                     rotation: 0,
+                    opacity: Math.min(Math.max(config.opacity || 1, 0), 1.0),
+                    draggable: true
+                }
+            });
+        }
+        else if (element.type === ElementTypesEnum.SVG) {
+            const config: ISVGConfig = element.config as ISVGConfig;
+            resolve({
+                id: Date.now(),
+                type: element.type,
+                name: element.name || '新貼圖',
+                config: {
+                    content: config.content || '',
+                    x: canvas.width / 2,
+                    y: canvas.height / 2,
+                    width: 50,
+                    height: 50,
+                    color: 'black',
+                    opacity: Math.min(Math.max(config.opacity || 1, 0), 1.0),
+                    draggable: true
                 }
             });
         }

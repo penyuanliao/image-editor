@@ -3,7 +3,7 @@ import {computed, reactive, ref, watch} from "vue";
 import { useImagesStore } from "../store/images.ts";
 import { Delete } from "@element-plus/icons-vue";
 import { ColorPicker } from "colorpickers";
-import {ElementTypesEnum, type ICanvasElement, type ITextConfig} from "../types.ts";
+import {ElementTypesEnum, type ITextConfig} from "../types.ts";
 // import { ColorInputWithoutInstance } from "tinycolor2";
 
 const gradientColor = ref("linear-gradient(90deg, rgba(255, 0, 0, 1) 0%, rgba(0, 0, 255, 1) 100%)");
@@ -32,7 +32,7 @@ const availableFonts = [
 
 // --- Default State Factory ---
 const getDefaultTextProps = () => ({
-  content: '雙擊編輯文字',
+  content: '編輯文字',
   name: '文字',
   color: '#000000',
   isBold: false,
@@ -82,15 +82,18 @@ const selectedElement = computed(() => {
 // Watch for incoming element changes and update the panel UI
 watch(() => selectedElement.value, (newEl) => {
   if (newEl && newEl.type === ElementTypesEnum.Text) {
+
     const newConfig = newEl.config as ITextConfig;
     // Update text properties
     textProps.content = newConfig.content;
     textProps.color = newConfig.color;
     textProps.isBold = newConfig.fontWeight === 'bold';
+    textProps.isItalic = newConfig.fontItalic || false;
     textProps.fontSize = newConfig.fontSize || 12;
     textProps.fontFamily = newConfig.fontFamily || 'Arial';
     textProps.lineHeight = newConfig.lineHeight || 1.2;
     textProps.rotation = newConfig.rotation || 0;
+    console.log(newEl.config, textProps.content);
 
     // Update shadow properties
     shadow.enabled = !!newConfig.shadowColor;
@@ -127,10 +130,11 @@ watch(() => selectedElement.value, (newEl) => {
 
 // Watch for panel UI changes and emit updates to the parent
 watch([textProps, shadow, stroke, gradient], () => {
-  if (selectedElement.value) {
+  if (selectedElement.value && selectedElement.value.type === ElementTypesEnum.Text) {
     const payload: any = {
       ...textProps,
       fontWeight: textProps.isBold ? 'bold' : 'normal',
+      fontItalic: !!textProps.isItalic
     };
 
     if (shadow.enabled) {
@@ -165,7 +169,7 @@ watch([textProps, shadow, stroke, gradient], () => {
       payload.gradientEndColor = null;
       payload.gradientAngle = null;
     }
-    
+
     emit('update-element', payload);
   }
 }, { deep: true });
@@ -183,6 +187,7 @@ const addText = () => {
     config: {
       ...textProps,
       fontWeight: textProps.isBold ? 'bold' : 'normal',
+      fontItalic: textProps.isItalic
     }
   };
 

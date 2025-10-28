@@ -13,13 +13,7 @@ export interface ICanvasElement {
     id: number;
     type: ICanvasTypes;
     name?: string;
-    config: StageConfig | IImageConfig | ITextConfig;
-}
-
-export interface StageConfig extends AbsoluteConfig{
-    width: number;
-    height: number;
-    color: string;
+    config: IImageConfig | ITextConfig | ISVGConfig | StageConfig;
 }
 
 export interface AbsoluteConfig {
@@ -29,6 +23,16 @@ export interface AbsoluteConfig {
     x: number;
     y: number;
     rotation?: number; // 旋轉角度 (radians)
+    opacity?: number; // 透明度 (0-1)
+    scaleX?: number;
+    scaleY?: number;
+    draggable?: boolean; // 是否可拖曳
+}
+
+export interface StageConfig extends AbsoluteConfig {
+    width: number;
+    height: number;
+    color: string;
 }
 
 export interface IImageConfig extends AbsoluteConfig {

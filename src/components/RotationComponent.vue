@@ -35,6 +35,7 @@ import {RefreshLeft, RefreshRight, Sort, Switch} from "@element-plus/icons-vue";
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 1000;
 }
 .slider {
   width: 80%;

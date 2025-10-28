@@ -71,9 +71,8 @@ export const drawText = (ctx: CanvasRenderingContext2D, element: ICanvasElement)
     // Translate to the element's center, rotate, and then draw the text
     ctx.translate(config.x, config.y);
     ctx.rotate(config.rotation || 0);
-
     // Common text styles
-    ctx.font = `${config.fontWeight || 'normal'} ${config.fontSize || 32}px ${config.fontFamily || 'Arial'}`;
+    ctx.font = `${config.fontWeight || 'normal'} ${config.fontItalic ? 'italic' : ''} ${config.fontSize || 32}px ${config.fontFamily || 'Arial'}`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
@@ -90,6 +89,9 @@ export const drawText = (ctx: CanvasRenderingContext2D, element: ICanvasElement)
     // Calculate text block's width for gradient calculation
     const textMetrics = lines.map(line => ctx.measureText(line));
     const textWidth = Math.max(...textMetrics.map(m => m.width));
+    // 繪圖時候在塞入寬高
+    element.config.height = totalTextHeight * 2;
+    element.config.width = textWidth * 2;
 
     // Apply gradient or solid color fill
     if (config.gradientEnabled && config.gradientStartColor && config.gradientEndColor) {
@@ -167,20 +169,23 @@ export const drawSVG = (ctx: CanvasRenderingContext2D, element: ICanvasElement) 
 export const drawSticker = (ctx: CanvasRenderingContext2D, element: ICanvasElement) => {
     if (!element) return;
     const config: IImageConfig = element.config as IImageConfig;
-
     if (config.img && config.width && config.height) {
         ctx.save();
         // Translate to the element's center, rotate, and then draw the image
         ctx.translate(config.x, config.y);
         ctx.rotate(config.rotation || 0);
         // Draw the image centered on the new (0,0) origin
+        if (typeof config.opacity === 'number') ctx.globalAlpha = config.opacity;
+        const scaleX: number = (typeof config.scaleX === 'number' ? config.scaleX : 1);
+        const scaleY: number = (typeof config.scaleY === 'number' ? config.scaleY : 1);
+        ctx.scale(scaleX, scaleY);
         ctx.drawImage(config.img, -config.width / 2, -config.height / 2, config.width, config.height);
         ctx.restore();
     }
 }
 // --- 元素互動輔助函式 ---
 export const getElementBoundingBox = (ctx: CanvasRenderingContext2D, el: ICanvasElement) => {
-    if (!ctx || !el) return null;
+    if (!ctx || !el || !el.config.draggable) return null;
     let width: number = 0;
     let height: number = 0;
     let x: number = 0;
@@ -385,7 +390,7 @@ export const calculateConstrainedSize = (
     originalHeight: number,
     maxWidth: number,
     maxHeight: number
-): { width: number; height: number, scale: number, originalWidth: number, originalHeight: number } => {
+): { width: number; height: number, scale: number, originalWidth: number, originalHeight: number, color: string } => {
     const widthRatio = maxWidth / originalWidth;
     const heightRatio = maxHeight / originalHeight;
 
@@ -394,12 +399,12 @@ export const calculateConstrainedSize = (
 
     // 如果原始尺寸已經在限制內，則不需要縮放，直接回傳原始尺寸
     if (scale >= 1) {
-        return { width: originalWidth, height: originalHeight, scale: 1, originalWidth, originalHeight };
+        return { width: originalWidth, height: originalHeight, scale: 1, originalWidth, originalHeight, color: "transparent" };
     }
 
     // 使用較小的比例計算新的寬高
     const newWidth = Math.round(originalWidth * scale);
     const newHeight = Math.round(originalHeight * scale);
 
-    return {width: newWidth, height: newHeight, scale, originalWidth, originalHeight};
+    return {width: newWidth, height: newHeight, scale, originalWidth, originalHeight, color: "transparent"};
 }
