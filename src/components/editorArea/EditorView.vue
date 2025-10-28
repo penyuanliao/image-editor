@@ -6,6 +6,7 @@ import {CanvasEditor} from "../../Utilities/CanvasEditor.ts";
 import {type CroppedExportOptions, exportCroppedArea} from "../../Utilities/useCanvasExporter.ts";
 import {ElementTypesEnum, type ICanvasElement, type ITextConfig} from "../../types.ts";
 import Popover from "../konva/Popover.vue";
+import KeyboardController from "../KeyboardController.vue";
 
 const imagesStore = useImagesStore();
 const emit = defineEmits(['element-selected']);
@@ -283,6 +284,24 @@ const updateSelectedElement = (newProps: Partial<any>) => {
   editor.value.render();
 };
 
+// --- 鍵盤事件處理 ---
+const handleDeleteSelected = () => {
+  const selectedIds = imagesStore.selectedElements.map(el => el.id);
+  if (selectedIds.length > 0) {
+    imagesStore.removeElements(selectedIds);
+    editor.value.render();
+  }
+};
+
+const handleMoveSelected = ({ dx, dy }: { dx: number, dy: number }) => {
+  if (imagesStore.selectedElements.length > 0) {
+    imagesStore.selectedElements.forEach(el => {
+      el.config.x += dx;
+      el.config.y += dy;
+    });
+    editor.value.render();
+  }
+};
 defineExpose({ addElement, updateSelectedElement });
 
 </script>
@@ -292,6 +311,11 @@ defineExpose({ addElement, updateSelectedElement });
     minHeight: editor.viewport.height,
     minWidth: editor.viewport.width
   }">
+    <!-- 鍵盤控制器，用於處理快捷鍵 -->
+    <KeyboardController
+        @delete-selected="handleDeleteSelected"
+        @move-selected="handleMoveSelected"
+    />
     <div class="uploader-container" ref="uploaderContainer">
       <input
           ref="fileInput"
@@ -319,7 +343,7 @@ defineExpose({ addElement, updateSelectedElement });
       />
       <Popover
           ref="popOverRef"
-          v-show="popOverMenu.visible && selectedElement?.type !== ElementTypesEnum.Stage "
+          v-show="popOverMenu.visible && selectedElement?.type === ElementTypesEnum.Stage "
                :style="{
                   transform: `translate(${popOverMenu.x}px, ${popOverMenu.y}px)`
                }"/>
