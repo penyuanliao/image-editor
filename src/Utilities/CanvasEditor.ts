@@ -187,6 +187,7 @@ export class CanvasEditor {
                 width: image.width * initialScale,
                 height: image.height * initialScale,
                 img: image,
+                url: image.src,
                 rotation: 0,
                 draggable: true
             }
