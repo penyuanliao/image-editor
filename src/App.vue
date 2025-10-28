@@ -8,11 +8,13 @@ import TextPanel from "./components/TextPanel.vue";
 import StickersPanel from "./components/StickersPanel.vue";
 import UploadPanel from "./components/UploadPanel.vue";
 import LayersPanel from "./components/LayersPanel.vue";
+import DropZone from "./components/DropZone.vue"; // 引入新的 DropZone 元件
 
 import { useImagesStore } from "./store/images";
 import ImagePropsPanel from "./components/ImagePropsPanel.vue";
-import StagePropsPanel from "./components/StagePropsPanel.vue";
 import EditorView from "./components/editorArea/EditorView.vue";
+import { processFile } from "./Utilities/FileProcessor.ts";
+import {CreateImageElement} from "./Utilities/useCreateCanvasElement.ts";
 const imagesStore = useImagesStore();
 const editor = ref<InstanceType<typeof EditorView> | null>(null);
 const selected = ref<string>('');
@@ -47,6 +49,21 @@ const selectedElement = computed(() => {
   return imagesStore.selectedElements[0];
 })
 
+// 處理從 DropZone 元件傳來的檔案
+const handleFilesDropped = async (files: FileList) => {
+  if (files && files.length > 0) {
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      if (file) {
+        const { name, image, imageUrl } = await processFile(file);
+        imagesStore.addImage(image);
+        const newImageElement: ICanvasElement = CreateImageElement({ name, image, imageUrl });
+        handleAddElement(newImageElement);
+      }
+    }
+  }
+};
+
 </script>
 
 <template>
@@ -71,13 +88,16 @@ const selectedElement = computed(() => {
       />
     </div>
     <div class="editor-area">
-      <EditorView
+      <!-- 使用新的 DropZone 元件並監聽 files-dropped 事件 -->
+      <DropZone class="drop-zone-wrapper" @files-dropped="handleFilesDropped">
+        <EditorView
         ref="editor"
         @element-selected="handleElementSelected"
       />
       <div class="layers">
         <LayersPanel/>
       </div>
+    </DropZone>
     </div>
     <div class="properties">
       <TextPanel
@@ -108,6 +128,14 @@ const selectedElement = computed(() => {
   align-items: center;
   overflow: auto; /* 如果編輯器太大，允許滾動 */
   flex-shrink: 0;
+}
+.drop-zone-wrapper {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative; /* 確保內部元素定位正確 */
 }
 .layers {
   position: absolute;

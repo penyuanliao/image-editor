@@ -2,7 +2,7 @@
 import { ref } from "vue";
 import { UploadFilled } from "@element-plus/icons-vue";
 import { useImagesStore } from "../store/images";
-import {ElementTypesEnum} from "../types.ts";
+import {CreateImageElement} from "../Utilities/useCreateCanvasElement.ts";
 
 const emit = defineEmits<{ (e: 'add-element', action: any): void }>();
 
@@ -18,24 +18,20 @@ const handleFileChange = (event: Event) => {
       img.onload = () => {
         // Now that the image is loaded, push the HTMLImageElement to the store
         imagesStore.addImage(img);
-        handleAddingElement(img);
+        handleAddingElement(img, file.name);
       };
       img.src = imageUrl;
     }
   }
 };
-const handleAddingElement = (img: HTMLImageElement) => {
+const handleAddingElement = (img: HTMLImageElement, name?: string) => {
   // imagesStore.addElement(imagesStore.createStickerElement(img));
-  emit('add-element', {
-    type: ElementTypesEnum.Image,
-    name: '新圖片',
-    config: {
-      img,
-      width: img.width,
-      height: img.height,
-      x: 0,
-      y: 0
-    } });
+  const element = CreateImageElement({
+    name: name || '新圖片',
+    image: img,
+    imageUrl: img.src
+  })
+  emit('add-element', element);
 }
 
 const triggerFileInput = () => {

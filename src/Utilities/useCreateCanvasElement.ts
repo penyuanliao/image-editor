@@ -79,3 +79,21 @@ export const createCanvasElement = (element: ICanvasElement, canvas: { width: nu
         }
     })
 };
+export const CreateImageElement = ({ name, image, imageUrl }: { name: string, image: HTMLImageElement, imageUrl: string }): ICanvasElement => {
+    return {
+        id: Date.now(),
+        name,
+        type: ElementTypesEnum.Image,
+        config: {
+            x: 0,
+            y: 0,
+            width: image.width,
+            height: image.height,
+            rotation: 0,
+            opacity: 1,
+            draggable: true,
+            url: imageUrl,
+            img: image
+        },
+    }
+};
