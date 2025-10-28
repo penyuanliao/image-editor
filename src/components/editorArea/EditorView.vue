@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import {computed, onMounted, reactive, ref, watch} from "vue";
-import {useImagesStore} from "../store/images.ts";
-import {processFile} from "../Utilities/FileProcessor.ts";
-import {CanvasEditor} from "../Utilities/CanvasEditor.ts";
-import {type CroppedExportOptions, exportCroppedArea} from "../Utilities/useCanvasExporter.ts";
-import {ElementTypesEnum, type ICanvasElement, type ITextConfig} from "../types.ts";
-import Popover from "./konva/Popover.vue";
+import {computed, nextTick, onMounted, reactive, ref, watch} from "vue";
+import {useImagesStore} from "../../store/images.ts";
+import {processFile} from "../../Utilities/FileProcessor.ts";
+import {CanvasEditor} from "../../Utilities/CanvasEditor.ts";
+import {type CroppedExportOptions, exportCroppedArea} from "../../Utilities/useCanvasExporter.ts";
+import {ElementTypesEnum, type ICanvasElement, type ITextConfig} from "../../types.ts";
+import Popover from "../konva/Popover.vue";
 
 const imagesStore = useImagesStore();
 const emit = defineEmits(['element-selected']);
@@ -106,10 +106,20 @@ onMounted(() => {
       contextMenu.y = event.y;
       contextMenu.element = event.element;
     };
+    // 設定PopOver選單的回呼函式
     editor.value.onPopOverMenu = (event) => {
       popOverMenu.visible = event.visible || false;
       popOverMenu.x = event.x + popOverMenu.offset.x;
       popOverMenu.y = event.y + popOverMenu.offset.y;
+    };
+    // 設定文字編輯的回呼函式
+    editor.value.onStartEditText = (element) => {
+      editor.value.editingElement = element;
+      nextTick(() => {
+        minWidth.value = textInput.value?.offsetWidth || 0; // 記錄初始寬度
+        textInput.value?.focus();
+        updateTextareaSize(); // 初始設定大小
+      });
     };
     window.addEventListener('click', closeContextMenu);
   }
@@ -150,6 +160,26 @@ watch(editor.value.cropBox, () => {
   }
 }, { deep: true });
 
+// --- 文字編輯狀態 ---
+let minWidth = ref(0);
+
+// --- 文字編輯方法 ---
+const updateTextareaSize = () => {
+  const textarea = textInput.value;
+  if (!textarea) return;
+
+  // 為了準確計算，先重設高度
+  textarea.style.height = 'auto';
+  // 寬度設為 auto 以便計算 scrollWidth，但要確保它不小於初始寬度
+  textarea.style.width = `${minWidth.value}px`;
+
+  // 根據內容捲動寬高來設定新的寬高
+  const scrollHeight = textarea.scrollHeight;
+  const scrollWidth = textarea.scrollWidth;
+  textarea.style.height = `${scrollHeight}px`;
+  textarea.style.width = `${Math.max(scrollWidth, minWidth.value)}px`;
+};
+
 // --- 文字編輯方法 ---
 const finishEditing = () => {
   if (isComposing.value) return;
@@ -158,6 +188,7 @@ const finishEditing = () => {
   if ((editor.value.editingElement.config as ITextConfig).content.trim() === '') {
     imagesStore.elements = imagesStore.elements.filter(el => el.id !== editor.value.editingElement!.id);
   }
+  minWidth.value = 0; // 重設
   editor.value.editingElement = null;
   editor.value.render();
 };
@@ -167,6 +198,11 @@ const compositionStart = () => {
 }
 const compositionEnd = () => {
   isComposing.value = false;
+  updateTextareaSize();
+}
+const handleTextInput = () => {
+  if (isComposing.value) return;
+  updateTextareaSize();
 }
 
 // 儲存裁切後的圖片
@@ -250,7 +286,10 @@ defineExpose({ addElement, updateSelectedElement });
 </script>
 
 <template>
-  <div class="editor-wrapper">
+  <div class="editor-wrapper" :style="{
+    minHeight: editor.viewport.height,
+    minWidth: editor.viewport.width
+  }">
     <div class="uploader-container" ref="uploaderContainer">
       <input
           ref="fileInput"
@@ -263,16 +302,18 @@ defineExpose({ addElement, updateSelectedElement });
           ref="canvas"
           class="editor-canvas"
       ></canvas>
-      <input
+      <textarea
           v-if="editor.editingElement"
           ref="textInput"
           v-model="(editor.editingElement.config as ITextConfig).content"
           :style="textInputStyle"
           class="text-editor-input"
+          wrap="off"
+          @input="handleTextInput"
           @compositionstart="compositionStart"
           @compositionend="compositionEnd"
           @focusout="finishEditing"
-          @keydown.enter.prevent="finishEditing"
+          @keydown.enter.shift.prevent="finishEditing"
       />
       <Popover
           ref="popOverRef"
@@ -344,7 +385,8 @@ defineExpose({ addElement, updateSelectedElement });
   box-sizing: border-box;
   justify-content: center;
   align-items: center;
-  overflow: auto;
+  overflow: hidden;
+  flex-shrink: 0;
 }
 
 .uploader-container {
@@ -429,14 +471,14 @@ defineExpose({ addElement, updateSelectedElement });
 .text-editor-input {
   position: absolute;
   background-color: white;
-  border: 1px dashed #409eff;
-  padding: 0;
+  border: 1px dashed #909399;
   margin: 0;
   text-align: center;
   outline: none;
   box-sizing: border-box;
   z-index: 10;
-  color: black;
+  overflow: hidden;
+  resize: none;
 }
 
 .crop-controls,

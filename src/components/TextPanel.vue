@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import {computed, reactive, ref, watch} from "vue";
+import {computed, onMounted, reactive, ref, watch} from "vue";
 import { useImagesStore } from "../store/images.ts";
 import { Delete } from "@element-plus/icons-vue";
 import { ColorPicker } from "colorpickers";
-import {ElementTypesEnum, type ITextConfig} from "../types.ts";
+import {ElementTypesEnum, type ICanvasElement, type ITextConfig} from "../types.ts";
 // import { ColorInputWithoutInstance } from "tinycolor2";
 
 const gradientColor = ref("linear-gradient(90deg, rgba(255, 0, 0, 1) 0%, rgba(0, 0, 255, 1) 100%)");
@@ -78,48 +78,47 @@ const selectedElement = computed(() => {
   return imagesStore.selectedElements[0];
 });
 
-// --- Watchers for State Synchronization ---
-
-// Watch for incoming element changes and update the panel UI
-watch(() => selectedElement.value, (newEl) => {
-  if (newEl && newEl.type === ElementTypesEnum.Text) {
-
-    const newConfig = newEl.config as ITextConfig;
+/**
+ * 根據傳入的 element 更新整個控制面板的 UI 狀態
+ * @param element
+ */
+const updatePanelFromElement = (element: ICanvasElement | null) => {
+  if (element && element.type === ElementTypesEnum.Text) {
+    const config = element.config as ITextConfig;
     // Update text properties
-    textProps.content = newConfig.content;
-    textProps.color = newConfig.color;
-    textProps.isBold = newConfig.fontWeight === 'bold';
-    textProps.isItalic = newConfig.fontItalic || false;
-    textProps.fontSize = newConfig.fontSize || 12;
-    textProps.fontFamily = newConfig.fontFamily || 'Arial';
-    textProps.lineHeight = newConfig.lineHeight || 1.2;
-    textProps.rotation = newConfig.rotation || 0;
-    console.log(newEl.config, textProps.content);
+    textProps.content = config.content;
+    textProps.color = config.color;
+    textProps.isBold = config.fontWeight === 'bold';
+    textProps.isItalic = config.fontItalic || false;
+    textProps.fontSize = config.fontSize || 12;
+    textProps.fontFamily = config.fontFamily || 'Arial';
+    textProps.lineHeight = config.lineHeight || 1.2;
+    textProps.rotation = config.rotation || 0;
+    textProps.letterSpacing = config.letterSpacing || 0;
 
     // Update shadow properties
-    shadow.enabled = !!newConfig.shadowColor;
+    shadow.enabled = !!config.shadowColor;
     if (shadow.enabled) {
-      shadow.color = newConfig.shadowColor || '#000000';
-      shadow.blur = newConfig.shadowBlur || 0;
-      shadow.offsetX = newConfig.shadowOffsetX || 0;
-      shadow.offsetY = newConfig.shadowOffsetY || 0;
+      shadow.color = config.shadowColor || '#000000';
+      shadow.blur = config.shadowBlur || 0;
+      shadow.offsetX = config.shadowOffsetX || 0;
+      shadow.offsetY = config.shadowOffsetY || 0;
     }
 
     // Update stroke properties
-    stroke.enabled = !!newConfig.strokeColor;
+    stroke.enabled = !!config.strokeColor;
     if (stroke.enabled) {
-      stroke.color = newConfig.strokeColor || '#000000';
-      stroke.width = newConfig.strokeWidth || 1;
+      stroke.color = config.strokeColor || '#000000';
+      stroke.width = config.strokeWidth || 1;
     }
 
     // Update gradient properties
-    gradient.enabled = !!newConfig.gradientEnabled;
+    gradient.enabled = !!config.gradientEnabled;
     if (gradient.enabled) {
-      gradient.startColor = newConfig.gradientStartColor || '#FF0000';
-      gradient.endColor = newConfig.gradientEndColor || '#0000FF';
-      gradient.angle = newConfig.gradientAngle || 90;
+      gradient.startColor = config.gradientStartColor || '#FF0000';
+      gradient.endColor = config.gradientEndColor || '#0000FF';
+      gradient.angle = config.gradientAngle || 90;
     }
-
   } else {
     // Reset to default if no element is selected
     Object.assign(textProps, getDefaultTextProps());
@@ -127,6 +126,13 @@ watch(() => selectedElement.value, (newEl) => {
     Object.assign(stroke, getDefaultStroke());
     Object.assign(gradient, getDefaultGradient());
   }
+}
+
+// --- Watchers for State Synchronization ---
+
+// Watch for incoming element changes and update the panel UI
+watch(() => selectedElement.value, (newEl) => {
+  updatePanelFromElement(newEl as ICanvasElement);
 }, { deep: true });
 
 // Watch for panel UI changes and emit updates to the parent
@@ -326,6 +332,11 @@ const gradientColorChange = (value: string) => {
     config.gradientStops = gradient.stops;
   }
 }
+
+
+onMounted(() => {
+  updatePanelFromElement(selectedElement.value as ICanvasElement);
+});
 
 </script>
 

@@ -11,7 +11,6 @@ import {
 } from './useImageEditor.ts';
 import {ErrorMessage} from "./AlertMessage.ts";
 import {createCanvasElement} from "./useCreateCanvasElement.ts";
-import {nextTick} from "vue";
 // 引入 store 的類型，但不直接使用 useImagesStore()
 import type {ImagesStore} from '../store/images';
 import {pasteImage} from "./useClipboard.ts";
@@ -65,6 +64,7 @@ export class CanvasEditor {
     // 回應右鍵選單監聽事件
     public onContextMenu: ((event: IContextMenuEvent) => void) | null = null;
     public onPopOverMenu: ((event: IContextMenuEvent) => void) | null = null;
+    public onStartEditText: ((element: ICanvasElement) => void) | null = null;
     // 點擊兩下編輯的輸入框
     public textInput: HTMLInputElement | null = null;
     // 狀態屬性
@@ -105,6 +105,8 @@ export class CanvasEditor {
         height: '0px',
         fontSize: '32px',
         fontFamily: 'Arial',
+        letterSpacing: '0px',
+        lineHeight: 1.2
     };
 
     // 拖曳裁切框相關的狀態
@@ -389,7 +391,7 @@ export class CanvasEditor {
                 const centerX = minX + totalWidth / 2;
                 const topY = minY; // Popover 顯示在最頂部
 
-                console.log(`選取了 ${selectedElements.length} 個物件，總寬度: ${totalWidth.toFixed(2)}`);
+                // console.log(`選取了 ${selectedElements.length} 個物件，總寬度: ${totalWidth.toFixed(2)}`);
 
                 // 3. 觸發 onPopOverMenu 事件，傳遞計算後的位置
                 this.onPopOverMenu?.({ visible: true, x: centerX, y: topY, element: null });
@@ -660,28 +662,9 @@ export class CanvasEditor {
 
         // 只有文字元素可以雙擊編輯
         if (clickedElement && clickedElement.type === ElementTypesEnum.Text) {
-            this.store.clearSelection(); // 進入編輯模式時取消選取
-            this.editingElement = clickedElement;
             const box = getElementBoundingBox(this.ctx, clickedElement)!;
-            
-            // 將世界座標轉換回螢幕座標來定位 HTML input
-            const viewX = box.x * this.scale + this.viewOffsetX;
-            const viewY = box.y * this.scale + this.viewOffsetY;
-
-            // 設定 input 的樣式和位置
-            this.textInputStyle.left = `${viewX}px`;
-            this.textInputStyle.top = `${viewY}px`;
-            this.textInputStyle.width = `${(box.width + 20) * this.scale}px`; // 寬高也要縮放
-            this.textInputStyle.height = `${box.height * this.scale}px`;
-            this.textInputStyle.fontSize = `${(clickedElement.config as ITextConfig).fontSize}px`;
-            this.textInputStyle.fontFamily = (clickedElement.config as ITextConfig).fontFamily || '';
-
-            this.render(); // 重新繪製，隱藏 canvas 上的文字
-
-            nextTick(() => {
-                this.textInput?.focus();
-                this.textInput?.select();
-            }).then(() => {});
+            this.updateTextInputStyle(clickedElement, box);
+            this.onStartEditText?.(clickedElement);
         }
     }
     private handleMouseUp(_: MouseEvent) {
@@ -732,6 +715,30 @@ export class CanvasEditor {
         this.viewOffsetY = centerY - worldCenterY * this.scale;
 
         this.render();
+    }
+
+    public updateTextInputStyle(element: ICanvasElement, box: { x: number, y: number, width: number, height: number }) {
+        // 將世界座標轉換回螢幕座標來定位 HTML input
+        const viewX = box.x * this.scale + this.viewOffsetX;
+        const viewY = box.y * this.scale + this.viewOffsetY;
+        const config = element.config as ITextConfig;
+
+        // 設定 input 的樣式和位置
+        this.textInputStyle.left = `${viewX}px`;
+        this.textInputStyle.top = `${viewY}px`;
+        this.textInputStyle.width = `${box.width * this.scale}px`;
+        this.textInputStyle.height = `${box.height * this.scale}px`;
+        this.textInputStyle.fontSize = `${config.fontSize}px`;
+        this.textInputStyle.fontFamily = config.fontFamily || '';
+        this.textInputStyle.letterSpacing = `${config.letterSpacing}px`;
+        this.textInputStyle.lineHeight = config.lineHeight || 1.2;
+        this.textInputStyle.color = config.color || 'black';
+        // this.textInputStyle.textAlign = config.textAlign || 'left';
+        if (config.rotation) {
+            this.textInputStyle.transform = `rotate(${Math.round((config.rotation * 180) / Math.PI)}deg)`;
+        } else {
+            this.textInputStyle.transform = 'none';
+        }
     }
     // 同步更新 canvas 的繪圖表面尺寸
     public updateViewportSize(width: number, height: number, color: string = "transparent") {

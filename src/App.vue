@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import {computed, ref} from 'vue';
-import ImageEditor from './components/ImageUploader.vue';
 import {ElementTypesEnum, type ICanvasElement, ImageEditorTypes} from "./types";
 import BoxBar from "./components/BoxBar.vue";
 import ImagesPanel from "./components/ImagesPanel.vue";
@@ -13,8 +12,9 @@ import LayersPanel from "./components/LayersPanel.vue";
 import { useImagesStore } from "./store/images";
 import ImagePropsPanel from "./components/ImagePropsPanel.vue";
 import StagePropsPanel from "./components/StagePropsPanel.vue";
+import EditorView from "./components/editorArea/EditorView.vue";
 const imagesStore = useImagesStore();
-const editor = ref<InstanceType<typeof ImageEditor> | null>(null);
+const editor = ref<InstanceType<typeof EditorView> | null>(null);
 const selected = ref<string>('');
 
 // State to hold the currently selected element from the canvas
@@ -71,7 +71,7 @@ const selectedElement = computed(() => {
       />
     </div>
     <div class="editor-area">
-      <ImageEditor
+      <EditorView
         ref="editor"
         @element-selected="handleElementSelected"
       />
@@ -101,6 +101,7 @@ const selectedElement = computed(() => {
 
 .editor-area {
   width: 100%;
+  height: 800px;
   position: relative;
   display: flex;
   justify-content: center;

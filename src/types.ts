@@ -49,6 +49,8 @@ export interface ITextConfig extends AbsoluteConfig {
     fontWeight?: 'normal' | 'bold';
     fontItalic?: boolean;
     lineHeight?: number;
+    // 文字對齊屬性
+    textAlign?: CanvasTextAlign;
 
     // 陰影屬性
     shadowColor?: string;
@@ -67,6 +69,9 @@ export interface ITextConfig extends AbsoluteConfig {
     gradientEndColor?: string;
     gradientStops?: (string | number)[];
     gradientAngle?: number;
+
+    // 文字間距
+    letterSpacing: number;
 
 }
 

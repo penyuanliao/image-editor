@@ -73,6 +73,7 @@ export const drawText = (ctx: CanvasRenderingContext2D, element: ICanvasElement)
     ctx.rotate(config.rotation || 0);
     // Common text styles
     ctx.font = `${config.fontWeight || 'normal'} ${config.fontItalic ? 'italic' : ''} ${config.fontSize || 32}px ${config.fontFamily || 'Arial'}`;
+    ctx.letterSpacing = `${config.letterSpacing || 0}px`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
@@ -194,6 +195,7 @@ export const getElementBoundingBox = (ctx: CanvasRenderingContext2D, el: ICanvas
     if (el.type === ElementTypesEnum.Text) {
         const config: ITextConfig = el.config as ITextConfig;
         ctx.font = `${config.fontWeight || 'normal'} ${config.fontSize}px ${config.fontFamily}`;
+        ctx.letterSpacing = `${config.letterSpacing || 0}px`;
         const lines = config.content.split('\n');
         const metrics = lines.map(line => ctx.measureText(line));
         width = Math.max(...metrics.map(m => m.width));
