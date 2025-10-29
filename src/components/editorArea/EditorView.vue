@@ -209,11 +209,7 @@ const handleTextInput = () => {
 }
 
 // 儲存裁切後的圖片
-const saveImage = () => {
-  if (!canvas.value || !imagesStore.imageUrl) {
-    alert('沒有可儲存的圖片。');
-    return;
-  }
+const saveImage = async () => {
   // 計算比例
   const scaleFactor = 1 / editor.value.viewport.scale;
   // 輸出圖片的 URL
@@ -316,7 +312,9 @@ defineExpose({ addElement, updateSelectedElement });
         @delete-selected="handleDeleteSelected"
         @move-selected="handleMoveSelected"
     />
-    <div class="uploader-container" ref="uploaderContainer">
+    <div
+        class="uploader-container"
+        ref="uploaderContainer">
       <input
           ref="fileInput"
           type="file"
@@ -418,18 +416,14 @@ defineExpose({ addElement, updateSelectedElement });
 .uploader-container {
   position: relative;
   display: flex;
-  border: 2px dashed #ccc;
-  border-radius: 10px;
+  border-radius: 20px;
   width: 800px;
   height: 600px;
   max-height: 600px;
   min-height: 50px; /* 避免過度縮小 */
   transition: border-color 0.3s, background-color 0.3s;
   overflow: hidden;
-}
-
-.uploader-container:hover {
-  border-color: #409eff;
+  background-color: #D9D9D9;
 }
 
 .editor-canvas {
