@@ -446,14 +446,15 @@ export class CanvasEditor {
         }
 
         const clickedElement = this.findElementAtPosition(x, y);
-
         if (isShiftPressed) {
             if (clickedElement) {
                 // 按住 Shift 點擊物件
                 if (this.store.selectedElements.some(el => el.id === clickedElement.id)) {
-                    this.store.removeFromSelection(clickedElement.id); // 如果已選取，則取消選取
+                    // 如果已選取，則取消選取
+                    this.store.removeFromSelection(clickedElement.id);
                 } else {
-                    this.store.addToSelection(clickedElement); // 如果未選取，則加入選取
+                    // 如果未選取，則加入選取
+                    this.store.addToSelection(clickedElement);
                 }
             }
             // 按住 Shift 點擊空白處，不做任何事
@@ -464,24 +465,28 @@ export class CanvasEditor {
                 if (!this.store.selectedElements.some(el => el.id === clickedElement.id)) {
                     this.store.setSelectedElements([clickedElement]);
                 }
-                // 開始拖曳選中的元素
-                this.isDraggingElement = true;
-                this.dragStart.x = x;
-                this.dragStart.y = y;
-            } else if (this.isPointInCropBox(x, y)) {
-                // 如果點擊在空白處，且在裁切框內，則開始拖曳裁切框
-                this.isDraggingCropBox = true;
-                this.dragStart.x = x; // 使用世界座標
-                this.dragStart.y = y; // 使用世界座標
-                this.dragStart.boxX = this.cropBox.x;
-                this.dragStart.boxY = this.cropBox.y;
             } else {
                 // 點擊空白處，開始拖曳選擇
                 this.isSelectionDragging = true;
                 this.selectionStartPoint = { x, y };
                 this.selectionRect = { x, y, width: 0, height: 0 };
-                this.store.clearSelection(); // 清除當前的選取
+                // 先清除當前的選取
+                this.store.clearSelection();
             }
+        }
+
+        if (clickedElement && !this.isSelectionDragging) {
+            this.isDraggingElement = true;
+            this.dragStart.x = x;
+            this.dragStart.y = y;
+            this.dragStart.elementX = clickedElement.config.x;
+            this.dragStart.elementY = clickedElement.config.y;
+        } else if (!isShiftPressed && this.isPointInCropBox(x, y)) {
+            this.isDraggingCropBox = true;
+            this.dragStart.x = event.offsetX;
+            this.dragStart.y = event.offsetY;
+            this.dragStart.boxX = this.cropBox.x;
+            this.dragStart.boxY = this.cropBox.y;
         }
 
         this.render();
