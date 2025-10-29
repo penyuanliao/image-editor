@@ -116,6 +116,11 @@ export class CanvasEditor {
     public isResizing: string|null = null;
     public isRotating: boolean = false;
 
+    // 拖曳選擇相關狀態
+    public isSelectionDragging: boolean = false;
+    public selectionRect: { x: number, y: number, width: number, height: number } | null = null;
+    public selectionStartPoint: { x: number, y: number } = { x: 0, y: 0 };
+
 
     constructor(store: ImagesStore) {
         this.store = store;
@@ -286,6 +291,15 @@ export class CanvasEditor {
             });
         }
         // 6. 顯示提示選單
+        // 7. 繪製拖曳選擇框
+        if (this.isSelectionDragging && this.selectionRect) {
+            ctx.fillStyle = "rgba(64, 158, 255, 0.2)"; // 淡藍色半透明填充
+            ctx.strokeStyle = "rgba(64, 158, 255, 0.8)"; // 藍色邊框
+            ctx.lineWidth = 1;
+            ctx.fillRect(this.selectionRect.x, this.selectionRect.y, this.selectionRect.width, this.selectionRect.height);
+            ctx.strokeRect(this.selectionRect.x, this.selectionRect.y, this.selectionRect.width, this.selectionRect.height);
+        }
+
         this.showPopOverMenu(store.selectedElements.length != 0);
         // 7. 恢復 context 狀態，移除視圖變換
         ctx.restore();
@@ -432,15 +446,14 @@ export class CanvasEditor {
         }
 
         const clickedElement = this.findElementAtPosition(x, y);
+
         if (isShiftPressed) {
             if (clickedElement) {
                 // 按住 Shift 點擊物件
                 if (this.store.selectedElements.some(el => el.id === clickedElement.id)) {
-                    // 如果已選取，則取消選取
-                    this.store.removeFromSelection(clickedElement.id);
+                    this.store.removeFromSelection(clickedElement.id); // 如果已選取，則取消選取
                 } else {
-                    // 如果未選取，則加入選取
-                    this.store.addToSelection(clickedElement);
+                    this.store.addToSelection(clickedElement); // 如果未選取，則加入選取
                 }
             }
             // 按住 Shift 點擊空白處，不做任何事
@@ -451,24 +464,24 @@ export class CanvasEditor {
                 if (!this.store.selectedElements.some(el => el.id === clickedElement.id)) {
                     this.store.setSelectedElements([clickedElement]);
                 }
+                // 開始拖曳選中的元素
+                this.isDraggingElement = true;
+                this.dragStart.x = x;
+                this.dragStart.y = y;
+            } else if (this.isPointInCropBox(x, y)) {
+                // 如果點擊在空白處，且在裁切框內，則開始拖曳裁切框
+                this.isDraggingCropBox = true;
+                this.dragStart.x = x; // 使用世界座標
+                this.dragStart.y = y; // 使用世界座標
+                this.dragStart.boxX = this.cropBox.x;
+                this.dragStart.boxY = this.cropBox.y;
             } else {
-                // 點擊空白處，取消所有選取
-                this.store.clearSelection();
+                // 點擊空白處，開始拖曳選擇
+                this.isSelectionDragging = true;
+                this.selectionStartPoint = { x, y };
+                this.selectionRect = { x, y, width: 0, height: 0 };
+                this.store.clearSelection(); // 清除當前的選取
             }
-        }
-
-        if (clickedElement) {
-            this.isDraggingElement = true;
-            this.dragStart.x = x;
-            this.dragStart.y = y;
-            this.dragStart.elementX = clickedElement.config.x;
-            this.dragStart.elementY = clickedElement.config.y;
-        } else if (!isShiftPressed && this.isPointInCropBox(x, y)) {
-            this.isDraggingCropBox = true;
-            this.dragStart.x = event.offsetX;
-            this.dragStart.y = event.offsetY;
-            this.dragStart.boxX = this.cropBox.x;
-            this.dragStart.boxY = this.cropBox.y;
         }
 
         this.render();
@@ -508,6 +521,21 @@ export class CanvasEditor {
     private handleMouseMove(event: MouseEvent) {
         if (!this.canvas || !this.store.imageUrl) return;
         const { x, y } = this.screenToWorld(event.offsetX, event.offsetY);
+
+        // 處理拖曳選擇
+        if (this.isSelectionDragging) {
+            this.canvas.style.cursor = "crosshair";
+            if (this.selectionRect) {
+                // 根據滑鼠當前位置和起始點，計算選擇框的 x, y, width, height
+                // 這樣可以支援從任何方向拖曳
+                this.selectionRect.x = Math.min(x, this.selectionStartPoint.x);
+                this.selectionRect.y = Math.min(y, this.selectionStartPoint.y);
+                this.selectionRect.width = Math.abs(x - this.selectionStartPoint.x);
+                this.selectionRect.height = Math.abs(y - this.selectionStartPoint.y);
+            }
+            this.render();
+            return;
+        }
 
         // 處理元素拖曳 (可多選)
         if (this.isDraggingElement && this.store.selectedElements.length > 0) {
@@ -612,8 +640,8 @@ export class CanvasEditor {
         // 處理裁切框拖曳
         if (this.isDraggingCropBox) {
             this.canvas.style.cursor = "move";
-            const dx = event.offsetX - this.dragStart.x;
-            const dy = event.offsetY - this.dragStart.y;
+            const dx = x - this.dragStart.x; // 使用世界座標計算位移
+            const dy = y - this.dragStart.y; // 使用世界座標計算位移
 
             // 直接更新值，讓 watcher 處理約束和重繪
             this.cropBox.x = this.dragStart.boxX + dx;
@@ -670,12 +698,36 @@ export class CanvasEditor {
         }
     }
     private handleMouseUp(_: MouseEvent) {
+        // 如果正在拖曳選擇
+        if (this.isSelectionDragging && this.selectionRect) {
+            const selectedElementsInRect: ICanvasElement[] = [];
+            const rect = this.selectionRect;
+
+            this.store.elements.forEach(el => {
+                const box = getElementBoundingBox(this.ctx!, el);
+                if (box) {
+                    // 檢查物件的邊界框是否與選擇框相交
+                    if (rect.x < box.x + box.width &&
+                        rect.x + rect.width > box.x &&
+                        rect.y < box.y + box.height &&
+                        rect.y + rect.height > box.y) {
+                        selectedElementsInRect.push(el);
+                    }
+                }
+            });
+
+            if (selectedElementsInRect.length > 0) {
+                this.store.setSelectedElements(selectedElementsInRect);
+            }
+        }
+
         this.clear();
         this.showPopOverMenu(true);
+        this.render(); // 新增：重繪畫布以清除選擇框
     }
     private handleMouseLeave(_: MouseEvent) {
         this.clear();
-        // this.showPopOverMenu(false);
+        this.showPopOverMenu(false);
     }
     private clear() {
         this.isDraggingCropBox = false;
@@ -683,6 +735,8 @@ export class CanvasEditor {
         this.isResizing = null;
         this.isRotating = false;
         if (this.canvas) {
+            this.isSelectionDragging = false;
+            this.selectionRect = null;
             // 恢復指標樣式，讓mousemove事件下次可以重新判斷
             this.canvas.style.cursor = "default";
         }
@@ -780,6 +834,8 @@ export class CanvasEditor {
                             const el: any = jsonData.value[i];
                             el.id = Date.now();
                             el.config.img = await processUrl(el.config.url);
+                            el.config.x += 10;
+                            el.config.y += 10;
                             elements.push(el);
                         }
                         this.store.addElements(elements);

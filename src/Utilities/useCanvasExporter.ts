@@ -5,7 +5,7 @@ import {
     drawText,
 } from './useImageEditor';
 import { ErrorMessage } from "./AlertMessage.ts";
-import {ElementTypesEnum, type ICanvasElement, type IImageConfig} from "../types.ts";
+import {ElementTypesEnum, type ICanvasElement, type IImageConfig, type ISVGConfig, type ITextConfig} from "../types.ts";
 
 interface ExportOptions {
     store: ImagesStore;
@@ -24,7 +24,7 @@ export interface CroppedExportOptions extends ExportOptions {
  */
 export function exportCroppedArea(options: CroppedExportOptions): string | null {
     const { store, cropBox, scaleFactor } = options;
-    console.log(options);
+    console.log('exportCroppedArea', options);
     if (!store.originalImage) {
         // ErrorMessage('沒有圖片可供匯出。');
         // return null;
@@ -52,12 +52,12 @@ export function exportCroppedArea(options: CroppedExportOptions): string | null 
     // 繪製背景圖
     if (store.originalImage) {
         exportCtx.drawImage(
-            store.originalImage,
-            cropX * scaleFactor, // 直接使用傳入的放大倍率來回推原始座標
-            cropY * scaleFactor,
-            cropWidth * scaleFactor,
-            cropHeight * scaleFactor,
-            0, 0,
+            store.originalImage, // 來源圖片
+            cropX, // 來源圖片的裁切 X 點 (世界座標)
+            cropY, // 來源圖片的裁切 Y 點 (世界座標)
+            cropWidth,  // 來源圖片的裁切寬度 (世界座標)
+            cropHeight, // 來源圖片的裁切高度 (世界座標)
+            0, 0, // 在目標畫布上的繪製位置 (0,0)
             exportCanvas.width,
             exportCanvas.height
         );
@@ -66,27 +66,33 @@ export function exportCroppedArea(options: CroppedExportOptions): string | null 
     // 繪製所有元素
     store.elements.forEach(element => {
         const config = element.config;
-        const scaledElement = JSON.parse(JSON.stringify(config));
-        scaledElement.x = (config.x - cropX) * scaleFactor;
-        scaledElement.y = (config.y - cropY) * scaleFactor;
 
-        if (scaledElement.type === ElementTypesEnum.Image) {
-            scaledElement.width *= scaleFactor;
-            scaledElement.height *= scaleFactor;
-            const originalElement = store.elements.find(e => e.id === element.id);
-            if (originalElement && (originalElement.config as IImageConfig).img) {
-                scaledElement.img = (originalElement.config as IImageConfig).img;
-                drawSticker(exportCtx, scaledElement);
+        // 建立一個新的元素物件用於繪製，避免修改原始 store 中的資料
+        const elementForExport = {
+            ...element,
+            config: {
+                ...config,
+                // 將元素的世界座標轉換為相對於裁切框的座標，然後放大
+                x: (config.x - cropX) * scaleFactor,
+                y: (config.y - cropY) * scaleFactor,
             }
-        } else if (scaledElement.type === ElementTypesEnum.Text) {
-            if (scaledElement.fontSize) {
-                scaledElement.fontSize *= scaleFactor;
-            }
-            drawText(exportCtx, scaledElement);
-        } else if (scaledElement.type === ElementTypesEnum.SVG) {
-            scaledElement.width *= scaleFactor;
-            scaledElement.height *= scaleFactor;
-            drawSVG(exportCtx, scaledElement);
+        };
+
+        if (element.type === ElementTypesEnum.Image) {
+            const imageConfig = elementForExport.config as IImageConfig;
+            imageConfig.width *= scaleFactor;
+            imageConfig.height *= scaleFactor;
+            // 確保 img 物件被正確傳遞
+            imageConfig.img = (element.config as IImageConfig).img;
+            drawSticker(exportCtx, elementForExport);
+        } else if (element.type === ElementTypesEnum.Text) {
+            const fontSize: number = (elementForExport.config as ITextConfig).fontSize || 1;
+            (elementForExport.config as ITextConfig).fontSize = fontSize * scaleFactor;
+            drawText(exportCtx, elementForExport);
+        } else if (element.type === ElementTypesEnum.SVG) {
+            (elementForExport.config as ISVGConfig).width *= scaleFactor;
+            (elementForExport.config as ISVGConfig).height *= scaleFactor;
+            drawSVG(exportCtx, elementForExport);
         }
     });
 
