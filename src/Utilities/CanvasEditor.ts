@@ -13,7 +13,7 @@ import {ErrorMessage} from "./AlertMessage.ts";
 import {createCanvasElement} from "./useCreateCanvasElement.ts";
 // 引入 store 的類型，但不直接使用 useImagesStore()
 import type {ImagesStore} from '../store/images';
-import {pasteImage} from "./useClipboard.ts";
+import {clipboardPaste, validationPermissions} from "./useClipboard.ts";
 import {
     ElementTypesEnum,
     type ICanvasElement,
@@ -21,6 +21,7 @@ import {
     type ISVGConfig,
     type ITextConfig,
 } from "../types.ts";
+import {processUrl} from "./FileProcessor.ts";
 
 interface ICanvasViewport {
     width: number;
@@ -756,18 +757,49 @@ export class CanvasEditor {
         this.viewport.color = color;
         console.log(this.viewport);
     }
-    public enablePasteSupport() {
+    public enableCopyAndPasteSupport() {
 
         if (this.handlePaste) return;
 
         this.handlePaste = async () => {
-            const image = await pasteImage();
-            if (image) {
-                this.setImage(image);
+            const valid: boolean = await validationPermissions();
+            if (valid) {
+                const { texts, images } = await clipboardPaste();
+                for (const image of images) {
+                    if (image) this.setImage(image);
+                }
+
+                for (const str of texts) {
+                    const jsonString:RegExpMatchArray | null = str.toString().match(/(\{.+?\})(?={|$)/g);
+                    if (!jsonString) continue;
+                    const jsonData = JSON.parse(jsonString[0]);
+                    console.log('Clipboard JSON:', jsonData.value, Array.isArray(jsonData.value));
+                    const elements: ICanvasElement[] = [];
+                    if (Array.isArray(jsonData.value)) {
+                        for (let i = 0; i < jsonData.value.length; i++) {
+                            const el: any = jsonData.value[i];
+                            el.id = Date.now();
+                            el.config.img = await processUrl(el.config.url);
+                            elements.push(el);
+                        }
+                        this.store.addElements(elements);
+                    }
+                }
+
                 this.render();
             }
+
         }
         document.addEventListener('paste', this.handlePaste);
+        document.addEventListener('copy', async (event: ClipboardEvent) => {
+            const data: string = JSON.stringify({
+                key: 'canvaElements',
+                value: this.store.selectedElements
+            });
+            event.clipboardData?.setData('text/plain', data);
+            console.log('copy', );
+            event.preventDefault();
+        });
     }
     public disablePasteSupport() {
         if (!this.handlePaste) return;

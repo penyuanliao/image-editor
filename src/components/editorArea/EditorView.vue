@@ -95,8 +95,8 @@ onMounted(() => {
     editor.value.textInput = textInput.value;
     // 預設畫布大小
     editor.value.updateViewportSize(800, 600);
-    // 支援貼圖Ctrl+V
-    editor.value.enablePasteSupport();
+    // 支援貼圖Ctrl+C和Ctrl+V
+    editor.value.enableCopyAndPasteSupport();
     // 尺寸變更後需要重新繪製所有內容
     editor.value.render();
 

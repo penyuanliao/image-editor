@@ -66,6 +66,10 @@ export const useImagesStore = defineStore('images', {
       this.elements.push(element);
       this.selectedElements = [element]; // 新增後自動選取
     },
+    addElements(elements: ICanvasElement[]) {
+      this.elements.push(...elements);
+      this.selectedElements = elements; // 新增後自動選取
+    },
     // 執行刪除操作
     removeElements(elementIds: number[]) {
       this.elements = this.elements.filter(el => !elementIds.includes(el.id));
