@@ -2,19 +2,18 @@
 import {computed, ref} from 'vue';
 import {ElementTypesEnum, type ICanvasElement, ImageEditorTypes} from "./types";
 import BoxBar from "./components/BoxBar.vue";
-import ImagesPanel from "./components/ImagesPanel.vue";
-import AIPanel from "./components/AIPanel.vue";
-import TextPanel from "./components/TextPanel.vue";
-import StickersPanel from "./components/StickersPanel.vue";
-import UploadPanel from "./components/UploadPanel.vue";
-import LayersPanel from "./components/LayersPanel.vue";
+import AIPanel from "./components/Panels/AIPanel.vue";
+import TextPanel from "./components/Panels/TextPanel.vue";
+import StickersPanel from "./components/Panels/StickersPanel.vue";
+import UploadPanel from "./components/Panels/UploadPanel.vue";
+import LayersPanel from "./components/Panels/LayersPanel.vue";
 import DropZone from "./components/DropZone.vue"; // 引入新的 DropZone 元件
-
 import { useImagesStore } from "./store/images";
-import ImagePropsPanel from "./components/ImagePropsPanel.vue";
-import EditorView from "./components/editorArea/EditorView.vue";
+import ImagePropsPanel from "./components/Panels/ImagePropsPanel.vue";
+import EditorView from "./components/EditorArea/EditorView.vue";
 import { processFile } from "./Utilities/FileProcessor.ts";
 import {CreateImageElement} from "./Utilities/useCreateCanvasElement.ts";
+import StagePropsPanel from "./components/Panels/StagePropsPanel.vue";
 const imagesStore = useImagesStore();
 const editor = ref<InstanceType<typeof EditorView> | null>(null);
 const selected = ref<string>('');
@@ -63,60 +62,134 @@ const handleFilesDropped = async (files: FileList) => {
     }
   }
 };
+const mainStyle = computed(() => {
+  console.log(window.innerHeight);
+  return {
+    '--panel-max-height': `${window.innerHeight - 80 - 21}px`
+  }
+});
 
 </script>
 
 <template>
-  <div class="main-container">
-    <BoxBar @boxItemClick="boxItemClickHandle"/>
-    <div style="width: auto; height: 100%">
-      <AIPanel v-if="selected === ImageEditorTypes.star"/>
-      <ImagesPanel v-if="selected === ImageEditorTypes.image"/>
-      <TextPanel
-          v-if="selected === ImageEditorTypes.text"
-          :controlEnabled="false"
-          @add-element="handleAddElement"
-          @update-element="handleUpdateElement"
-      />
-      <StickersPanel
-          v-if="selected === ImageEditorTypes.sticker"
-          @add-element="handleAddElement"
-      />
-      <UploadPanel
-          v-if="selected === ImageEditorTypes.upload"
-          @add-element="handleAddElement"
-      />
+  <div
+      class="main-container"
+      :style="mainStyle"
+  >
+    <div class="navbar">
+      <img src="./assets/icons/logo.png" alt="Logo" class="logo">
     </div>
-    <div class="editor-area">
-      <!-- 使用新的 DropZone 元件並監聽 files-dropped 事件 -->
-      <DropZone class="drop-zone-wrapper" @files-dropped="handleFilesDropped">
-        <EditorView
-        ref="editor"
-        @element-selected="handleElementSelected"
-      />
-      <div class="layers">
-        <LayersPanel/>
+
+    <div class="content">
+      <div
+          class="sidebar"
+          :style="{
+            width: selected !== '' ? '420px' : '85px'
+          }"
+      >
+        <BoxBar @boxItemClick="boxItemClickHandle"/>
+        <div class="sidebar-content">
+          <AIPanel v-if="selected === ImageEditorTypes.star"/>
+          <TextPanel
+              v-if="selected === ImageEditorTypes.text"
+              :controlEnabled="false"
+              @add-element="handleAddElement"
+              @update-element="handleUpdateElement"
+          />
+          <StickersPanel
+              v-if="selected === ImageEditorTypes.sticker"
+              @add-element="handleAddElement"
+          />
+          <UploadPanel
+              v-if="selected === ImageEditorTypes.upload"
+              @add-element="handleAddElement"
+          />
+        </div>
       </div>
-    </DropZone>
-    </div>
-    <div class="properties">
-      <TextPanel
-          v-if="selectedElement?.type === ElementTypesEnum.Text"
-          :controlEnabled="true"
-          @add-element="handleAddElement"
-          @update-element="handleUpdateElement"
-      />
-      <ImagePropsPanel v-if="selectedElement?.type === ElementTypesEnum.Image"/>
-<!--      <StagePropsPanel @update-element="handleUpdateElement"/>-->
+      <div class="editor-area">
+        <!-- 使用新的 DropZone 元件並監聽 files-dropped 事件 -->
+        <DropZone class="drop-zone-wrapper" @files-dropped="handleFilesDropped">
+          <EditorView
+              ref="editor"
+              @element-selected="handleElementSelected"
+          />
+          <div class="layers">
+            <LayersPanel/>
+          </div>
+        </DropZone>
+      </div>
+      <div class="panel-properties props-panel" :style="{
+        visibility: selectedElement != null ? 'visible' : 'visible'
+      }">
+        <StagePropsPanel
+            v-if="selectedElement?.type === ElementTypesEnum.Stage"
+            @update-element="handleUpdateElement"
+        />
+        <TextPanel
+            v-if="selectedElement?.type === ElementTypesEnum.Text"
+            :controlEnabled="true"
+            @add-element="handleAddElement"
+            @update-element="handleUpdateElement"
+        />
+        <ImagePropsPanel
+            v-if="selectedElement?.type === ElementTypesEnum.Image"
+        />
+      </div>
     </div>
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
+@use 'styles/theme';
+
 .main-container {
-  display: grid;
-  grid-template-columns: 72px 280px 1fr auto; /* 左側面板 240px，右側佔滿剩餘空間 */
+  display: flex;
+  position: relative;
+  flex-direction: column;
   height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
+}
+.navbar {
+  width: 100%;
+  height: 80px;
+  min-height: 80px;
+  position: relative;
+  display: flex;
+  background-color: white;
+  border-bottom: 1px solid theme.$border-color-base;
+  align-items: center;
+  .logo {
+    width: 150px;
+    object-fit: contain;
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+}
+.sidebar {
+  width: 420px;
+  height: var(--panel-max-height, 100%);
+  position: relative;
+  display: flex;
+  min-width: 85px;
+  overflow: hidden;
+  box-shadow: 0 3px 3px 0 #D9D9D9;
+  background-color: theme.$primary-color;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  .sidebar-content {
+    width: 100%;
+    position: relative;
+    display: flex;
+  }
+}
+.content {
+  display: grid;
+  grid-template-columns: auto 1fr auto; /* 左側面板 240px，右側佔滿剩餘空間 */
+  padding-top: 22px;
+  width: 100%;
+  height: 100%;
+  position: relative;
 }
 
 .editor-area {
@@ -139,17 +212,30 @@ const handleFilesDropped = async (files: FileList) => {
 }
 .layers {
   position: absolute;
-  top: 0;
-  right: 0;
-  width: 80px;
-  height: 100%;
-}
-.properties {
   display: flex;
-  max-width: 280px;
-  min-width: 280px;
-  height: 100%;
-  flex-direction: column;
+  top: 0;
+  right: 14px;
+  width: 112px;
+  min-height: 0;
+  border-radius: 20px;
+  background-color: theme.$panel-background-color;
+  box-shadow: 0 3px 3px 0 theme.$shadow-color;
+  justify-content: center;
+  align-items: center;
   overflow: hidden;
+}
+.panel-properties {
+  position: relative;
+  display: flex;
+  max-width: 330px;
+  min-width: 330px;
+  height: var(--panel-max-height, 100%);
+  flex-direction: column;
+}
+.props-panel {
+  background-color: theme.$primary-color;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  box-shadow: -1px 3px 3px 0 #D9D9D9;
 }
 </style>

@@ -1,0 +1,51 @@
+// This comment is for IDEs like WebStorm to prevent false warnings about unresolved paths.
+// The paths are correct relative to the final CSS output.
+// noinspection CssInvalidUrlReference
+
+// 1. Define a mixin to generate @font-face rules.
+// This improves maintainability and adds modern features like font-display and multiple formats.
+@mixin font-face($name, $file) {
+  @font-face {
+    font-family: '#{$name}';
+    // It's recommended to convert TTF fonts to WOFF2 and WOFF for better web performance.
+    // The browser will pick the first format it supports.
+    src: url('/assets/fonts/#{$file}.woff2') format('woff2'),
+         url('/assets/fonts/#{$file}.woff') format('woff'),
+         url('/assets/fonts/#{$file}.ttf') format('truetype');
+    font-display: swap; // Improves perceived performance by avoiding invisible text.
+  }
+}
+
+// 2. Create a map of your fonts.
+// This makes it much easier to add, remove, or update fonts.
+$fonts: (
+  '字魂扁桃体': 'ZiHunBianTaoTi-2',
+  '锐字潮牌驰光黑-闪-超粗': 'RuiZiChaoPaiChiGuangHei-Shan-ChaoCu',
+  '方正兰亭中粗黑_GBK': 'FZLanTingZhongCuHei_GBK',
+  '锐字锐线怒放黑': 'RuiZiRuiXianNuFangHei',
+  '方正兰亭粗黑_GBK': 'FZLanTingCuHei_GBK',
+  // Note: .ttc files might need special handling or conversion to individual .ttf files first.
+  // For simplicity, this example assumes they are converted to .ttf/.woff2/.woff.
+  '新綜藝體W9-GB': 'XinZongYiTiW9-GB',
+  '方正综艺简体': 'FZZongYiJianTi',
+  '方正正大黑简体': 'FZZhengDaHeiJianTi',
+  '荆南波波黑': 'JingNanBoBoHei',
+  '方正新综艺简体字': 'FZXinZongYiJianTi',
+  '腾祥凌黑简': 'TXLingHeiJian',
+  '腾祥嘉丽超粗圆简': 'TXJiaLiChaoCuYuanJian',
+  '方正汉真广标简体': 'FZHanzhenGuangBiaoJianTi',
+  '微软雅黑Light': 'MicrosoftYaHeiLight',
+  '方正兰亭粗黑简体': 'FZLanTingCuHeiJianTi',
+  '方正正准黑FZZZHUNHJW': 'FZZZhunHeiJW',
+  '汉仪瑞虎宋W': 'HanyiRuiHuSongW',
+  '方正粗活意简体': 'FZCuHuoYiJianTi',
+  '方正兰亭粗黑': 'FZLanTingCuHei',
+  '腾祥细潮黑简': 'TXXiChaoHeiJian',
+  '上首水滴体': 'ShangShouShuiDiTi',
+  '漢儀雅酷黑': 'HanyiYaKuHei'
+);
+
+// 3. Loop through the map to generate the CSS.
+@each $name, $file in $fonts {
+  @include font-face($name, $file);
+}

@@ -11,6 +11,7 @@
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.2",
     "@google/genai": "^1.20.0",
+    "@types/node": "^24.9.2",
     "colorpickers": "^1.0.4",
     "element-plus": "^2.11.3",
     "fabric": "^6.7.1",

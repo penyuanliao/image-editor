@@ -6,12 +6,12 @@ import {ImageEditorTypes} from "../types.ts";
 const selected = ref<number>(0);
 const buttonGroup: { icon: string, text: string }[] = [
   {
-    icon: 'text',
-    text: '文字'
-  },
-  {
     icon: 'sticker',
     text: '素材'
+  },
+  {
+    icon: 'text',
+    text: '文字'
   },
   {
     icon: 'upload',
@@ -34,50 +34,62 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="box-bar-group">
-    <div
-        v-for="(btn, index) in buttonGroup"
-        :key="index"
-        :class="{
+  <div class="box-bar-container">
+    <div class="box-bar-group">
+      <div
+          v-for="(btn, index) in buttonGroup"
+          :key="index"
+          :class="{
           'box-item': true,
           'active': index === selected
         }"
-        @click="handleClick(index)"
-    >
-      <div class="box-item-icon">
-        <Symbols :name="btn.icon" />
-      </div>
-      <div class="box-item-text">
-        <span>{{ btn.text }}</span>
+          @click="handleClick(index)"
+      >
+        <div class="box-item-icon">
+          <Symbols :name="btn.icon" />
+        </div>
+        <div class="box-item-text">
+          <span>{{ btn.text }}</span>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
+@use '../styles/theme';
 
+.box-bar-container {
+  width: 85px;
+  display: flex;
+  justify-content: flex-start;
+  flex-shrink: 0;
+  border-right: 1px solid theme.$border-color-base;
+}
 .box-bar-group {
   display: flex;
   justify-content: flex-start;
   flex-direction: column;
-  background-color: #242424;
+  width: 100%;
+  padding-top: 13px;
+  align-items: center;
 }
 .box-item {
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  width: 72px;
-  height: 72px;
-  background-color: #242424;
+  width: 60px;
+  height: 60px;
   flex-direction: column;
+  color: theme.$text-color;
   &.active {
-    background-color: #303030;
+    color: theme.$text-color-active;
   }
 }
 .box-item-icon {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   display: flex;
   align-items: center;
   justify-content: center;

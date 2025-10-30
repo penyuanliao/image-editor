@@ -5,7 +5,7 @@ import {
     drawText,
 } from './useImageEditor';
 import { ErrorMessage } from "./AlertMessage.ts";
-import {ElementTypesEnum, type ICanvasElement, type IImageConfig, type ISVGConfig, type ITextConfig} from "../types.ts";
+import {ElementTypesEnum, type IImageConfig, type ISVGConfig, type ITextConfig} from "../types.ts";
 
 interface ExportOptions {
     store: ImagesStore;

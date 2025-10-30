@@ -1,0 +1,78 @@
+
+div, span, p, a, h1, h2 {
+  font-family: 'Noto Sans HK', 'Montserrat', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  user-select: none;
+}
+
+$primary-color: white;
+$secondary-color: #F15624;
+$badge-color: red;
+$text-color: black;
+$text-color-active: #F15624;
+$icon-color: white;
+
+$border-color-base: #DFDFDF;
+$panel-background-color: white;
+$shadow-color: #D9D9D9;
+$button-text-color: #F15624;
+$font-family: "Noto Sans HK", sans-serif;
+
+h2 {
+  font-weight: 400;
+  font-style: normal;
+  font-size: 21px;
+  line-height: 100%;
+  user-select: none;
+}
+
+
+.scroll-bar-horizontal {
+  &::-webkit-scrollbar {
+    height: 6px;
+    transition: height 0.2s ease;
+  }
+  &:hover::-webkit-scrollbar {
+    //height: 10px;
+  }
+  &::-webkit-scrollbar-track {
+    background-color: transparent;
+    border-radius: 10px;
+  }
+  &::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    background-color: rgba(30, 31, 34, 0.5);
+  }
+}
+.scroll-bar-hidden {
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+.theme-white {
+  background: white !important;
+  .n-calendar-wrap {
+    background-color: rgba(159, 159, 159, 0.1);
+    border: rgba(159, 159, 159, 0.3) 1px solid;
+  }
+}
+.theme-orange {
+  background: #F15624 !important;
+  .n-calendar-wrap {
+    background-color: rgba(217, 217, 217, 0.1);
+    border: rgba(255, 255, 255, 0.3) 1px solid;
+  }
+}
+
+.text-500 {
+  font-weight: 500;
+  font-size: 19px;
+}
+
+.el-input {
+  :deep(.el-input-number .el-input__wrapper) {
+    border-radius: 5px;
+  }
+  :deep(.el-input .el-input__wrapper) {
+    border-radius: 5px;
+  }
+}

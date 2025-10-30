@@ -38,6 +38,8 @@ export interface StageConfig extends AbsoluteConfig {
 export interface IImageConfig extends AbsoluteConfig {
     img?: HTMLImageElement;
     url?: string;
+    width: number;
+    height: number;
 }
 
 export interface ITextConfig extends AbsoluteConfig {
@@ -78,6 +80,8 @@ export interface ITextConfig extends AbsoluteConfig {
 export interface ISVGConfig extends AbsoluteConfig {
     content: string;
     color: string;
+    width: number;
+    height: number;
 }
 
 

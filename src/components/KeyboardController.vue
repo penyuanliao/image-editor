@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted } from 'vue';
 
-const emit = defineEmits(['delete-selected', 'move-selected']);
+const emit = defineEmits(['delete-selected', 'move-selected', 'text-editing']);
 
 const handleKeyDown = (event: KeyboardEvent) => {
   const target = event.target as HTMLElement;
@@ -11,6 +11,13 @@ const handleKeyDown = (event: KeyboardEvent) => {
     return;
   }
 
+  // 處理組合鍵 (如 Ctrl+B)
+  if (event.ctrlKey || event.metaKey) { // metaKey 對應 Mac 的 Command 鍵
+    if (event.key.toLowerCase() === 'b') {
+      event.preventDefault(); // 防止瀏覽器預設的粗體行為
+      emit('text-editing', 'text', 'bold');
+    }
+  }
   // 根據按下的按鍵執行不同操作
   switch (event.key) {
     case 'Delete':
