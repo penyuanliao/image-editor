@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { useImagesStore } from "../../store/images.ts";
+import { useImagesStore } from "@/store/images.ts";
 import draggable from 'vuedraggable';
-import {ElementTypesEnum, type ICanvasElement} from "../../types.ts";
+import {ElementTypesEnum, type ICanvasElement, type ITextConfig} from "@/types.ts";
+import {Lock} from "@element-plus/icons-vue";
 
 const imagesStore = useImagesStore();
 
@@ -39,6 +40,15 @@ const onClickBGHandle = () => {
   imagesStore.setSelectedOnce(el);
 };
 
+const textElementStyle = (element: ICanvasElement) => {
+  const config = element.config as ITextConfig;
+  console.log(config.content);
+  return {
+    color: config.color,
+    'text-align': config.textAlign,
+  }
+}
+
 </script>
 
 <template>
@@ -59,7 +69,12 @@ const onClickBGHandle = () => {
       <template #item="{ element }">
         <div class="layer" @click="onClickLayerHandle(element)">
           <img v-if="element.type === ElementTypesEnum.Image" :src="element.config.url" alt=""/>
-          <span v-else>{{ element.config.content }}</span>
+          <div class="text-editor-input" v-else :style="textElementStyle(element)">
+            {{ element.config.content }}
+          </div>
+          <div v-if="!element.config.draggable" class="state">
+            <el-icon size="16" class="icon"><Lock/></el-icon>
+          </div>
         </div>
       </template>
     </draggable>
@@ -87,7 +102,7 @@ const onClickBGHandle = () => {
   span {
     font-size: 18px;
     font-weight: 400;
-    color: theme.$primary-color;
+    color: white;
     font-family: theme.$font-family;
   }
 }
@@ -121,6 +136,7 @@ const onClickBGHandle = () => {
     overflow: hidden;
     text-overflow: ellipsis;
   }
+  border: 2px solid transparent; /* Add a transparent border by default */
   img {
     position: relative;
     width: 72px;
@@ -129,7 +145,7 @@ const onClickBGHandle = () => {
   }
 }
 .layer:hover {
-  border: 2px solid #78EFB2;
+  border-color: #78EFB2; /* Only change the color on hover */
 }
 .mask {
   position: absolute;
@@ -145,6 +161,25 @@ const onClickBGHandle = () => {
   justify-content: center;
 }
 
+.text-editor-input {
+  white-space: pre;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+}
+.state {
+  position: absolute;
+  display: flex;
+  left: 5px;
+  bottom: 5px;
+  justify-content: center;
+  align-items: center;
+  .icon {
+    background-color: rgba(0, 0, 0, 1);
+    padding: 4px 4px;
+    border-radius: 4px;
+  }
+}
 
 .ghost {
   opacity: 0.5;

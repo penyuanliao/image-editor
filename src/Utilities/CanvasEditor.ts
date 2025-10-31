@@ -107,7 +107,8 @@ export class CanvasEditor {
         fontSize: '32px',
         fontFamily: 'Arial',
         letterSpacing: '0px',
-        lineHeight: 1.2
+        lineHeight: 1.2,
+        textAlign: 'center'
     };
 
     // 拖曳裁切框相關的狀態
@@ -794,7 +795,7 @@ export class CanvasEditor {
         this.textInputStyle.letterSpacing = `${config.letterSpacing}px`;
         this.textInputStyle.lineHeight = config.lineHeight || 1.2;
         this.textInputStyle.color = config.color || 'black';
-        // this.textInputStyle.textAlign = config.textAlign || 'left';
+        this.textInputStyle.textAlign = config.textAlign || 'left';
         if (config.rotation) {
             this.textInputStyle.transform = `rotate(${Math.round((config.rotation * 180) / Math.PI)}deg)`;
         } else {
@@ -829,7 +830,7 @@ export class CanvasEditor {
                 }
 
                 for (const str of texts) {
-                    const jsonString:RegExpMatchArray | null = str.toString().match(/(\{.+?\})(?={|$)/g);
+                    const jsonString:RegExpMatchArray | null = str.toString().match(/({.+?})(?={|$)/g);
                     if (!jsonString) continue;
                     const jsonData = JSON.parse(jsonString[0]);
                     console.log('Clipboard JSON:', jsonData.value, Array.isArray(jsonData.value));
@@ -838,7 +839,9 @@ export class CanvasEditor {
                         for (let i = 0; i < jsonData.value.length; i++) {
                             const el: any = jsonData.value[i];
                             el.id = Date.now();
-                            el.config.img = await processUrl(el.config.url);
+                            if (el.type === ElementTypesEnum.Image) {
+                                el.config.img = await processUrl(el.config.url);
+                            }
                             el.config.x += 10;
                             el.config.y += 10;
                             elements.push(el);
@@ -853,13 +856,16 @@ export class CanvasEditor {
         }
         document.addEventListener('paste', this.handlePaste);
         document.addEventListener('copy', async (event: ClipboardEvent) => {
-            const data: string = JSON.stringify({
-                key: 'canvaElements',
-                value: this.store.selectedElements
-            });
-            event.clipboardData?.setData('text/plain', data);
-            console.log('copy', );
-            event.preventDefault();
+            // 在文字編輯模式不copy
+            if (!this.editingElement) {
+                const data: string = JSON.stringify({
+                    key: 'canvaElements',
+                    value: this.store.selectedElements
+                });
+                event.clipboardData?.setData('text/plain', data);
+                console.log('copy', data, this.editingElement);
+                event.preventDefault();
+            }
         });
     }
     public disablePasteSupport() {

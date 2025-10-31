@@ -76,7 +76,7 @@ export const drawText = (ctx: CanvasRenderingContext2D, element: ICanvasElement)
     // Common text styles
     ctx.font = `${config.fontWeight || 'normal'} ${config.fontItalic ? 'italic' : ''} ${config.fontSize || 32}px ${config.fontFamily || 'Arial'}`;
     ctx.letterSpacing = `${config.letterSpacing || 0}px`;
-    ctx.textAlign = 'center';
+    ctx.textAlign = config.textAlign || 'center';
     ctx.textBaseline = 'middle';
 
     // Apply shadow if properties exist
@@ -131,19 +131,29 @@ export const drawText = (ctx: CanvasRenderingContext2D, element: ICanvasElement)
         ctx.fillStyle = config.color;
     }
 
+    // 根據 textAlign 計算繪製的起始 x 座標
+    let drawX = 0;
+    const textAlign = config.textAlign || 'center';
+    if (textAlign === 'left') {
+        drawX = -textWidth / 2;
+    } else if (textAlign === 'right') {
+        drawX = textWidth / 2;
+    }
+
     // Draw relative to the new (0,0) origin
     let currentLineY = -totalTextHeight / 2 + (fontSize * lineHeight) / 2;
 
     lines.forEach((line) => {
         // Apply stroke if properties exist
         if (config.strokeColor && config.strokeWidth) {
+            // 注意：strokeText 也需要使用計算好的 x 座標
             ctx.strokeStyle = config.strokeColor;
             ctx.lineWidth = config.strokeWidth;
-            ctx.strokeText(line, 0, currentLineY);
+            ctx.strokeText(line, drawX, currentLineY);
         }
 
         // Apply fill (already set to gradient or solid color)
-        ctx.fillText(line, 0, currentLineY);
+        ctx.fillText(line, drawX, currentLineY);
 
         currentLineY += fontSize * lineHeight;
     });
@@ -237,7 +247,7 @@ export const getTransformHandles = (ctx: CanvasRenderingContext2D, element: ICan
     let { width: w, height: h } = box;
     // 為了 textAlign 控制項，將文字元素的邊框寬度增加
     if (element.type === ElementTypesEnum.Text) {
-        w *= 2;
+        // w *= 2;
     }
     const cx = config.x;
     const cy = config.y;

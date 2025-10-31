@@ -52,7 +52,8 @@ export interface ITextConfig extends AbsoluteConfig {
     fontItalic?: boolean;
     lineHeight?: number;
     // 文字對齊屬性
-    textAlign?: CanvasTextAlign;
+    textAlign?: 'left' | 'center' | 'right';
+    textBaseline?: 'top' | 'middle' | 'bottom';
 
     // 陰影屬性
     shadowColor?: string;

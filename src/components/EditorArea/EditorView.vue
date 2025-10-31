@@ -178,8 +178,7 @@ const updateTextareaSize = () => {
   const scrollWidth = textarea.scrollWidth;
   const w = Math.max(scrollWidth, minWidth.value);
   textarea.style.height = `${scrollHeight}px`;
-  textarea.style.width = `${w * 2}px`;
-  textarea.style.transform = `translateX(${w/2 * -1}px)`;
+  textarea.style.width = `${w}px`;
 };
 
 // --- 文字編輯方法 ---
