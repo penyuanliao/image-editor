@@ -57,6 +57,7 @@ interface IContextMenuEvent {
 // 這個類別將取代大部分 useImageEditor.ts 和 ImageUploader.vue 中的邏輯
 export class CanvasEditor {
     private handlePaste:((event: ClipboardEvent) => Promise<void>) | null = null;
+    private handleCopy:((event: ClipboardEvent) => Promise<void>) | null = null;
     protected divContainer?: HTMLDivElement | null = null;
     protected canvas?: HTMLCanvasElement;
     protected ctx?: CanvasRenderingContext2D;
@@ -733,7 +734,7 @@ export class CanvasEditor {
     }
     private handleMouseLeave(_: MouseEvent) {
         this.clear();
-        this.showPopOverMenu(false);
+        // this.showPopOverMenu(false);
     }
     private clear() {
         this.isDraggingCropBox = false;
@@ -854,8 +855,7 @@ export class CanvasEditor {
             }
 
         }
-        document.addEventListener('paste', this.handlePaste);
-        document.addEventListener('copy', async (event: ClipboardEvent) => {
+        this.handleCopy = async (event: ClipboardEvent) => {
             // 在文字編輯模式不copy
             if (!this.editingElement) {
                 const data: string = JSON.stringify({
@@ -866,11 +866,115 @@ export class CanvasEditor {
                 console.log('copy', data, this.editingElement);
                 event.preventDefault();
             }
-        });
+        };
+        document.addEventListener('paste', this.handlePaste);
+        document.addEventListener('copy', this.handleCopy);
     }
-    public disablePasteSupport() {
-        if (!this.handlePaste) return;
-        document.removeEventListener('paste', this.handlePaste);
+    public disableCopyAndPasteSupport() {
+        if (this.handlePaste)
+            document.removeEventListener('paste', this.handlePaste);
+        if (this.handleCopy)
+            document.removeEventListener('copy', this.handleCopy);
+    }
+
+    //對齊物件
+    public align(horizontally: 'left' | 'center' | 'right' | null, vertically: 'top' | 'middle' | 'bottom' | null) {
+        const selectedElements = this.store.selectedElements;
+        if (selectedElements.length < 2 || !this.ctx) {
+            return; // Alignment requires at least two elements
+        }
+
+        // 1. Find the bounding box of the entire selection
+        let selectionMinX = Infinity;
+        let selectionMaxX = -Infinity;
+        let selectionMinY = Infinity;
+        let selectionMaxY = -Infinity;
+
+        selectedElements.forEach(element => {
+            const box = getElementBoundingBox(this.ctx!, element);
+            if (box) {
+                selectionMinX = Math.min(selectionMinX, box.x);
+                selectionMaxX = Math.max(selectionMaxX, box.x + box.width);
+                selectionMinY = Math.min(selectionMinY, box.y);
+                selectionMaxY = Math.max(selectionMaxY, box.y + box.height);
+            }
+        });
+
+        // 2. Calculate target alignment positions
+        const alignCenterTargetX = selectionMinX + (selectionMaxX - selectionMinX) / 2;
+        const alignMiddleTargetY = selectionMinY + (selectionMaxY - selectionMinY) / 2;
+
+        // 3. Apply alignment to each element
+        selectedElements.forEach(element => {
+            const box = getElementBoundingBox(this.ctx!, element);
+            if (!box) return;
+
+            // Horizontal alignment
+            if (horizontally) {
+                if (horizontally === 'left') {
+                    element.config.x = selectionMinX + box.width / 2;
+                } else if (horizontally === 'center') {
+                    element.config.x = alignCenterTargetX;
+                } else if (horizontally === 'right') {
+                    element.config.x = selectionMaxX - box.width / 2;
+                }
+            }
+
+            // Vertical alignment
+            if (vertically) {
+                if (vertically === 'top') {
+                    element.config.y = selectionMinY + box.height / 2;
+                } else if (vertically === 'middle') {
+                    element.config.y = alignMiddleTargetY;
+                } else if (vertically === 'bottom') {
+                    element.config.y = selectionMaxY - box.height / 2;
+                }
+            }
+        });
+
+        // 4. Re-render the canvas to show changes
+        this.render();
+    }
+    
+    public stageAlign(horizontally: 'left' | 'center' | 'right' | null, vertically: 'top' | 'middle' | 'bottom' | null) {
+        const selectedElements = this.store.selectedElements;
+        if (selectedElements.length < 1 || !this.ctx || !this.canvas) {
+            return; // Requires at least one element and a canvas context
+        }
+
+        const stageWidth = this.canvas.width;
+        const stageHeight = this.canvas.height;
+
+        // Apply alignment to each selected element relative to the stage
+        selectedElements.forEach(element => {
+            const box = getElementBoundingBox(this.ctx!, element);
+            if (!box) return;
+
+            // Horizontal alignment relative to the stage
+            if (horizontally) {
+                if (horizontally === 'left') {
+                    element.config.x = box.width / 2;
+                } else if (horizontally === 'center') {
+                    element.config.x = stageWidth / 2;
+                } else if (horizontally === 'right') {
+                    element.config.x = stageWidth - box.width / 2;
+                }
+            }
+
+            // Vertical alignment relative to the stage
+            if (vertically) {
+                if (vertically === 'top') {
+                    element.config.y = box.height / 2;
+                } else if (vertically === 'middle') {
+                    element.config.y = stageHeight / 2;
+                } else if (vertically === 'bottom') {
+                    element.config.y = stageHeight - box.height / 2;
+                }
+            }
+        });
+
+        // Re-render the canvas to show changes
+        this.render();
     }
 
     // 銷毀時要移除監聽器
@@ -883,7 +987,7 @@ export class CanvasEditor {
         this.canvas?.removeEventListener('mouseleave', this.handleMouseLeave.bind(this));
         this.canvas?.removeEventListener('contextmenu', this.handleContextMenu.bind(this));
         this.canvas?.removeEventListener('wheel', this.handleWheel.bind(this));
-        this.disablePasteSupport();
+        this.disableCopyAndPasteSupport();
         this.canvas = undefined;
         this.ctx = undefined;
     }

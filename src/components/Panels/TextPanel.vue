@@ -31,6 +31,7 @@ const getDefaultTextProps = () => ({
   fontFamily: 'Arial',
   lineHeight: 1.2,
   rotation: 0,
+  opacity: 1,
   letterSpacing: 0,
   textAlign: 'center',
   x: 0,
@@ -87,6 +88,7 @@ const updatePanelFromElement = (element: ICanvasElement | null) => {
     textProps.fontFamily = config.fontFamily || 'Arial';
     textProps.lineHeight = config.lineHeight || 1.2;
     textProps.rotation = config.rotation || 0;
+    textProps.opacity = config.opacity || 1;
     textProps.letterSpacing = config.letterSpacing || 0;
     textProps.x = config.x || 0;
     textProps.y = config.y || 0;
@@ -243,6 +245,14 @@ const rotationInDegrees = computed({
     }
   },
 });
+const opacityInPercentage = computed({
+  get() {
+    return Math.round(textProps.opacity * 100);
+  },
+  set(percentage: number) {
+    textProps.opacity = percentage / 100;
+  }
+});
 
 const handleRemoveTextElement = () => {
   imagesStore.removeElements([imagesStore.selectedElements[0]!.id]);
@@ -364,6 +374,17 @@ onMounted(() => {
         <span>Y：</span>
         <el-input-number class="el-input" v-model="textProps.y" :controls="false" style="width: 100%" />
       </div>
+      <div class="ctrl slider-with-input">
+        <el-slider
+            v-model="opacityInPercentage"
+            :show-input-controls="false"
+            style="width: 100%"
+            show-input
+            size="small"
+            :format-tooltip="(value: number) => value + '%'"
+            :format-value-text="(value: number) => value + '%'"
+        />
+      </div>
       <div class="ctrl">
         <span>顏色：</span>
         <!--        <el-color-picker v-model="textProps.color" :disabled="gradient.enabled" />-->
@@ -479,7 +500,7 @@ onMounted(() => {
 @use "@/styles/theme";
 .categories {
   padding-top: 10px;
-  width: 260px;
+  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -491,7 +512,7 @@ onMounted(() => {
   .ctrl {
     display: flex;
     align-items: center;
-    width: 260px;
+    min-width: 0;
   }
   .ctrl textarea {
     position: relative;

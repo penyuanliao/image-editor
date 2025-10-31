@@ -76,3 +76,11 @@ h2 {
     border-radius: 5px;
   }
 }
+.slider-with-input {
+  :deep(.el-slider__input) {
+    width: 50%; // 在這裡調整您想要的寬度
+  }
+  :deep(.el-input-number) {
+    width: 60px;
+  }
+}

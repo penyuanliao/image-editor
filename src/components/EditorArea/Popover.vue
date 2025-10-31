@@ -19,17 +19,17 @@ const handleOnClick = (value: string) => {
 <template>
   <div class="popover">
     <div class="button-group">
-      <div @click="handleOnClick('left')">
+      <div @click="handleOnClick('stage-left')">
         <span class="icon">
           <Symbols name="align-left"/>
         </span>
       </div>
-      <div @click="handleOnClick('center')">
+      <div @click="handleOnClick('stage-center')">
         <span class="icon">
           <Symbols name="align-center"/>
         </span>
       </div>
-      <div @click="handleOnClick('right')">
+      <div @click="handleOnClick('stage-right')">
         <span class="icon">
           <Symbols name="align-right"/>
         </span>

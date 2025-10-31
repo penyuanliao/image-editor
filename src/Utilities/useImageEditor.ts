@@ -141,8 +141,10 @@ export const drawText = (ctx: CanvasRenderingContext2D, element: ICanvasElement)
     }
 
     // Draw relative to the new (0,0) origin
+    // To vertically center the entire text block, the center of the first line should be
+    // at a position of (-totalBlockHeight / 2) + (singleLineHeight / 2).
+    // This formula correctly positions the text block for both single and multiple lines.
     let currentLineY = -totalTextHeight / 2 + (fontSize * lineHeight) / 2;
-
     lines.forEach((line) => {
         // Apply stroke if properties exist
         if (config.strokeColor && config.strokeWidth) {

@@ -4,7 +4,7 @@ import {useImage} from "vue-konva";
 import {ref, reactive, onMounted, computed, watch} from "vue";
 import { useKImgEditorStore } from "./store/kImgEditorStore.ts";
 import FileInputComponent from "./components/konva/FileInputComponent.vue";
-import Popover from "./components/konva/Popover.vue";
+import Popover from "./components/EditorArea/Popover.vue";
 
 const store = useKImgEditorStore();
 

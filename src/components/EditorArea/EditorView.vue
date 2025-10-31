@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import {computed, nextTick, onMounted, reactive, ref, watch} from "vue";
+import {computed, nextTick, onMounted, onUnmounted, reactive, ref, watch} from "vue";
 import {useImagesStore} from "@/store/images.ts";
 import {processFile} from "@/Utilities/FileProcessor.ts";
 import {CanvasEditor} from "@/Utilities/CanvasEditor.ts";
 import {type CroppedExportOptions, exportCroppedArea} from "@/Utilities/useCanvasExporter.ts";
 import {ElementTypesEnum, type ICanvasElement, type ITextConfig} from "@/types.ts";
-import Popover from "../konva/Popover.vue";
+import Popover from "./Popover.vue";
 import KeyboardController from "../KeyboardController.vue";
 
 const imagesStore = useImagesStore();
@@ -124,6 +124,9 @@ onMounted(() => {
     };
     window.addEventListener('click', closeContextMenu);
   }
+});
+onUnmounted(() => {
+  editor.value.destroy();
 })
 
 // --- Event Emitters and Watchers ---
@@ -245,8 +248,19 @@ const deleteSelectedElement = () => {
   }
   closeContextMenu();
 };
-const onContainerClick = () => {
-  fileInput.value?.click();
+const handlePopOverMenuChange = (state: string) => {
+  console.log('handlePopOverMenuChange', state);
+  switch (state) {
+    case "stage-left":
+      editor.value.stageAlign("left", null);
+      break;
+    case "stage-center":
+      editor.value.stageAlign("center", null);
+      break;
+    case "stage-right":
+      editor.value.stageAlign("right", null);
+      break;
+  }
 };
 
 const onFileChange = async (event: Event) => {
@@ -361,10 +375,10 @@ defineExpose({ addElement, updateSelectedElement });
       />
       <Popover
           ref="popOverRef"
-          v-show="popOverMenu.visible && selectedElement?.type === ElementTypesEnum.Stage "
-               :style="{
-                  transform: `translate(${popOverMenu.x}px, ${popOverMenu.y}px)`
-               }"/>
+          v-show="popOverMenu.visible && selectedElement?.type === ElementTypesEnum.Image"
+          :style="{ transform: `translate(${popOverMenu.x}px, ${popOverMenu.y}px)`}"
+          @change="handlePopOverMenuChange"
+      />
       <!-- 自訂右鍵選單 -->
       <div
           v-if="contextMenu.visible && contextMenu.element"
@@ -529,6 +543,7 @@ defineExpose({ addElement, updateSelectedElement });
   z-index: 10;
   overflow: hidden;
   resize: none;
+
 }
 
 .crop-controls {
