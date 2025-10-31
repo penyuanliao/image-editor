@@ -32,6 +32,9 @@ const getDefaultTextProps = () => ({
   lineHeight: 1.2,
   rotation: 0,
   letterSpacing: 0,
+  textAlign: 'center',
+  x: 0,
+  y: 0
 });
 
 const getDefaultShadow = () => ({
@@ -85,6 +88,9 @@ const updatePanelFromElement = (element: ICanvasElement | null) => {
     textProps.lineHeight = config.lineHeight || 1.2;
     textProps.rotation = config.rotation || 0;
     textProps.letterSpacing = config.letterSpacing || 0;
+    textProps.x = config.x || 0;
+    textProps.y = config.y || 0;
+    textProps.textAlign = config.textAlign || 'center';
 
     // Update shadow properties
     shadow.enabled = !!config.shadowColor;
@@ -351,11 +357,27 @@ onMounted(() => {
           />
         </el-select>
       </div>
-
+      <div class="ctrl">
+        <span>X：</span>
+        <el-input-number class="el-input" v-model="textProps.x" :controls="false" style="width: 100%" />
+      </div>
+      <div class="ctrl">
+        <span>Y：</span>
+        <el-input-number class="el-input" v-model="textProps.y" :controls="false" style="width: 100%" />
+      </div>
       <div class="ctrl">
         <span>顏色：</span>
         <!--        <el-color-picker v-model="textProps.color" :disabled="gradient.enabled" />-->
         <ColorPicker use-type="pure" format="hex" v-model:pureColor="textProps.color"/>
+      </div>
+
+      <div class="ctrl">
+        <span>對齊：</span>
+        <el-select v-model="textProps.textAlign" placeholder="Select" style="width: 100%">
+          <el-option key="left" value="left"/>
+          <el-option key="center" value="center"/>
+          <el-option key="right" value="right"/>
+        </el-select>
       </div>
 
       <div class="ctrl">
