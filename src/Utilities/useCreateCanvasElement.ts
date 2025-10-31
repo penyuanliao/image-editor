@@ -35,7 +35,7 @@ export const createCanvasElement = (element: ICanvasElement, canvas: { width: nu
             });
         }
         else if (element.type === ElementTypesEnum.Image) {
-            const config: IImageConfig = element.config;
+            const config: IImageConfig = element.config as IImageConfig;
             let img: HTMLImageElement;
             if (config.img) {
                 img = config.img;

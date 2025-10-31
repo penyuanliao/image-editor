@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import {computed, nextTick, onMounted, reactive, ref, watch} from "vue";
-import {useImagesStore} from "../../store/images.ts";
-import {processFile} from "../../Utilities/FileProcessor.ts";
-import {CanvasEditor} from "../../Utilities/CanvasEditor.ts";
-import {type CroppedExportOptions, exportCroppedArea} from "../../Utilities/useCanvasExporter.ts";
-import {ElementTypesEnum, type ICanvasElement, type ITextConfig} from "../../types.ts";
+import {useImagesStore} from "@/store/images.ts";
+import {processFile} from "@/Utilities/FileProcessor.ts";
+import {CanvasEditor} from "@/Utilities/CanvasEditor.ts";
+import {type CroppedExportOptions, exportCroppedArea} from "@/Utilities/useCanvasExporter.ts";
+import {ElementTypesEnum, type ICanvasElement, type ITextConfig} from "@/types.ts";
 import Popover from "../konva/Popover.vue";
 import KeyboardController from "../KeyboardController.vue";
 
@@ -387,9 +387,6 @@ defineExpose({ addElement, updateSelectedElement });
       </div>
     </div>
     <div class="actions-bar">
-      <button class="upload-button" hidden="hidden" @click="onContainerClick">
-        上傳圖片
-      </button>
       <el-button v-if="imagesStore.imageUrl" class="save-button" @click="saveImage">
         <div style="margin-right: 10px;">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -415,8 +412,10 @@ defineExpose({ addElement, updateSelectedElement });
           <label for="crop-height">高:</label>
           <input id="crop-height" type="number" v-model.number="displayCropBox.height" @change="(e: Event) => handleChange('height', parseInt((e.target as HTMLInputElement)?.value) || 0)" />
         </div>
-        <div style="color:#808080;">{{ `${editor.viewport.originalWidth}px x ${editor.viewport.originalHeight}px` }}</div>
-        <div style="color:#808080;">{{ `${Math.floor(editor.viewport.scale * 100)}%` }}</div>
+        <div class="input-group">
+          <span>{{ `${editor.viewport.originalWidth} x ${editor.viewport.originalHeight}` }}</span>
+          <span>{{ `${Math.floor(editor.viewport.scale * 100)}%` }}</span>
+        </div>
       </div>
     </div>
   </div>
@@ -533,15 +532,15 @@ defineExpose({ addElement, updateSelectedElement });
   resize: none;
 }
 
-.crop-controls,
-.text-controls {
+.crop-controls {
   display: flex;
+  position: relative;
   gap: 1rem;
   align-items: center;
   background-color: #fff;
-  padding: 0.5rem 1rem;
+  padding: 15px 30px;
   border-radius: 15px;
-  border: 1px solid #e0e0e0;
+  height: 30px;
 }
 
 .input-group {
@@ -551,23 +550,24 @@ defineExpose({ addElement, updateSelectedElement });
 }
 
 .input-group label {
-  font-size: 14px;
+  font-size: 15px;
   color: #555;
+  font-weight: 700;
 }
 
 .input-group input {
-  width: 60px;
+  width: 40px;
+  max-width: 60px;
   padding: 4px 8px;
-  border: 1px solid #ccc;
+  border: 1px solid theme.$border-color-base;
   border-radius: 4px;
   text-align: right;
 }
 
-.input-group select {
-  min-width: 120px;
-  padding: 4px 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+.input-group span {
+  font-size: 15px;
+  color: theme.$text-color;
+  font-weight: 700;
 }
 
 .input-group input::-webkit-outer-spin-button,

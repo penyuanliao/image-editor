@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { Opportunity } from "@element-plus/icons-vue";
 import Symbols from "../Symbols.vue";
 const styles = ref([
   { name: '自订', key: 'custom', url: './assets/themes/img_custom.png' },
@@ -52,7 +51,7 @@ const selectStyle = (styleKey: string) => {
         </div>
       </div>
     </div>
-    <el-button class="submit-btn" type="primary">
+    <el-button class="submit-btn">
       <template #default>
         <span>生成</span>
       </template>
@@ -110,6 +109,7 @@ const selectStyle = (styleKey: string) => {
   position: relative;
   display: flex;
   flex-direction: column;
+  padding-bottom: 16px;
 
   .category-group {
     display: flex;
@@ -176,6 +176,11 @@ const selectStyle = (styleKey: string) => {
   background-color: theme.$button-text-color;
   border-radius: 30px;
   border-color: theme.$button-text-color;
+  &:hover {
+    background-color: theme.$primary-color;
+    border-color: theme.$button-text-color;
+    color: theme.$button-text-color;
+  }
 }
 
 </style>

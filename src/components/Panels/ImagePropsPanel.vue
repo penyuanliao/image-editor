@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { useImagesStore } from '../../store/images.ts';
+import { useImagesStore } from '@/store/images.ts';
 import AIPanel from "./AIPanel.vue";
-import {ElementTypesEnum, type ICanvasElement, type IImageConfig} from "../../types.ts";
+import {ElementTypesEnum, type ICanvasElement, type IImageConfig} from "@/types.ts";
 import {Delete, Lock, Unlock} from "@element-plus/icons-vue";
 import NPanel from "@/components/Basic/NPanel.vue";
 
@@ -74,41 +74,41 @@ const handleLockAndUnlock = () => {
       v-if="selectedSticker"
       :searchEnabled="false">
     <div class="properties">
-      <div class="view">
+      <div class="view once-line">
         <img :src="(selectedElement?.config as IImageConfig)?.url" alt="">
       </div>
-      <div class="panel-title">圖片屬性</div>
       <div class="ctrl">
         <span>X：</span>
-        <el-input-number v-model="selectedSticker.config.x" :controls="false" style="width: 100%" />
+        <el-input-number class="el-input" v-model="selectedSticker.config.x" :controls="false" style="width: 100%" />
       </div>
       <div class="ctrl">
         <span>Y：</span>
-        <el-input-number v-model="selectedSticker.config.y" :controls="false" style="width: 100%" />
+        <el-input-number class="el-input" v-model="selectedSticker.config.y" :controls="false" style="width: 100%" />
       </div>
       <div class="ctrl">
         <span>寬：</span>
-        <el-input-number v-model="selectedSticker.config.width" :controls="false" style="width: 100%" />
+        <el-input-number class="el-input" v-model="selectedSticker.config.width" :controls="false" style="width: 100%" />
       </div>
       <div class="ctrl">
         <span>高：</span>
-        <el-input-number v-model="selectedSticker.config.height" :controls="false" style="width: 100%" />
+        <el-input-number class="el-input" v-model="selectedSticker.config.height" :controls="false" style="width: 100%" />
       </div>
-      <div class="ctrl">
+      <div class="ctrl once-line">
         <span>旋轉角度：</span>
-        <el-input-number v-model="rotationInDegrees" :controls="false" style="width: 100%" />
+        <el-input-number v-model="rotationInDegrees" :controls="true" style="width: 100%" />
       </div>
-      <div class="prop-item center">
+      <div class="prop-item center once-line">
         <el-button @click="handleHorizontalFlip">水平鏡射</el-button>
         <el-button @click="handleVerticalFlip">垂直鏡射</el-button>
       </div>
-      <div class="prop-item center">
+      <div class="prop-item center once-line">
         <el-button :icon="selectedSticker.config.draggable ? Unlock : Lock" circle @click="handleLockAndUnlock"/>
         <el-tooltip content="刪除" placement="top" effect="light">
           <el-button type="danger" :icon="Delete" circle />
         </el-tooltip>
       </div>
     </div>
+    <el-divider border-style="solid"/>
     <div class="additional">
       <AIPanel/>
     </div>
@@ -116,21 +116,28 @@ const handleLockAndUnlock = () => {
 </template>
 
 <style scoped lang="scss">
-.additional,
+@use "@/styles/theme";
+.additional {
+  position: relative;
+  display: flex;
+  width: 100%;
+  gap: 10px;
+}
 .properties {
   position: relative;
+  display: grid;
   width: 100%;
-  display: flex;
-  flex-direction: column;
+  grid-template-columns: repeat(2, 1fr);
   gap: 10px;
   span {
     flex-shrink: 0;
-    width: 80px;
+    font-size: 15px;
+    width: 30%;
   }
   .ctrl {
     display: flex;
     align-items: center;
-    width: 260px;
+    width: 100%;
   }
   .view {
     width: 100%;
@@ -140,6 +147,9 @@ const handleLockAndUnlock = () => {
       height: 100%;
       object-fit: contain;
       }
+  }
+  .once-line {
+    grid-column-end: span 2;
   }
 }
 

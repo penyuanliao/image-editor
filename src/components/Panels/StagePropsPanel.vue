@@ -26,7 +26,7 @@ const applyStageHandle = () => {
         <span>高：</span>
         <el-input-number class="el-input" v-model="(store.stage.config as StageConfig).height" :controls="false" style="width: 100%" />
       </div>
-      <div class="ctrl once">
+      <div class="ctrl once-line">
         <span>背景顏色：</span>
         <div class="color-picker">
           <ColorPicker use-type="pure" format="hex" v-model:pureColor="(store.stage.config as StageConfig).color"/>
@@ -34,7 +34,7 @@ const applyStageHandle = () => {
       </div>
     </div>
     <div class="additional">
-      <NPanelButton text="设定背景" @pointerup="applyStageHandle"/>
+      <NPanelButton @pointerup="applyStageHandle">设定背景</NPanelButton>
     </div>
   </div>
 </template>
@@ -92,7 +92,7 @@ const applyStageHandle = () => {
     justify-content: center;
     align-items: center;
   }
-  .once {
+  .once-line {
     grid-column-start: 1;
     grid-column-end: 3;
   }

@@ -4,6 +4,7 @@ import { UploadFilled } from "@element-plus/icons-vue";
 import { useImagesStore } from "../../store/images.ts";
 import {CreateImageElement} from "../../Utilities/useCreateCanvasElement.ts";
 import NPanel from "../Basic/NPanel.vue";
+import NPanelButton from "@/components/Basic/NPanelButton.vue";
 
 const emit = defineEmits<{ (e: 'add-element', action: any): void }>();
 
@@ -43,10 +44,10 @@ const triggerFileInput = () => {
 
 <template>
   <NPanel :searchEnabled="false" title="上传">
-    <el-button @click="triggerFileInput" type="primary" class="upload-button">
-      <el-icon class="el-icon--left"><UploadFilled /></el-icon>
-      上傳圖片
-    </el-button>
+    <NPanelButton @pointerup="triggerFileInput">
+      <template #default>上傳圖片</template>
+      <template #icon><UploadFilled /></template>
+    </NPanelButton>
     <input
         type="file"
         ref="fileInput"
@@ -70,11 +71,6 @@ const triggerFileInput = () => {
 </template>
 
 <style scoped lang="scss">
-.upload-button {
-  width: 100%;
-  height: 40px;
-  font-size: medium;
-}
 .categories {
   width: 100%;
   display: flex;

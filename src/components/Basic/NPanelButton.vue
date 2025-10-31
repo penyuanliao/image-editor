@@ -1,37 +1,40 @@
 <script setup lang="ts">
-
-const { text } = defineProps(['text']);
+const { loading } = defineProps(['loading']);
 
 </script>
 
 <template>
-  <div class="apply-btn">
-    <slot></slot>
-    <span>{{ text || '设定' }}</span>
-  </div>
+  <el-button class="submit-btn"
+             :loading="loading"
+  >
+    <template v-if="$slots.default" #default>
+      <span><slot/></span>
+    </template>
+    <template v-if="$slots.loading" #loading>
+      <slot name="loading"/>
+    </template>
+    <template v-if="$slots.icon" #icon>
+      <slot name="icon"/>
+    </template>
+  </el-button>
+
 </template>
 
 <style scoped lang="scss">
 @use "@/styles/theme";
-
-.apply-btn {
-  position: relative;
-  display: flex;
-  border: 1px solid theme.$button-text-color;
+.submit-btn {
   width: 100%;
   height: 32px;
   min-height: 32px;
-  border-radius: 30px;
   color: theme.$button-text-color;
-  justify-content: center;
-  align-items: center;
+  background-color: theme.$panel-background-color;
+  border: 1px solid theme.$button-text-color;
+  border-radius: 30px;
+
   font-family: Noto Sans HK, serif;
   font-weight: 700;
   font-size: 15px;
-  line-height: 100%;
-  letter-spacing: 0;
-  text-align: center;
-  cursor: pointer;
+
   &:hover {
     background-color: theme.$button-text-color;
     color: theme.$primary-color;

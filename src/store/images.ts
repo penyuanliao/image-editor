@@ -23,6 +23,7 @@ interface ImagesStoreState {
   editingElement: ICanvasElement | null;
   imageUrl: string | null;
   deleteIcon: HTMLImageElement;
+  savingImage: boolean;
 }
 
 export const useImagesStore = defineStore('images', {
@@ -49,6 +50,10 @@ export const useImagesStore = defineStore('images', {
     imageUrl: 'xxxxx',
     // --- 預載入控制項圖示 ---
     deleteIcon: new Image(),
+
+    //狀態控制: 儲存中
+    savingImage: false
+
   }),
   actions: {
     // 取得圖片

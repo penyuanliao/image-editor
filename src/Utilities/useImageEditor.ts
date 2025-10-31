@@ -43,7 +43,9 @@ export const drawBackground = (canvasEl: HTMLCanvasElement, ctx: CanvasRendering
  * @param ctx
  * @param cropBox
  */
-export const drawCropMarks = (canvasEl: HTMLCanvasElement, ctx: CanvasRenderingContext2D, cropBox: { x: number, y: number, width: number, height: number  }) => {
+export const drawCropMarks = (canvasEl: HTMLCanvasElement,
+                              ctx: CanvasRenderingContext2D,
+                              cropBox: { x: number, y: number, width: number, height: number  }) => {
     ctx.save();
     // 使用 "evenodd" 填充規則來建立一個有孔的矩形（遮罩）
     ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
@@ -54,7 +56,7 @@ export const drawCropMarks = (canvasEl: HTMLCanvasElement, ctx: CanvasRenderingC
     ctx.restore();
 
     // 繪製裁切框的邊框
-    ctx.strokeStyle = "#409eff";
+    ctx.strokeStyle = "#78EFB2";
     ctx.lineWidth = 2;
     ctx.strokeRect(cropBox.x, cropBox.y, cropBox.width, cropBox.height);
 }

@@ -6,6 +6,7 @@ import { ColorPicker } from "colorpickers";
 import {ElementTypesEnum, type ICanvasElement, type ITextConfig} from "../../types.ts";
 import NPanel from "../Basic/NPanel.vue";
 import { availableFonts } from '@/config/fonts.ts';
+import NPanelButton from "@/components/Basic/NPanelButton.vue";
 
 // import { ColorInputWithoutInstance } from "tinycolor2";
 
@@ -331,7 +332,7 @@ onMounted(() => {
 <template>
   <NPanel :searchEnabled="false" title="文字編輯" :padding="`${controlEnabled ? `30px 16px 0 16px` : `30px 35px 0 32px`}`">
     <div class="categories" v-if="!props.controlEnabled">
-      <el-button @click="addText">+ 添加文字</el-button>
+      <NPanelButton @click="addText">+ 添加文字</NPanelButton>
     </div>
     <div class="categories" v-if="props.controlEnabled">
       <div class="ctrl">
