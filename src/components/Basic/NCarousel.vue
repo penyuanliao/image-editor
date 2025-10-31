@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-import {reactive, ref} from "vue";
+import {reactive, ref, onMounted, onUpdated, onUnmounted} from "vue";
 
 const props = defineProps(['options', 'selected']);
 
@@ -16,11 +16,52 @@ const onChangeHandle = (tag: string) => {
   emits('change', tag);
 }
 
+const tagGroupRef = ref<HTMLElement | null>(null);
+const showPrev = ref(false);
+const showNext = ref(true);
+
+const updateButtons = () => {
+  if (tagGroupRef.value) {
+    const { scrollLeft, scrollWidth, clientWidth } = tagGroupRef.value;
+    showPrev.value = scrollLeft > 0;
+    showNext.value = scrollLeft < scrollWidth - clientWidth - 1;
+  }
+};
+
+onMounted(() => {
+  if (tagGroupRef.value) {
+    tagGroupRef.value.addEventListener('scroll', updateButtons);
+    updateButtons();
+  }
+});
+
+onUpdated(() => {
+  updateButtons();
+});
+
+onUnmounted(() => {
+  if (tagGroupRef.value) {
+    tagGroupRef.value.removeEventListener('scroll', updateButtons);
+  }
+});
+
+const prev = () => {
+  if (tagGroupRef.value) {
+    tagGroupRef.value.scrollBy({ left: -100, behavior: 'smooth' });
+  }
+};
+
+const next = () => {
+  if (tagGroupRef.value) {
+    tagGroupRef.value.scrollBy({ left: 100, behavior: 'smooth' });
+  }
+};
+
 </script>
 
 <template>
   <div class="tag-control">
-    <div class="tag-group">
+    <div class="tag-group" ref="tagGroupRef">
       <div
           v-for="(tag, index) in tagOptions"
           :key="`tag-${index}`"
@@ -33,12 +74,12 @@ const onChangeHandle = (tag: string) => {
         {{ tag }}
       </div>
     </div>
-    <div class="tag-ctrl-btn prev">
+    <div class="tag-ctrl-btn prev" @click="prev" v-if="showPrev">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M10 12L6 8L10 4" stroke="black" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
     </div>
-    <div class="tag-ctrl-btn next">
+    <div class="tag-ctrl-btn next" @click="next" v-if="showNext">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M6 12L10 8L6 4" stroke="black" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
@@ -106,9 +147,15 @@ const onChangeHandle = (tag: string) => {
     padding-right: 12px;
     font-size: 15px;
     font-weight: 400;
+    cursor: pointer;
     &.active {
       background-color: #FFC3B0;
       border-color: transparent;
+    }
+    &:hover {
+      background-color: #FFC3B0;
+      border-color: transparent;
+      color: white;
     }
   }
 }
