@@ -342,8 +342,7 @@ onMounted(() => {
     </div>
     <div class="categories" v-if="props.controlEnabled">
       <div class="ctrl">
-        <span>文字：</span>
-        <el-input v-model="textProps.content" />
+        <textarea class="text" v-model="textProps.content" />
       </div>
 
       <div class="ctrl">
@@ -477,6 +476,7 @@ onMounted(() => {
 </template>
 
 <style scoped lang="scss">
+@use "@/styles/theme";
 .categories {
   padding-top: 10px;
   width: 260px;
@@ -492,6 +492,20 @@ onMounted(() => {
     display: flex;
     align-items: center;
     width: 260px;
+  }
+  .ctrl textarea {
+    position: relative;
+    width: 100%;
+    min-height: 80px;
+    background-color: white;
+    border: 1px solid theme.$border-color-base;
+    margin: 0 0;
+    padding: 10px 10px;
+    text-align: center;
+    outline: none;
+    box-sizing: border-box;
+    z-index: 10;
+    white-space: nowrap;
   }
   .sub-controls {
     display: flex;

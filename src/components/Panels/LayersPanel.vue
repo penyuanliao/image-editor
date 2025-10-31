@@ -131,6 +131,7 @@ const textElementStyle = (element: ICanvasElement) => {
   color: theme.$primary-color;
   border-radius: 5px;
   box-sizing: border-box;
+  overflow: hidden;
   span {
     white-space: nowrap;
     overflow: hidden;
@@ -166,6 +167,8 @@ const textElementStyle = (element: ICanvasElement) => {
   overflow: hidden;
   text-overflow: ellipsis;
   text-align: center;
+  width: 100%;
+  height: 100%;
 }
 .state {
   position: absolute;
