@@ -7,6 +7,7 @@ import {type CroppedExportOptions, exportCroppedArea} from "@/Utilities/useCanva
 import {ElementTypesEnum, type ICanvasElement, type ITextConfig} from "@/types.ts";
 import Popover from "./Popover.vue";
 import KeyboardController from "../KeyboardController.vue";
+import Symbols from "@/components/Symbols.vue";
 
 const imagesStore = useImagesStore();
 const emit = defineEmits(['element-selected']);
@@ -14,7 +15,7 @@ const emit = defineEmits(['element-selected']);
 const fileInput = ref<HTMLInputElement | null>(null);
 const canvas = ref<HTMLCanvasElement | null>(null);
 const uploaderContainer = ref<HTMLDivElement | null>(null);
-const popOverRef = ref<HTMLDivElement | null>(null);
+const popOverRef = ref<InstanceType<typeof Popover> | null>(null);
 
 const editor = ref<CanvasEditor>(new CanvasEditor(imagesStore));
 
@@ -110,7 +111,7 @@ onMounted(() => {
     // 設定PopOver選單的回呼函式
     editor.value.onPopOverMenu = (event) => {
       popOverMenu.visible = event.visible || false;
-      popOverMenu.x = event.x + popOverMenu.offset.x;
+      popOverMenu.x = event.x + (popOverRef.value?.popoverWidth() || 0) / 2 * -1;
       popOverMenu.y = event.y + popOverMenu.offset.y;
     };
     // 設定文字編輯的回呼函式
@@ -175,13 +176,23 @@ const updateTextareaSize = () => {
   textarea.style.height = 'auto';
   // 寬度設為 auto 以便計算 scrollWidth，但要確保它不小於初始寬度
   textarea.style.width = `${minWidth.value}px`;
+  const config = selectedElement.value?.config as ITextConfig;
 
   // 根據內容捲動寬高來設定新的寬高
   const scrollHeight = textarea.scrollHeight;
   const scrollWidth = textarea.scrollWidth;
   const w = Math.max(scrollWidth, minWidth.value);
+  const countLines: number = config.content.split('\n').length;
+
   textarea.style.height = `${scrollHeight}px`;
   textarea.style.width = `${w}px`;
+  if (countLines > (config._countLines || 1)) {
+    const top: number = Number.parseFloat(textarea.style.top.replace('px', ''));
+    textarea.style.top =  `${top - ((config._lineSpacing || 0) / 2)}px`;
+  } else if (countLines < (config._countLines || 1)) {
+    const top: number = Number.parseFloat(textarea.style.top.replace('px', ''));
+    textarea.style.top =  `${top + ((config._lineSpacing || 0) / 2)}px`;
+  }
 };
 
 // --- 文字編輯方法 ---
@@ -281,6 +292,7 @@ const updateSelectedElement = (newProps: Partial<any>) => {
   if (newProps.type === ElementTypesEnum.Stage) {
     const config = newProps.config;
     editor.value.updateViewportSize(config.width, config.height, config.color);
+    editor.value.render();
     return;
   }
 
@@ -393,14 +405,18 @@ defineExpose({ addElement, updateSelectedElement });
         <!-- <div class="context-menu-item">上移一層</div> -->
         <!-- <div class="context-menu-item">下移一層</div> -->
       </div>
-      <div v-if="!imagesStore.imageUrl" class="upload-prompt-overlay">
+      <div class="upload-prompt-overlay" :style="{
+        opacity: imagesStore.elements.length === 0 ? 1 : 0
+      }">
         <div class="prompt-content">
-          <p>點擊下方按鈕上傳圖片</p>
+          <Symbols name="picture"/>
+          <h1>开始产生影像</h1>
+          <p>选择素材添加文字、效果和AI，线上编辑您的图片。</p>
         </div>
       </div>
     </div>
     <div class="actions-bar">
-      <el-button v-if="imagesStore.imageUrl" class="save-button" @click="saveImage">
+      <el-button class="save-button" @click="saveImage">
         <div style="margin-right: 10px;">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M8.00199 1.99997C8.37297 1.99997 8.67485 2.30185 8.67485 2.67283L8.67485 8.14618L9.98808 6.82308L10.0321 6.80087C10.0592 6.7873 10.1592 6.74288 10.2982 6.74288C10.4269 6.74288 10.6186 6.78113 10.8004 6.96251C11.1129 7.27508 10.9747 7.6514 10.8583 7.80687L10.846 7.82332L8.19982 10.5032C8.16486 10.5419 8.09371 10.5851 8.00158 10.5851C7.90945 10.5851 7.84118 10.5419 7.80663 10.5032L5.15016 7.82332L5.13782 7.80687C5.02143 7.6514 4.88365 7.27508 5.19581 6.96251C5.37719 6.78113 5.56926 6.74288 5.69799 6.74288C5.837 6.74288 5.93653 6.7873 5.96409 6.80087L6.0081 6.82308L7.32872 8.15399L7.32872 2.67283C7.32872 2.30185 7.63061 1.99997 8.00158 1.99997L8.00199 1.99997Z" fill="black"/>
@@ -408,7 +424,7 @@ defineExpose({ addElement, updateSelectedElement });
           </svg>
         </div>储存图片
       </el-button>
-      <div v-if="imagesStore.imageUrl" class="crop-controls">
+      <div class="crop-controls">
         <div class="input-group">
           <label for="crop-x">X:</label>
           <input id="crop-x" type="number" v-model.number="displayCropBox.x" @change="(e: Event) => handleChange('x', parseInt((e.target as HTMLInputElement)?.value) || 0)"/>
@@ -461,9 +477,7 @@ defineExpose({ addElement, updateSelectedElement });
   height: 600px;
   max-height: 600px;
   min-height: 50px; /* 避免過度縮小 */
-  transition: border-color 0.3s, background-color 0.3s;
   overflow: hidden;
-  background-color: #D9D9D9;
 }
 
 .editor-canvas {
@@ -483,6 +497,8 @@ defineExpose({ addElement, updateSelectedElement });
   justify-content: center;
   align-items: center;
   pointer-events: none;
+  background-color: #D9D9D9;
+  transition: opacity 0.3s;
 }
 
 .prompt-content {
@@ -543,7 +559,7 @@ defineExpose({ addElement, updateSelectedElement });
   z-index: 10;
   overflow: hidden;
   resize: none;
-
+  padding: 0;
 }
 
 .crop-controls {
@@ -612,5 +628,14 @@ defineExpose({ addElement, updateSelectedElement });
 
 .context-menu-item:hover {
   background-color: #f0f0f0;
+}
+
+.filename {
+  position: absolute;
+  display: flex;
+  top: -20px;
+  left: 0;
+  right: 0;
+  color: black;
 }
 </style>

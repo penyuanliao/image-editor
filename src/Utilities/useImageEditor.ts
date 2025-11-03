@@ -1,4 +1,3 @@
-
 import { useImagesStore } from "../store/images.ts";
 import {gradientStartAndEndPoints} from "./GradientLayer.ts";
 import {
@@ -8,6 +7,7 @@ import {
     type ISVGConfig,
     ElementTypesEnum
 } from "../types.ts";
+import stageTheme from "@/styles/stageTheme.ts";
 
 /**
  * 把上傳的圖片繪製到底圖
@@ -56,8 +56,8 @@ export const drawCropMarks = (canvasEl: HTMLCanvasElement,
     ctx.restore();
 
     // 繪製裁切框的邊框
-    ctx.strokeStyle = "#78EFB2";
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = stageTheme.dropBoxColor;
+    ctx.lineWidth = stageTheme.dropBoxBorderWidth;
     ctx.strokeRect(cropBox.x, cropBox.y, cropBox.width, cropBox.height);
 }
 /**
@@ -94,7 +94,13 @@ export const drawText = (ctx: CanvasRenderingContext2D, element: ICanvasElement)
     // 繪圖時候在塞入寬高
     element.config.height = totalTextHeight * 2;
     element.config.width = textWidth * 2;
-
+    config._countLines = lines.length;
+    config._lineSpacing = fontSize * lineHeight;
+    // console.log(`
+    // lines: ${config._countLines}
+    // lineSpacing: ${config._lineSpacing}
+    // totalTextHeight: ${totalTextHeight}
+    // lineY: ${-totalTextHeight / 2 + (fontSize * lineHeight) / 2}`);
     // Apply gradient or solid color fill
     if (config.gradientEnabled && config.gradientStartColor && config.gradientEndColor) {
         let gradient: CanvasGradient;
@@ -307,8 +313,8 @@ export const drawTransformHandles = (ctx: CanvasRenderingContext2D, element: ICa
     const handles = getTransformHandles(ctx, element);
     if (!handles) return null;
 
-    ctx.strokeStyle = '#409eff';
-    ctx.lineWidth = 1;
+    ctx.strokeStyle = stageTheme.borderColor;
+    ctx.lineWidth = stageTheme.borderStrokeWidth;
 
     // Draw bounding box
     ctx.stroke(handles.path);
@@ -352,19 +358,19 @@ export const drawTransformHandles = (ctx: CanvasRenderingContext2D, element: ICa
             } else { // 'ml' or 'mr'
                 ctx.rect(-rectHeight / 2, -rectWidth / 2, rectHeight, rectWidth);
             }
-            ctx.fillStyle = '#FFFFFF';
+            ctx.fillStyle = stageTheme.anchorColor;
             ctx.fill();
-            ctx.strokeStyle = '#409eff';
-            ctx.lineWidth = 1;
+            ctx.strokeStyle = stageTheme.anchorBorderColor;
+            ctx.lineWidth = stageTheme.anchorBorderWidth;
             ctx.stroke();
         } else {
             // 繪製圓形的角落和旋轉控制點
             ctx.beginPath();
             ctx.arc(0, 0, 6, 0, 2 * Math.PI);
-            ctx.fillStyle = '#FFFFFF';
+            ctx.fillStyle = stageTheme.anchorColor;
             ctx.fill();
-            ctx.strokeStyle = '#409eff';
-            ctx.lineWidth = 1;
+            ctx.strokeStyle = stageTheme.anchorBorderColor;
+            ctx.lineWidth = stageTheme.anchorBorderWidth;
             ctx.stroke();
         }
         ctx.restore();
@@ -383,8 +389,8 @@ export const drawControls = (ctx: CanvasRenderingContext2D,
                              multiple: boolean = false
 ) => {
     if (box) { // Draw a simple dashed box for non-sticker elements
-        ctx.strokeStyle = '#409eff';
-        ctx.lineWidth = 2;
+        ctx.strokeStyle = stageTheme.borderColor;
+        ctx.lineWidth = stageTheme.borderStrokeWidth;
         const isTransformable = element.type === ElementTypesEnum.Image || element.type === ElementTypesEnum.Text;
         if (isTransformable) {
             drawTransformHandles(ctx, element, multiple);

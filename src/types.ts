@@ -76,6 +76,8 @@ export interface ITextConfig extends AbsoluteConfig {
     // 文字間距
     letterSpacing: number;
 
+    _lineSpacing?: number;
+    _countLines?: number;
 }
 
 export interface ISVGConfig extends AbsoluteConfig {

@@ -253,7 +253,7 @@ export class CanvasEditor {
         const { ctx, canvas, cropBox, store } = this;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         // 1. 清除畫布
-        ctx.fillStyle = "transparent";
+        ctx.fillStyle = this.viewport.color;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         // 2. 儲存 context 狀態並套用視圖變換 (縮放/平移)
         ctx.save();

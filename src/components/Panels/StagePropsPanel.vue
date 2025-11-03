@@ -29,7 +29,7 @@ const applyStageHandle = () => {
       <div class="ctrl once-line">
         <span>背景顏色：</span>
         <div class="color-picker">
-          <ColorPicker use-type="pure" format="hex" v-model:pureColor="(store.stage.config as StageConfig).color"/>
+          <ColorPicker use-type="pure" format="hex4" v-model:pureColor="(store.stage.config as StageConfig).color"/>
         </div>
       </div>
     </div>
