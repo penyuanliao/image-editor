@@ -52,7 +52,7 @@ const gallery: IGallery [] = [
 const customizedGallery = computed(() => {
 
   const list: { url: string, filename: string }[] = [];
-  imagesStore.imageList.forEach((image) => {
+  imagesStore.imageList.forEach(({ image }) => {
     list.push({
       url: image.src,
       filename: image.src.split('/').pop() || ''

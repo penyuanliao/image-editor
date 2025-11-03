@@ -40,6 +40,7 @@ export interface IImageConfig extends AbsoluteConfig {
     url?: string;
     width: number;
     height: number;
+    base64?: string;
 }
 
 export interface ITextConfig extends AbsoluteConfig {
@@ -87,7 +88,13 @@ export interface ISVGConfig extends AbsoluteConfig {
     height: number;
 }
 
-
+export interface IUploadedImage {
+    imageUrl: string;
+    image: HTMLImageElement;
+    name: string;
+    base64?: string;
+    file?: File;
+}
 
 export const ImageEditorTypes: {
     [key: string]: string

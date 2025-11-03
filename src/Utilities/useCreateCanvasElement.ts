@@ -79,7 +79,7 @@ export const createCanvasElement = (element: ICanvasElement, canvas: { width: nu
         }
     })
 };
-export const CreateImageElement = ({ name, image, imageUrl }: { name: string, image: HTMLImageElement, imageUrl: string }): ICanvasElement => {
+export const CreateImageElement = ({ name, image, imageUrl, base64 }: { name: string, image: HTMLImageElement, imageUrl: string, base64?: string }): ICanvasElement => {
     return {
         id: Date.now(),
         name,
@@ -93,7 +93,8 @@ export const CreateImageElement = ({ name, image, imageUrl }: { name: string, im
             opacity: 1,
             draggable: true,
             url: imageUrl,
-            img: image
+            img: image,
+            base64
         },
     }
 };

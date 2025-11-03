@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import {ElementTypesEnum, type ICanvasElement, type StageConfig} from "../types.ts";
+import {ElementTypesEnum, type ICanvasElement, type IUploadedImage, type StageConfig} from "../types.ts";
 
 // 建立一個代表 800x600 白色像素的 Data URL
 const WHITE_BG_SRC = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
@@ -16,7 +16,7 @@ export type ImagesStore = ReturnType<typeof useImagesStore>;
 
 interface ImagesStoreState {
   stage: ICanvasElement;
-  imageList: HTMLImageElement[];
+  imageList: IUploadedImage[];
   originalImage: HTMLImageElement | null | undefined;
   elements: ICanvasElement[];
   selectedElements: ICanvasElement[]; // 將用此完全取代 selectedElement
@@ -57,14 +57,14 @@ export const useImagesStore = defineStore('images', {
   }),
   actions: {
     // 取得圖片
-    addImage(image: HTMLImageElement) {
+    addImage(image: IUploadedImage) {
       return this.imageList.push(image) - 1;
     },
     // 設定原始圖像
     setOriginalImage(index: number) {
       if (index >= 0 && index < this.imageList.length) {
-        this.originalImage = this.imageList[index];
-        this.imageUrl = this.imageList[index]?.src || null;
+        this.originalImage = this.imageList[index]?.image;
+        this.imageUrl = this.imageList[index]?.image.src || null;
       }
     },
     addElement(element: ICanvasElement) {

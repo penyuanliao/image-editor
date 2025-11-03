@@ -1,8 +1,9 @@
 import { ErrorMessage } from "./AlertMessage.ts";
+import type { IUploadedImage } from "@/types.ts";
 // 處理選擇或拖曳的檔案
 export const processFile = (file: File) => {
 
-    return new Promise<{ imageUrl: string, image: HTMLImageElement, name: string }>((resolve, reject) => {
+    return new Promise<IUploadedImage>((resolve, reject) => {
         // 驗證是否為圖片檔案
         if (!file.type.startsWith('image/')) {
             ErrorMessage('請上傳圖片檔案');
@@ -18,7 +19,9 @@ export const processFile = (file: File) => {
                 resolve({
                     imageUrl: dataUrl, // 用於切換 v-if 顯示
                     image: img, // 儲存圖片物件
-                    name: file.name // 用於顯示檔案名稱
+                    name: file.name, // 用於顯示檔案名稱
+                    base64: e.target?.result as string,
+                    file
                 });
             };
             img.src = dataUrl;

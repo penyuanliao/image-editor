@@ -54,9 +54,9 @@ const handleFilesDropped = async (files: FileList) => {
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       if (file) {
-        const { name, image, imageUrl } = await processFile(file);
-        imagesStore.addImage(image);
-        const newImageElement: ICanvasElement = CreateImageElement({ name, image, imageUrl });
+        const info = await processFile(file);
+        imagesStore.addImage(info);
+        const newImageElement: ICanvasElement = CreateImageElement(info);
         handleAddElement(newImageElement);
       }
     }

@@ -5,33 +5,31 @@ import { useImagesStore } from "../../store/images.ts";
 import {CreateImageElement} from "../../Utilities/useCreateCanvasElement.ts";
 import NPanel from "../Basic/NPanel.vue";
 import NPanelButton from "@/components/Basic/NPanelButton.vue";
+import {processFile} from "@/Utilities/FileProcessor.ts";
+import type {IUploadedImage} from "@/types.ts";
 
 const emit = defineEmits<{ (e: 'add-element', action: any): void }>();
 
 const imagesStore = useImagesStore();
 const fileInput = ref<HTMLInputElement | null>(null);
 
-const handleFileChange = (event: Event) => {
+const handleFileChange = async (event: Event) => {
   const target = event.target as HTMLInputElement;
   if (target.files) {
     for (const file of Array.from(target.files)) {
-      const imageUrl = URL.createObjectURL(file);
-      const img = new Image();
-      img.onload = () => {
-        // Now that the image is loaded, push the HTMLImageElement to the store
-        imagesStore.addImage(img);
-        handleAddingElement(img, file.name);
-      };
-      img.src = imageUrl;
+      const info = await processFile(file);
+      imagesStore.addImage(info);
+      handleAddingElement(info);
     }
   }
 };
-const handleAddingElement = (img: HTMLImageElement, name?: string) => {
+const handleAddingElement = ({ name, image, imageUrl, base64 }: IUploadedImage) => {
   // imagesStore.addElement(imagesStore.createStickerElement(img));
   const element = CreateImageElement({
     name: name || '新圖片',
-    image: img,
-    imageUrl: img.src
+    image,
+    imageUrl,
+    base64,
   })
   emit('add-element', element);
 }
@@ -59,11 +57,11 @@ const triggerFileInput = () => {
     <div class="categories">
       <div class="category-items">
         <div
-            v-for="(image, index) in imagesStore.imageList"
+            v-for="(info, index) in imagesStore.imageList"
             :key="index"
             class="image"
-            :style="{ backgroundImage: `url(${image.src})` }"
-            @click="handleAddingElement(image)"
+            :style="{ backgroundImage: `url(${info.image.src})` }"
+            @click="handleAddingElement(info)"
         ></div>
       </div>
     </div>
