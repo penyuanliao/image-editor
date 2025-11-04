@@ -175,7 +175,7 @@ export class CanvasEditor {
         }
     }
 
-    public setImage(image: HTMLImageElement) {
+    public setImage(image: HTMLImageElement, base64: string) {
         // const index:number = this.store.addImage(image);
         // this.store.setOriginalImage(index);
         // this.render();
@@ -183,7 +183,12 @@ export class CanvasEditor {
         // 根據當前 viewport 的縮放比例來調整新貼圖的初始尺寸
         const initialScale = this.viewport.scale || 1;
 
-        this.store.addImage(image);
+        this.store.addImage({
+            imageUrl: image.src,
+            image: image,
+            name: 'new image 1',
+            base64
+        });
         this.store.addElement({
             id: Date.now(),
             type: ElementTypesEnum.Image,
@@ -826,8 +831,8 @@ export class CanvasEditor {
             const valid: boolean = await validationPermissions();
             if (valid) {
                 const { texts, images } = await clipboardPaste();
-                for (const image of images) {
-                    if (image) this.setImage(image);
+                for (const {image, base64 } of images) {
+                    if (image) this.setImage(image, base64);
                 }
 
                 for (const str of texts) {

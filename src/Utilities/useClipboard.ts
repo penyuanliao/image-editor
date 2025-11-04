@@ -5,20 +5,25 @@ export interface ClipboardList {
 
 export const clipboardPaste = async ():Promise<{
     texts: string[],
-    images: HTMLImageElement[]
+    images: { image: HTMLImageElement, base64: string }[]
 }> => {
     const content: ClipboardItems = await navigator.clipboard.read();
     const texts: string[] = [];
-    const images: HTMLImageElement[] = [];
+    const images: { image: HTMLImageElement, base64: string }[] = [];
     for (let i = 0; i < content.length; i++) {
         let item: ClipboardItem = content[i] as ClipboardItem;
         if (item.types.includes('text/plain')) {
             let blob = await item.getType("text/plain");
             texts.push( await blob.text());
-        } else if (item.types.includes('image/png')) {
-            const blob = await item.getType("image/png");
-            const img = await loadImage(blob);
-            if (img) images.push(img);
+        } else if (item.types.includes('image/png') || item.types.includes('image/jpeg')) {
+            const png = item.types.includes('image/png');
+            const blob = await item.getType(png ? "image/png" : "image/jpeg");
+            const image = await loadImage(blob);
+            const base64 = await blobToBase64(blob);
+            if (image) images.push({
+                image,
+                base64
+            });
         }
     }
     return { texts, images };
@@ -44,6 +49,30 @@ export const loadImage = async (blob: Blob):Promise<HTMLImageElement | null> => 
         pngImage.src = URL.createObjectURL(blob);
     })
 }
+
+/**
+ * 將 Blob 物件轉換為 Base64 data URL。
+ * @param blob - 要轉換的 Blob 物件。
+ * @returns {Promise<string>} - 一個解析為 Base64 data URL 字串的 Promise。
+ */
+export const blobToBase64 = (blob: Blob): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            // reader.result 包含 data URL (例如 "data:image/png;base64,iVBORw0KGgo...")
+            if (typeof reader.result === 'string') {
+                resolve(reader.result);
+            } else {
+                reject(new Error('Failed to convert blob to Base64 string.'));
+            }
+        };
+        reader.onerror = (error) => {
+            reject(error);
+        };
+        reader.readAsDataURL(blob);
+    });
+};
+
 export const validationPermissions = async () => {
     try {
         // 檢查剪貼簿讀取權限
