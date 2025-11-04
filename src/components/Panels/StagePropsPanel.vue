@@ -3,10 +3,35 @@ import {useImagesStore} from "@/store/images.ts";
 import type {StageConfig} from "@/types.ts";
 import {ColorPicker} from "colorpickers";
 import NPanelButton from "@/components/Basic/NPanelButton.vue";
+import Gallery from "@/components/Gallery/Gallery.vue";
+import {ref} from "vue";
 
 const store = useImagesStore();
 
 const emit = defineEmits(['update-element']);
+
+const stageViews = ref([
+  {
+    label: "預設尺寸",
+    items: [
+      {
+        filename: "標誌",
+        content: "800 x 600 像素",
+        value: { width: 800, height: 600 }
+      },
+      {
+        filename: "橫幅A",
+        content: "750 x 750 像素",
+        value: { width: 750, height: 750 }
+      },
+      {
+        filename: "橫幅B",
+        content: "750 x 200 像素",
+        value: { width: 750, height: 200 }
+      }
+    ]
+  }
+]);
 
 const applyStageHandle = () => {
   emit('update-element', store.stage);
@@ -35,6 +60,7 @@ const applyStageHandle = () => {
     </div>
     <div class="additional">
       <NPanelButton @pointerup="applyStageHandle">设定背景</NPanelButton>
+      <Gallery :data="stageViews"/>
     </div>
   </div>
 </template>
@@ -108,5 +134,6 @@ const applyStageHandle = () => {
   width: 100%;
   justify-content: center;
   padding-top: 13px;
+  flex-direction: column;
 }
 </style>

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import {computed, nextTick, onMounted, onUnmounted, reactive, ref, watch} from "vue";
 import {useImagesStore} from "@/store/images.ts";
-import {processFile} from "@/Utilities/FileProcessor.ts";
 import {CanvasEditor} from "@/Utilities/CanvasEditor.ts";
 import {type CroppedExportOptions, exportCroppedArea} from "@/Utilities/useCanvasExporter.ts";
 import {ElementTypesEnum, type ICanvasElement, type ITextConfig} from "@/types.ts";
@@ -12,7 +11,6 @@ import Symbols from "@/components/Symbols.vue";
 const imagesStore = useImagesStore();
 const emit = defineEmits(['element-selected']);
 
-const fileInput = ref<HTMLInputElement | null>(null);
 const canvas = ref<HTMLCanvasElement | null>(null);
 const uploaderContainer = ref<HTMLDivElement | null>(null);
 const popOverRef = ref<InstanceType<typeof Popover> | null>(null);
@@ -260,25 +258,31 @@ const deleteSelectedElement = () => {
   closeContextMenu();
 };
 const handlePopOverMenuChange = (state: string) => {
-  console.log('handlePopOverMenuChange', state);
+  const multiple: boolean = imagesStore.selectedElements.length > 1;
   switch (state) {
-    case "stage-left":
-      editor.value.stageAlign("left", null);
+    case "left":
+      if (multiple)
+        editor.value.align("left", null);
+      else
+        editor.value.stageAlign("left", null);
       break;
-    case "stage-center":
-      editor.value.stageAlign("center", null);
+    case "center":
+      if (multiple) {
+        editor.value.align("center", null);
+      } else {
+        editor.value.stageAlign("center", null);
+      }
       break;
-    case "stage-right":
-      editor.value.stageAlign("right", null);
+    case "right":
+      if (multiple) {
+        editor.value.align("right", null);
+      } else {
+        editor.value.stageAlign("right", null);
+      }
       break;
-  }
-};
-
-const onFileChange = async (event: Event) => {
-  const target = event.target as HTMLInputElement;
-  if (target.files && target.files[0]) {
-    const info = await processFile(target.files[0]);
-    editor.value.setImage(info.image);
+    case "delete":
+      handleDeleteSelected();
+      break;
   }
 };
 
@@ -361,13 +365,6 @@ defineExpose({ addElement, updateSelectedElement });
     <div
         class="uploader-container"
         ref="uploaderContainer">
-      <input
-          ref="fileInput"
-          type="file"
-          @change="onFileChange"
-          accept="image/*"
-          hidden
-      />
       <canvas
           ref="canvas"
           class="editor-canvas"
@@ -387,7 +384,7 @@ defineExpose({ addElement, updateSelectedElement });
       />
       <Popover
           ref="popOverRef"
-          v-show="popOverMenu.visible && selectedElement?.type === ElementTypesEnum.Image"
+          v-show="popOverMenu.visible && (selectedElement?.type === ElementTypesEnum.Image || imagesStore.selectedElements.length > 1)"
           :style="{ transform: `translate(${popOverMenu.x}px, ${popOverMenu.y}px)`}"
           @change="handlePopOverMenuChange"
       />

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Symbols from "../Symbols.vue";
-import {onMounted, reactive, ref} from "vue";
+import { onMounted, reactive, ref } from "vue";
 
 const emits = defineEmits(['change']);
 
@@ -15,7 +15,7 @@ const popoverMenu = reactive({
       title: '刪除'
     }
   ]
-})
+});
 
 onMounted(() => {
   console.log(`width:${popoverRef.value?.clientWidth}`);
@@ -35,17 +35,17 @@ defineExpose({ popoverWidth })
 <template>
   <div class="popover" ref="popoverRef">
     <div class="button-group">
-      <div @click="handleOnClick('stage-left')">
+      <div @click="handleOnClick('left')">
         <span class="icon">
           <Symbols name="align-left"/>
         </span>
       </div>
-      <div @click="handleOnClick('stage-center')">
+      <div @click="handleOnClick('center')">
         <span class="icon">
           <Symbols name="align-center"/>
         </span>
       </div>
-      <div @click="handleOnClick('stage-right')">
+      <div @click="handleOnClick('right')">
         <span class="icon">
           <Symbols name="align-right"/>
         </span>
