@@ -16,6 +16,16 @@ const popoverMenu = reactive({
       title: '靠左對齊'
     },
     {
+      event: 'center',
+      icon: 'align-center',
+      title: '靠左對齊'
+    },
+    {
+      event: 'right',
+      icon: 'align-right',
+      title: '靠左對齊'
+    },
+    {
       event: 'delete',
       icon: 'delete',
       title: '刪除'
@@ -62,6 +72,7 @@ const handleOnClick = (value: string) => {
 
 <style scoped lang="scss">
 @use "@/styles/theme";
+
 .popover {
   position: absolute;
   display: flex;
@@ -76,6 +87,7 @@ const handleOnClick = (value: string) => {
   left: 0;
   flex-wrap: nowrap;
 }
+
 .icon {
   width: 20px;
   height: 20px;
@@ -84,6 +96,7 @@ const handleOnClick = (value: string) => {
   align-items: center;
   flex-shrink: 0;
 }
+
 .button-group {
   width: 100%;
   height: 100%;
@@ -96,6 +109,7 @@ const handleOnClick = (value: string) => {
   flex-shrink: 0;
   gap: 4px;
   color: #3a3a3a;
+
   div {
     width: 24px;
     height: 24px;
@@ -105,6 +119,7 @@ const handleOnClick = (value: string) => {
     cursor: pointer;
     border-radius: 4px;
     box-sizing: border-box;
+
     &:hover {
       background-color: #EEEEEE;
     }
