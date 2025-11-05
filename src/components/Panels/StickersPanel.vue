@@ -14,7 +14,7 @@ const imagesStore = useImagesStore();
 
 const emit = defineEmits<{ (e: 'add-element', action: any): void }>();
 
-const input = ref<String>('');
+const input = ref<string>('');
 const selectTag = ref('全部');
 
 const gallery: IGallery [] = [
@@ -48,6 +48,25 @@ const gallery: IGallery [] = [
         { url: './assets/stickers/smoker.svg', filename: 'smoker' },
     ]
   }];
+// 用來過濾資料的 computed
+const filteredGallery = computed<IGallery[]>(() => {
+  const searchValue: string = input.value || '';
+  let result: IGallery[];
+  if (selectTag.value === '全部') {
+    result = gallery;
+  } else {
+    result = gallery.filter(group => group.label === selectTag.value)
+  }
+  if (searchValue) {
+    return result
+        .map(group => {
+          const filteredItems = group.items.filter(({ filename }) => filename.toLowerCase().includes(searchValue.toLowerCase()));
+          return { ...group, items: filteredItems };
+        })
+        .filter(group => group.items.length > 0);
+  }
+  return result;
+});
 
 const customizedGallery = computed(() => {
 
@@ -115,7 +134,7 @@ const onSearchIconClick = () => {
           <img :src="item.url" alt=""/>
         </div>
       </div>
-      <template v-for="(group) in gallery">
+      <template v-for="(group) in filteredGallery">
         <span class="label">{{ group.label }}</span>
         <div class="category-items">
           <div

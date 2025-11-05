@@ -42,7 +42,6 @@ const onClickBGHandle = () => {
 
 const textElementStyle = (element: ICanvasElement) => {
   const config = element.config as ITextConfig;
-  console.log(config.content);
   return {
     color: config.color,
     'text-align': config.textAlign,

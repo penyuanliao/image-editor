@@ -414,7 +414,7 @@ export class CanvasEditor {
                 const centerX = minX + totalWidth / 2;
                 const topY = minY; // Popover 顯示在最頂部
 
-                // console.log(`選取了 ${selectedElements.length} 個物件，總寬度: ${totalWidth.toFixed(2)}`);
+                console.log(`選取了 ${selectedElements.length} 個物件，總寬度: ${totalWidth.toFixed(2)} x: ${centerX} y: ${topY}`);
 
                 // 3. 觸發 onPopOverMenu 事件，傳遞計算後的位置
                 this.onPopOverMenu?.({ visible: true, x: centerX, y: topY, element: null });
@@ -793,7 +793,7 @@ export class CanvasEditor {
 
         // 設定 input 的樣式和位置
         this.textInputStyle.left = `${viewX}px`;
-        this.textInputStyle.top = `${viewY}px`;
+        this.textInputStyle.top = `${viewY - 3}px`;
         this.textInputStyle.width = `${box.width * this.scale}px`;
         this.textInputStyle.height = `${box.height * this.scale}px`;
         this.textInputStyle.fontSize = `${config.fontSize}px`;
@@ -821,7 +821,6 @@ export class CanvasEditor {
             divContainer.style.height = `${this.viewport.height}px`;
         }
         this.viewport.color = color;
-        console.log(this.viewport);
     }
     public enableCopyAndPasteSupport() {
 

@@ -83,8 +83,8 @@ const popOverMenu = reactive({
   x: 0,
   y: 0,
   offset: {
-    x: -50,
-    y: -50
+    x: 0,
+    y: -40
   },
 });
 
@@ -109,7 +109,7 @@ onMounted(() => {
     // 設定PopOver選單的回呼函式
     editor.value.onPopOverMenu = (event) => {
       popOverMenu.visible = event.visible || false;
-      popOverMenu.x = event.x + (popOverRef.value?.popoverWidth() || 0) / 2 * -1;
+      popOverMenu.x = event.x + popOverMenu.offset.x;
       popOverMenu.y = event.y + popOverMenu.offset.y;
     };
     // 設定文字編輯的回呼函式
@@ -181,8 +181,8 @@ const updateTextareaSize = () => {
   const scrollWidth = textarea.scrollWidth;
   const w = Math.max(scrollWidth, minWidth.value);
   const countLines: number = config.content.split('\n').length;
-
-  textarea.style.height = `${scrollHeight}px`;
+  console.log('countLines', countLines * (config._lineSpacing || 0), scrollHeight);
+  textarea.style.height = `${countLines * (config._lineSpacing || 0)}px`;
   textarea.style.width = `${w}px`;
   if (countLines > (config._countLines || 1)) {
     const top: number = Number.parseFloat(textarea.style.top.replace('px', ''));
@@ -216,6 +216,11 @@ const compositionEnd = () => {
 const handleTextInput = () => {
   if (isComposing.value) return;
   updateTextareaSize();
+}
+const textAreaSelected = (event: Event) => {
+  const target = event.target as HTMLTextAreaElement;
+  const selectedText: string = target.value.substring(target.selectionStart, target.selectionEnd);
+  console.log('Text selected:', selectedText);
 }
 
 // 儲存裁切後的圖片
@@ -381,13 +386,17 @@ defineExpose({ addElement, updateSelectedElement });
           @compositionend="compositionEnd"
           @focusout="finishEditing"
           @keydown.enter.shift.prevent="finishEditing"
+          @select="textAreaSelected"
       />
-      <Popover
-          ref="popOverRef"
-          v-show="popOverMenu.visible && (selectedElement?.type === ElementTypesEnum.Image || imagesStore.selectedElements.length > 1)"
+      <!-- 快速選單 -->
+      <div
           :style="{ transform: `translate(${popOverMenu.x}px, ${popOverMenu.y}px)`}"
-          @change="handlePopOverMenuChange"
-      />
+          class="pop-over-menu"
+          ref="popOverRef">
+        <Popover
+            v-show="popOverMenu.visible && (selectedElement?.type === ElementTypesEnum.Image || imagesStore.selectedElements.length > 1)"
+            @change="handlePopOverMenuChange"/>
+      </div>
       <!-- 自訂右鍵選單 -->
       <div
           v-if="contextMenu.visible && contextMenu.element"
@@ -449,7 +458,7 @@ defineExpose({ addElement, updateSelectedElement });
 
 <style scoped lang="scss">
 
-@use "../../styles/theme";
+@use "@/styles/theme";
 
 .editor-wrapper {
   width: 100%;
@@ -457,7 +466,7 @@ defineExpose({ addElement, updateSelectedElement });
   min-width: 800px;
   display: flex;
   flex-direction: column;
-  padding: 10px 10px 10px 10px;
+  padding: 0 10px 10px 10px;
   gap: 1.5rem;
   box-sizing: border-box;
   justify-content: center;
@@ -635,4 +644,13 @@ defineExpose({ addElement, updateSelectedElement });
   right: 0;
   color: black;
 }
+
+.pop-over-menu {
+  position: fixed;
+  display: flex;
+  min-width: 40px;
+  min-height: 36px;
+  flex-direction: row;
+}
+
 </style>

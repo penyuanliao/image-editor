@@ -38,9 +38,14 @@ const handleDrop = (event: DragEvent) => {
 </template>
 
 <style scoped>
-.drop-zone.dragging-over {
-  border: 2px dashed #409eff; /* 拖曳時的邊框樣式 */
-  background-color: rgba(64, 158, 255, 0.1); /* 拖曳時的背景色 */
-  box-sizing: border-box; /* 確保邊框不會增加元素大小 */
+.drop-zone {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 100%;
 }
+.drop-zone.dragging-over {
+  background-color: rgba(64, 158, 255, 0.1); /* 拖曳時的背景色 */
+}
+
 </style>

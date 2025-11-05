@@ -1,14 +1,20 @@
 <script setup lang="ts">
 import Symbols from "../Symbols.vue";
-import { onMounted, reactive, ref } from "vue";
+import {nextTick, onMounted, onUpdated, reactive, ref} from "vue";
 
 const emits = defineEmits(['change']);
 
 const popoverRef = ref<HTMLDivElement | null>(null);
+const controls = ref<HTMLDivElement | null>(null);
 
 const popoverMenu = reactive({
   route: 'image',
   menus: [
+    {
+      event: 'left',
+      icon: 'align-left',
+      title: '靠左對齊'
+    },
     {
       event: 'delete',
       icon: 'delete',
@@ -17,39 +23,28 @@ const popoverMenu = reactive({
   ]
 });
 
-onMounted(() => {
-  console.log(`width:${popoverRef.value?.clientWidth}`);
-})
-
-const popoverWidth = () => {
-  return popoverRef.value?.clientWidth || 0;
+const updatePosition = () => {
+  nextTick(() => {
+    const element = popoverRef.value as HTMLDivElement;
+    const e = controls.value as HTMLDivElement;
+    element.style.left = `${(-1 * element.offsetWidth / 2)}px`;
+    element.style.top = `${-1 * element.offsetHeight / 2}px`
+    console.log(e.offsetHeight, element.clientHeight);
+  })
 }
+
+onMounted(updatePosition);
+onUpdated(updatePosition)
 
 const handleOnClick = (value: string) => {
   emits('change', value);
 }
 
-defineExpose({ popoverWidth })
 </script>
 
 <template>
   <div class="popover" ref="popoverRef">
-    <div class="button-group">
-      <div @click="handleOnClick('left')">
-        <span class="icon">
-          <Symbols name="align-left"/>
-        </span>
-      </div>
-      <div @click="handleOnClick('center')">
-        <span class="icon">
-          <Symbols name="align-center"/>
-        </span>
-      </div>
-      <div @click="handleOnClick('right')">
-        <span class="icon">
-          <Symbols name="align-right"/>
-        </span>
-      </div>
+    <div class="button-group" ref="controls">
       <template v-for="item in popoverMenu.menus">
         <el-tooltip
             :content="item.title"
@@ -62,23 +57,24 @@ defineExpose({ popoverWidth })
         </el-tooltip>
       </template>
     </div>
-
   </div>
 </template>
 
 <style scoped lang="scss">
 @use "@/styles/theme";
 .popover {
-  position: fixed;
+  position: absolute;
   display: flex;
-  width: auto;
+  width: 100%;
   height: 36px;
   background-color: white;
   box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.2), 0 2px 6px 0 rgba(0, 0, 0, 0.19);
   border-radius: 8px;
   z-index: 100;
   padding: 0 6px;
-
+  top: 0;
+  left: 0;
+  flex-wrap: nowrap;
 }
 .icon {
   width: 20px;
@@ -86,6 +82,7 @@ defineExpose({ popoverWidth })
   display: flex;
   justify-content: center;
   align-items: center;
+  flex-shrink: 0;
 }
 .button-group {
   width: 100%;
@@ -95,7 +92,8 @@ defineExpose({ popoverWidth })
   justify-content: center;
   align-items: center;
   flex-direction: row;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
   gap: 4px;
   color: #3a3a3a;
   div {

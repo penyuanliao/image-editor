@@ -4,7 +4,6 @@ import { Search, Close } from "@element-plus/icons-vue";
 
 const props = defineProps(['title', 'searchEnabled', 'inputValue', 'padding']);
 const emits = defineEmits(['update:input']);
-console.log('props', props.searchEnabled);
 const searchEnabled = ref<boolean>(props.searchEnabled !== false);
 const input = ref<String>(props.inputValue);
 

@@ -84,6 +84,7 @@ const handleLockAndUnlock = () => {
 <template>
   <NPanel
       v-if="selectedElement"
+      padding="30px 16px 0 16px"
       :searchEnabled="false">
     <div class="properties">
       <div class="view once-line">

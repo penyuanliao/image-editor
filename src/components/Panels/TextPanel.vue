@@ -13,7 +13,7 @@ import NPanelButton from "@/components/Basic/NPanelButton.vue";
 const gradientColor = ref("linear-gradient(90deg, rgba(255, 0, 0, 1) 0%, rgba(0, 0, 255, 1) 100%)");
 const gradientData = ref({});
 
-const props = defineProps<{ 
+const props = defineProps<{
   controlEnabled: boolean
 }>();
 
@@ -22,7 +22,7 @@ const imagesStore = useImagesStore();
 
 // --- Default State Factory ---
 const getDefaultTextProps = () => ({
-  content: '編輯文字',
+  content: '新增内文文本',
   name: '文字',
   color: '#000000',
   isBold: false,
@@ -88,7 +88,7 @@ const updatePanelFromElement = (element: ICanvasElement | null) => {
     textProps.fontFamily = config.fontFamily || 'Arial';
     textProps.lineHeight = config.lineHeight || 1.2;
     textProps.rotation = config.rotation || 0;
-    textProps.opacity = config.opacity || 1;
+    textProps.opacity = typeof config.opacity === "number" ? config.opacity : 1;
     textProps.letterSpacing = config.letterSpacing || 0;
     textProps.x = config.x || 0;
     textProps.y = config.y || 0;
@@ -139,7 +139,7 @@ watch([textProps, shadow, stroke, gradient], () => {
     const payload: any = {
       ...textProps,
       fontWeight: textProps.isBold ? 'bold' : 'normal',
-      fontItalic: !!textProps.isItalic
+      fontItalic: textProps.isItalic
     };
 
     if (shadow.enabled) {
@@ -189,30 +189,11 @@ const addText = () => {
     type: ElementTypesEnum.Text,
     name: '新文字',
     config: {
-      ...textProps,
+      ...getDefaultTextProps(),
       fontWeight: textProps.isBold ? 'bold' : 'normal',
       fontItalic: textProps.isItalic
     }
   };
-
-  if (shadow.enabled) {
-    element.config.shadowColor = shadow.color;
-    element.config.shadowBlur = shadow.blur;
-    element.config.shadowOffsetX = shadow.offsetX;
-    element.config.shadowOffsetY = shadow.offsetY;
-  }
-
-  if (stroke.enabled) {
-    element.config.strokeColor = stroke.color;
-    element.config.strokeWidth = stroke.width;
-  }
-
-  if (gradient.enabled) {
-    element.config.gradientEnabled = true;
-    element.config.gradientStartColor = gradient.startColor;
-    element.config.gradientEndColor = gradient.endColor;
-    element.config.gradientAngle = gradient.angle;
-  }
 
   emit('addElement', element);
 };
@@ -279,7 +260,7 @@ const parseGradientString = (gradientString: string): ParsedGradient | null => {
   const inner = gradientMatch[2] || '';
 
   // 2. 分割出角度和顏色停止點
-  const parts = inner.split(/,(?![^\(]*\))/); // 用逗號分割，但忽略括號內的逗號
+  const parts = inner.split(/,(?![^(]*\))/); // 用逗號分割，但忽略括號內的逗號
 
   // 3. 提取並解析角度
   const angleString = (parts[0] || '').trim();
@@ -301,7 +282,7 @@ const parseGradientString = (gradientString: string): ParsedGradient | null => {
   const stopRegex = /(rgba?\(.+?\)|#[\da-fA-F]{3,8})\s*(\d*\.?\d+)%/g;
   const stops: { position: number; color: string }[] = [];
   let match;
-  
+
   while ((match = stopRegex.exec(stopsString || '')) !== null) {
     stops.push({
       color: match[1] || '0',
@@ -352,12 +333,20 @@ onMounted(() => {
     </div>
     <div class="categories" v-if="props.controlEnabled">
       <div class="ctrl">
-        <textarea class="text" v-model="textProps.content" />
+        <textarea class="text" v-model="textProps.content" :style="`text-align: ${textProps.textAlign}`" />
       </div>
-
-      <div class="ctrl">
-        <span style="flex-shrink: 0;">字體：</span>
-        <el-select v-model="textProps.fontFamily" placeholder="Select" style="width: 100%;">
+      <div class="horizontal-line">
+        <div class="ctrl">
+          <span>X：</span>
+          <el-input-number class="el-input" v-model="textProps.x" :controls="false" style="width: 100%" />
+        </div>
+        <div class="ctrl">
+          <span>Y：</span>
+          <el-input-number class="el-input" v-model="textProps.y" :controls="false" style="width: 100%" />
+        </div>
+      </div>
+      <div class="ctrl color-picker-rectangle">
+        <el-select v-model="textProps.fontFamily" placeholder="Select" style="width: 70%;">
           <el-option
               v-for="font in availableFonts"
               :key="font"
@@ -365,16 +354,69 @@ onMounted(() => {
               :value="font"
           />
         </el-select>
+        <ColorPicker use-type="pure" format="hex" v-model:pureColor="textProps.color"/>
       </div>
       <div class="ctrl">
-        <span>X：</span>
-        <el-input-number class="el-input" v-model="textProps.x" :controls="false" style="width: 100%" />
-      </div>
-      <div class="ctrl">
-        <span>Y：</span>
-        <el-input-number class="el-input" v-model="textProps.y" :controls="false" style="width: 100%" />
+        <el-select v-model="textProps.fontSize" placeholder="Select" style="width: 30%;">
+          <el-option
+              v-for="option in fontSizeOption"
+              :key="option.value"
+              :label="option.label"
+              :value="option.value"
+          />
+        </el-select>
+        <div>
+          <el-tooltip
+              content="粗體"
+              placement="top">
+            <el-checkbox-button class="el-checkbox-btn" v-model="textProps.isBold">
+              <el-icon size="18">
+                <svg width="24" height="24" viewBox="0 0 7.68 7.68" xmlns="http://www.w3.org/2000/svg"><path d="M5.114 3.471A1.319 1.319 0 0 0 4.2 1.2H1.92a.24.24 0 0 0-.24.24V6a.24.24 0 0 0 .24.24h2.64a1.44 1.44 0 0 0 .554-2.769M2.16 1.68H4.2a.84.84 0 0 1 0 1.68H2.16Zm2.4 4.08h-2.4V3.84h2.4a.96.96 0 0 1 0 1.92"/></svg>
+              </el-icon>
+            </el-checkbox-button>
+          </el-tooltip>
+          <el-tooltip
+              content="斜體"
+              placement="top">
+            <el-checkbox-button class="el-checkbox-btn" v-model="textProps.isItalic">
+              <el-icon size="18">
+                <svg width="24" height="24" viewBox="0 0 7.68 7.68" xmlns="http://www.w3.org/2000/svg"><path d="M6 1.68a.24.24 0 0 1-.24.24H4.733l-1.28 3.84h.867a.24.24 0 0 1 0 .48h-2.4a.24.24 0 0 1 0-.48h1.027l1.28-3.84H3.36a.24.24 0 0 1 0-.48h2.4a.24.24 0 0 1 .24.24"/></svg>
+              </el-icon>
+            </el-checkbox-button>
+          </el-tooltip>
+        </div>
+        <el-radio-group class="el-radio-group" v-model="textProps.textAlign" fill="#F15624">
+          <el-tooltip
+              content="靠左對齊"
+              placement="top">
+            <el-radio-button value="left">
+              <el-icon size="24">
+                <svg width="24" height="24" viewBox="0 0 7.68 7.68" xmlns="http://www.w3.org/2000/svg"><path d="M1.08 2.04a.12.12 0 0 1 .12-.12h5.28a.12.12 0 0 1 0 .24H1.2a.12.12 0 0 1-.12-.12m.12 1.32h3.84a.12.12 0 0 0 0-.24H1.2a.12.12 0 0 0 0 .24m5.28.96H1.2a.12.12 0 1 0 0 .24h5.28a.12.12 0 0 0 0-.24m-1.44 1.2H1.2a.12.12 0 1 0 0 .24h3.84a.12.12 0 0 0 0-.24"/></svg>
+              </el-icon>
+            </el-radio-button>
+          </el-tooltip>
+          <el-tooltip
+              content="置中對齊"
+              placement="top">
+            <el-radio-button value="center">
+              <el-icon size="24">
+                <svg width="24" height="24" viewBox="0 0 7.68 7.68" xmlns="http://www.w3.org/2000/svg"><path d="M1.08 2.04a.12.12 0 0 1 .12-.12h5.28a.12.12 0 0 1 0 .24H1.2a.12.12 0 0 1-.12-.12m.84 1.08a.12.12 0 0 0 0 .24h3.84a.12.12 0 0 0 0-.24Zm4.56 1.2H1.2a.12.12 0 1 0 0 .24h5.28a.12.12 0 0 0 0-.24m-.72 1.2H1.92a.12.12 0 0 0 0 .24h3.84a.12.12 0 0 0 0-.24"/></svg>
+              </el-icon>
+            </el-radio-button>
+          </el-tooltip>
+          <el-tooltip
+              content="靠右對齊"
+              placement="top">
+            <el-radio-button value="right">
+              <el-icon size="24">
+                <svg width="24" height="24" viewBox="0 0 7.68 7.68" xmlns="http://www.w3.org/2000/svg"><path d="M1.08 2.04a.12.12 0 0 1 .12-.12h5.28a.12.12 0 0 1 0 .24H1.2a.12.12 0 0 1-.12-.12m5.4 1.08H2.64a.12.12 0 0 0 0 .24h3.84a.12.12 0 0 0 0-.24m0 1.2H1.2a.12.12 0 1 0 0 .24h5.28a.12.12 0 0 0 0-.24m0 1.2H2.64a.12.12 0 1 0 0 .24h3.84a.12.12 0 0 0 0-.24"/></svg>
+              </el-icon>
+            </el-radio-button>
+          </el-tooltip>
+        </el-radio-group>
       </div>
       <div class="ctrl slider-with-input">
+        <span>透明度：</span>
         <el-slider
             v-model="opacityInPercentage"
             :show-input-controls="false"
@@ -386,26 +428,11 @@ onMounted(() => {
         />
       </div>
       <div class="ctrl">
-        <span>顏色：</span>
-        <!--        <el-color-picker v-model="textProps.color" :disabled="gradient.enabled" />-->
-        <ColorPicker use-type="pure" format="hex" v-model:pureColor="textProps.color"/>
-      </div>
-
-      <div class="ctrl">
-        <span>對齊：</span>
-        <el-select v-model="textProps.textAlign" placeholder="Select" style="width: 100%">
-          <el-option key="left" value="left"/>
-          <el-option key="center" value="center"/>
-          <el-option key="right" value="right"/>
-        </el-select>
-      </div>
-
-      <div class="ctrl">
         <span>漸層：</span>
         <el-switch v-model="gradient.enabled" />
       </div>
       <div v-if="gradient.enabled" class="sub-controls">
-        <div>
+        <div class="color-picker-rectangle">
           <span>顏色：</span>
           <ColorPicker
               use-type="gradient"
@@ -414,49 +441,42 @@ onMounted(() => {
           />
         </div>
       </div>
-
-      <div class="ctrl">
-        <span>粗體：</span>
-        <el-switch v-model="textProps.isBold" />
-      </div>
-      <div>
-        <span>斜體：</span>
-        <el-switch v-model="textProps.isItalic"/>
-      </div>
-      <div class="ctrl">
-        <span style="flex-shrink: 0;">大小：</span>
-        <el-select v-model="textProps.fontSize" placeholder="Select" style="width: 100%;">
-          <el-option
-              v-for="option in fontSizeOption"
-              :key="option.value"
-              :label="option.label"
-              :value="option.value"
-          />
-        </el-select>
-      </div>
-
-      <div class="ctrl">
+      <div class="ctrl slider-with-input">
         <span style="flex-shrink: 0;">行距：</span>
-        <el-slider v-model="textProps.lineHeight" :min="0.5" :max="3" :step="0.1" style="width: 100%;"/>
+        <el-slider
+            v-model="textProps.lineHeight"
+            :show-input-controls="false"
+            show-input
+            :min="0.5"
+            :max="2.5"
+            :step="0.01"
+            style="width: 100%;"
+        />
       </div>
-      <div class="ctrl">
+      <div class="ctrl slider-with-input">
         <span style="flex-shrink: 0;">字距：</span>
-        <el-input-number v-model="textProps.letterSpacing" :controls="true" style="width: 100%;"/>
+        <el-slider
+            v-model="textProps.letterSpacing"
+            :show-input-controls="false"
+            show-input
+            :min="0"
+            :max="800"
+            :step="1"
+            style="width: 100%;"
+        />
       </div>
-
       <div class="ctrl">
         <span style="flex-shrink: 0;">旋轉角度：</span>
         <el-input-number v-model="rotationInDegrees" :controls="true" style="width: 100%;"/>
       </div>
-
       <div class="ctrl">
         <span>陰影：</span>
         <el-switch v-model="shadow.enabled" />
       </div>
       <div v-if="shadow.enabled" class="sub-controls">
-        <div>
+        <div class="color-picker-square">
           <span>陰影顏色：</span>
-          <el-color-picker v-model="shadow.color" />
+          <ColorPicker use-type="pure" format="hex" v-model:pureColor="shadow.color"/>
         </div>
         <div>
           <span>模糊：</span>
@@ -477,16 +497,15 @@ onMounted(() => {
         <el-switch v-model="stroke.enabled" />
       </div>
       <div v-if="stroke.enabled" class="sub-controls">
-        <div>
+        <div class="color-picker-square">
           <span>外框顏色：</span>
-          <el-color-picker v-model="stroke.color" />
+          <ColorPicker use-type="pure" format="hex" v-model:pureColor="stroke.color"/>
         </div>
         <div>
           <span>粗細：</span>
           <el-slider v-model="stroke.width" :min="1" :max="20" style="width: 140px;" />
         </div>
       </div>
-
       <div class="ctrl center">
         <el-tooltip content="刪除" placement="top" effect="dark">
           <el-button type="danger" :icon="Delete" circle @click="handleRemoveTextElement" />
@@ -513,6 +532,16 @@ onMounted(() => {
     display: flex;
     align-items: center;
     min-width: 0;
+    gap: 10px;
+    span {
+      flex-shrink: 0;
+      width: 30%;
+    }
+    .text {
+      position: relative;
+      width: 100%;
+      min-height: 80px;
+    }
   }
   .ctrl textarea {
     position: relative;
@@ -532,9 +561,9 @@ onMounted(() => {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    border: 1px solid #444;
+    border: 1px solid theme.$border-color-base;
     border-radius: 4px;
-    width: 260px;
+    width: 100%;
     padding: 10px;
     box-sizing: border-box;
     div {
@@ -548,6 +577,32 @@ onMounted(() => {
   justify-content: center;
   align-items: center;
 }
+.horizontal-line {
+  display: flex;
+  position: relative;
+  width: 100%;
+  min-height: 0;
+  flex-direction: row;
+  gap: 10px;
+  }
+.el-radio-group :deep(.el-radio-button__inner) {
+  padding: 4px;
+  &:hover {
+    color: black;
+  }
+}
+.ctrl :deep(.el-checkbox-button__inner) {
+  padding: 8px 10px;
+  border-left: 1px solid var(--el-border-color);
+}
 
-
+.el-checkbox-btn.is-checked :deep(.el-checkbox-button__inner) {
+  background-color: #F15624;
+  color: white;
+  border-color: #f15624;
+  box-shadow: 0 0 0 1px white;
+}
+.el-checkbox-btn :deep(.el-checkbox-button__inner) {
+  border-color: theme.$border-color-base;
+}
 </style>

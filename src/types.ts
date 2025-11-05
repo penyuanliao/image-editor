@@ -43,8 +43,15 @@ export interface IImageConfig extends AbsoluteConfig {
     base64?: string;
 }
 
+// 多顏色區塊的段落
+export interface ITextSegment {
+    text: string;
+    color?: string;
+}
+
 export interface ITextConfig extends AbsoluteConfig {
     content: string;
+    segments?: ITextSegment[];
     color: string;
     fontFamily?: string;
     // 文字屬性

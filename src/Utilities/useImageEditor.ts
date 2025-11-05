@@ -5,7 +5,7 @@ import {
     type ITextConfig,
     type IImageConfig,
     type ISVGConfig,
-    ElementTypesEnum
+    ElementTypesEnum, type ITextSegment
 } from "../types.ts";
 import stageTheme from "@/styles/stageTheme.ts";
 
@@ -91,6 +91,11 @@ export const drawText = (ctx: CanvasRenderingContext2D, element: ICanvasElement)
     // Calculate text block's width for gradient calculation
     const textMetrics = lines.map(line => ctx.measureText(line));
     const textWidth = Math.max(...textMetrics.map(m => m.width));
+
+    const scaleX: number = (typeof config.scaleX === 'number' ? config.scaleX : 1);
+    const scaleY: number = (typeof config.scaleY === 'number' ? config.scaleY : 1);
+    ctx.scale(scaleX, scaleY);
+    if (typeof config.opacity === 'number') ctx.globalAlpha = config.opacity;
     // 繪圖時候在塞入寬高
     element.config.height = totalTextHeight * 2;
     element.config.width = textWidth * 2;
@@ -168,6 +173,71 @@ export const drawText = (ctx: CanvasRenderingContext2D, element: ICanvasElement)
 
     ctx.restore();
 }
+
+export const drawMultiText = (ctx: CanvasRenderingContext2D, element: ICanvasElement) => {
+
+    const config: ITextConfig = element.config as ITextConfig;
+    const fontSize = config.fontSize || 32;
+    const lineHeight = config.lineHeight || 1.2;
+
+    // START: Multi-color and line-by-line processing logic
+    // 1. Process content into lines of segments
+
+    const contentSegments: ITextSegment[]|null = config.segments || null;
+
+    if (contentSegments) {
+        const lines: { segments: { text: string, color: string }[], width: number }[] = []
+        let currentLine: { segments: { text: string, color: string }[], width: number } = { segments:[], width: 0 };
+        contentSegments.forEach(segment => {
+            const segmentColor: string = segment.color || config.color;
+            const textParts: string[] = segment.text.split('\n');
+            textParts.forEach((part, index) => {
+                if (part) {
+                    const metrics = ctx.measureText(part); // 寬度
+                    currentLine.segments.push({ text: part, color: segmentColor });
+                    currentLine.width += metrics.width;
+                }
+                // 換行
+                if (index < textParts.length - 1) {
+                    lines.push(currentLine);
+                    currentLine = { segments: [], width: 0 };
+                }
+            });
+        });
+        lines.push(currentLine); // 增加最後一行
+
+        const totalTextHeight: number = lines.length * fontSize * lineHeight;
+
+        const textWidth: number = Math.max(...lines.map(line => line.width));
+
+        // 不支援漸層
+        // END: Multi-color and line-by-line processing logic
+
+        let currentLineY: number = -totalTextHeight / 2 + (fontSize * lineHeight) / 2;
+
+        lines.forEach(info => {
+            let currentX: number;
+            if (config.textAlign === 'left') {
+                currentX = -textWidth / 2;
+            } else if (config.textAlign === 'right') {
+                currentX = textWidth / 2 - info.width;
+            } else {
+                currentX = -info.width / 2;
+            }
+            // Draw each segment in the line
+            info.segments.forEach(segment => {
+                ctx.fillStyle = segment.color;
+                ctx.fillText(segment.text, currentX, currentLineY);
+                currentX += ctx.measureText(segment.text).width;
+            });
+
+            currentLineY += fontSize * lineHeight;
+        });
+
+        ctx.restore();
+    }
+}
+
 export const drawSVG = (ctx: CanvasRenderingContext2D, element: ICanvasElement) => {
     if (!element) return;
     const config: ISVGConfig = element.config as ISVGConfig;
@@ -323,7 +393,7 @@ export const drawTransformHandles = (ctx: CanvasRenderingContext2D, element: ICa
     // Draw handles
     Object.entries(handles.points).forEach(([key, p]) => {
         if (!p) return;
- 
+
         const sideHandles = ['tm', 'bm', 'ml', 'mr'];
         ctx.save();
         // 將原點移動到控制點中心以便繪製和旋轉
@@ -350,7 +420,7 @@ export const drawTransformHandles = (ctx: CanvasRenderingContext2D, element: ICa
             const rectWidth = 12;
             const rectHeight = 6;
             ctx.rotate(element.config.rotation || 0); // 與元素一同旋轉
- 
+
             ctx.beginPath();
             // 根據是水平還是垂直控制點來決定長方形方向
             if (key === 'tm' || key === 'bm') {
