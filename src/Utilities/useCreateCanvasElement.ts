@@ -11,6 +11,7 @@ export const createCanvasElement = (element: ICanvasElement, canvas: { width: nu
                 name: element.name || '新文字',
                 config: {
                     content: config.content || '新文字',
+                    segments: config.segments,
                     x: canvas.width / 2,  // 預設放在畫布中央
                     y: canvas.height / 2,
                     fontSize: config.fontSize || 32,

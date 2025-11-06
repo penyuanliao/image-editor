@@ -316,6 +316,15 @@ const updateSelectedElement = (newProps: Partial<any>) => {
     editor.value.render();
   });
 };
+// 這邊處理對齊
+const alignSelectedElement = (horizontal: string, vertical: string) => {
+
+  if (imagesStore.selectedElements.length === 1) {
+    editor.value.stageAlign(horizontal, vertical);
+  } else {
+    editor.value.align(horizontal, vertical);
+  }
+}
 
 // --- 鍵盤事件處理 ---
 const handleDeleteSelected = () => {
@@ -352,7 +361,7 @@ const handleTextEditing = (type: string, action: string) => {
 
 }
 
-defineExpose({ addElement, updateSelectedElement });
+defineExpose({ addElement, updateSelectedElement, alignSelectedElement });
 
 </script>
 

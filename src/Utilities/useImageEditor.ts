@@ -96,6 +96,8 @@ export const drawText = (ctx: CanvasRenderingContext2D, element: ICanvasElement)
     const scaleY: number = (typeof config.scaleY === 'number' ? config.scaleY : 1);
     ctx.scale(scaleX, scaleY);
     if (typeof config.opacity === 'number') ctx.globalAlpha = config.opacity;
+    if (config.segments) return drawMultiText(ctx, element);
+
     // 繪圖時候在塞入寬高
     element.config.height = totalTextHeight * 2;
     element.config.width = textWidth * 2;
@@ -214,7 +216,6 @@ export const drawMultiText = (ctx: CanvasRenderingContext2D, element: ICanvasEle
         // END: Multi-color and line-by-line processing logic
 
         let currentLineY: number = -totalTextHeight / 2 + (fontSize * lineHeight) / 2;
-
         lines.forEach(info => {
             let currentX: number;
             if (config.textAlign === 'left') {
@@ -222,16 +223,31 @@ export const drawMultiText = (ctx: CanvasRenderingContext2D, element: ICanvasEle
             } else if (config.textAlign === 'right') {
                 currentX = textWidth / 2 - info.width;
             } else {
-                currentX = -info.width / 2;
+                currentX = -info.width / 2 ;
             }
             // Draw each segment in the line
             info.segments.forEach(segment => {
+                const segmentWidth = ctx.measureText(segment.text).width;
+                // START: 選取文字繪製背景顏色
+                // ctx.fillStyle = stageTheme.borderColor;
+                // ctx.fillRect(currentX, currentLineY - fontSize * lineHeight/2, segmentWidth, fontSize * lineHeight);
+                // ENDED: 選取文字繪製背景顏色
+                console.log(`text: ${segment.text} x: ${currentX} segmentMetrics: ${segmentWidth} max: ${ctx.measureText('新增内文文本').width}`);
+
                 ctx.fillStyle = segment.color;
-                ctx.fillText(segment.text, currentX, currentLineY);
-                currentX += ctx.measureText(segment.text).width;
+                if (config.textAlign === 'center') {
+                    ctx.fillText(segment.text, currentX + segmentWidth / 2, currentLineY);
+                } else if (config.textAlign === 'right') {
+                    ctx.fillText(segment.text, currentX + segmentWidth, currentLineY);
+                } else {
+                    ctx.fillText(segment.text, currentX, currentLineY);
+                }
+                currentX += segmentWidth;
+
             });
 
             currentLineY += fontSize * lineHeight;
+
         });
 
         ctx.restore();
@@ -323,10 +339,6 @@ export const getTransformHandles = (ctx: CanvasRenderingContext2D, element: ICan
     const config = element.config;
     if (!config) return null;
     let { width: w, height: h } = box;
-    // 為了 textAlign 控制項，將文字元素的邊框寬度增加
-    if (element.type === ElementTypesEnum.Text) {
-        // w *= 2;
-    }
     const cx = config.x;
     const cy = config.y;
     const angle = config.rotation || 0;

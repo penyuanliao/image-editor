@@ -36,6 +36,12 @@ const stageViews = ref([
 const applyStageHandle = () => {
   emit('update-element', store.stage);
 }
+const handleStageChange = (value: { width: number; height: number }) => {
+
+  store.stage.config.width = value.width;
+  store.stage.config.height = value.height;
+  applyStageHandle();
+}
 
 </script>
 
@@ -60,7 +66,7 @@ const applyStageHandle = () => {
     </div>
     <div class="additional">
       <NPanelButton @pointerup="applyStageHandle">设定背景</NPanelButton>
-      <Gallery :data="stageViews"/>
+      <Gallery :data="stageViews" @itemClick="handleStageChange"/>
     </div>
   </div>
 </template>

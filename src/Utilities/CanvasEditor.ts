@@ -122,7 +122,7 @@ export class CanvasEditor {
     public isSelectionDragging: boolean = false;
     public selectionRect: { x: number, y: number, width: number, height: number } | null = null;
     public selectionStartPoint: { x: number, y: number } = { x: 0, y: 0 };
-
+    public editingDropBox: boolean = false;
 
     constructor(store: ImagesStore) {
         this.store = store;
@@ -414,7 +414,7 @@ export class CanvasEditor {
                 const centerX = minX + totalWidth / 2;
                 const topY = minY; // Popover 顯示在最頂部
 
-                console.log(`選取了 ${selectedElements.length} 個物件，總寬度: ${totalWidth.toFixed(2)} x: ${centerX} y: ${topY}`);
+                // console.log(`選取了 ${selectedElements.length} 個物件，總寬度: ${totalWidth.toFixed(2)} x: ${centerX} y: ${topY}`);
 
                 // 3. 觸發 onPopOverMenu 事件，傳遞計算後的位置
                 this.onPopOverMenu?.({ visible: true, x: centerX, y: topY, element: null });
@@ -472,6 +472,19 @@ export class CanvasEditor {
                 if (!this.store.selectedElements.some(el => el.id === clickedElement.id)) {
                     this.store.setSelectedElements([clickedElement]);
                 }
+                // 開始拖曳元素
+                this.isDraggingElement = true;
+                this.dragStart.x = x;
+                this.dragStart.y = y;
+                this.dragStart.elementX = clickedElement.config.x;
+                this.dragStart.elementY = clickedElement.config.y;
+            } else if (this.editingDropBox && this.isPointInCropBox(x, y)) {
+                // 點擊在裁切框內，開始拖曳裁切框
+                this.isDraggingCropBox = true;
+                this.dragStart.x = x;
+                this.dragStart.y = y;
+                this.dragStart.boxX = this.cropBox.x;
+                this.dragStart.boxY = this.cropBox.y;
             } else {
                 // 點擊空白處，開始拖曳選擇
                 this.isSelectionDragging = true;
@@ -480,20 +493,6 @@ export class CanvasEditor {
                 // 先清除當前的選取
                 this.store.clearSelection();
             }
-        }
-
-        if (clickedElement && !this.isSelectionDragging) {
-            this.isDraggingElement = true;
-            this.dragStart.x = x;
-            this.dragStart.y = y;
-            this.dragStart.elementX = clickedElement.config.x;
-            this.dragStart.elementY = clickedElement.config.y;
-        } else if (!isShiftPressed && this.isPointInCropBox(x, y)) {
-            this.isDraggingCropBox = true;
-            this.dragStart.x = event.offsetX;
-            this.dragStart.y = event.offsetY;
-            this.dragStart.boxX = this.cropBox.x;
-            this.dragStart.boxY = this.cropBox.y;
         }
 
         this.render();
@@ -821,6 +820,9 @@ export class CanvasEditor {
             divContainer.style.height = `${this.viewport.height}px`;
         }
         this.viewport.color = color;
+
+        this.cropBox.width = this.viewport.width;
+        this.cropBox.height = this.viewport.height;
     }
     public enableCopyAndPasteSupport() {
 
@@ -882,7 +884,7 @@ export class CanvasEditor {
     }
 
     //對齊物件
-    public align(horizontally: 'left' | 'center' | 'right' | null, vertically: 'top' | 'middle' | 'bottom' | null) {
+    public align(horizontally: 'left' | 'center' | 'right' | string | null, vertically: 'top' | 'middle' | 'bottom' | string | null) {
         const selectedElements = this.store.selectedElements;
         if (selectedElements.length < 2 || !this.ctx) {
             return; // Alignment requires at least two elements
@@ -940,7 +942,8 @@ export class CanvasEditor {
         this.render();
     }
     
-    public stageAlign(horizontally: 'left' | 'center' | 'right' | null, vertically: 'top' | 'middle' | 'bottom' | null) {
+    public stageAlign(horizontally: 'left' | 'center' | 'right' | string | null, vertically: 'top' | 'middle' | 'bottom' | string | null) {
+
         const selectedElements = this.store.selectedElements;
         if (selectedElements.length < 1 || !this.ctx || !this.canvas) {
             return; // Requires at least one element and a canvas context

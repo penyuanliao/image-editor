@@ -36,10 +36,9 @@ const popoverMenu = reactive({
 const updatePosition = () => {
   nextTick(() => {
     const element = popoverRef.value as HTMLDivElement;
-    const e = controls.value as HTMLDivElement;
+    // const e = controls.value as HTMLDivElement;
     element.style.left = `${(-1 * element.offsetWidth / 2)}px`;
     element.style.top = `${-1 * element.offsetHeight / 2}px`
-    console.log(e.offsetHeight, element.clientHeight);
   })
 }
 
@@ -76,7 +75,7 @@ const handleOnClick = (value: string) => {
 .popover {
   position: absolute;
   display: flex;
-  width: 100%;
+  width: fit-content;
   height: 36px;
   background-color: white;
   box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.2), 0 2px 6px 0 rgba(0, 0, 0, 0.19);

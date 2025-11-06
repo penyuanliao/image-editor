@@ -47,6 +47,7 @@ export interface IImageConfig extends AbsoluteConfig {
 export interface ITextSegment {
     text: string;
     color?: string;
+    select?: boolean;
 }
 
 export interface ITextConfig extends AbsoluteConfig {
@@ -112,4 +113,14 @@ export const ImageEditorTypes: {
     sticker: 'sticker',
     'upload': 'upload',
     layers: 'layers'
+}
+
+
+export const AlignPositionEnum = {
+    left: 'left',
+    center: 'center',
+    right: 'right',
+    top: 'top',
+    middle: 'middle',
+    bottom: 'bottom'
 }

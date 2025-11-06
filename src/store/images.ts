@@ -1,16 +1,6 @@
 import { defineStore } from 'pinia';
 import {ElementTypesEnum, type ICanvasElement, type IUploadedImage, type StageConfig} from "../types.ts";
 
-// 建立一個代表 800x600 白色像素的 Data URL
-const WHITE_BG_SRC = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
-
-// 建立一個虛擬的白色圖片物件，用於預設狀態
-const createWhiteImage = (): HTMLImageElement => {
-  const img = new Image();
-  img.src = WHITE_BG_SRC;
-  return img;
-};
-
 // 為了讓 CanvasEditor 能夠傳入 store，我們需要匯出 store 的類型
 export type ImagesStore = ReturnType<typeof useImagesStore>;
 
@@ -55,6 +45,17 @@ export const useImagesStore = defineStore('images', {
     savingImage: false
 
   }),
+  getters: {
+    selectedElement(state): ICanvasElement | null {
+      if (state.selectedElements.length <= 0) return null;
+      if (state.selectedElements.length > 1) return null;
+      const element = state.selectedElements[0];
+      if (element && (element.type === ElementTypesEnum.Image || element.type === ElementTypesEnum.Stage)) {
+        return element as ICanvasElement;
+      }
+      return null;
+    }
+  },
   actions: {
     // 取得圖片
     addImage(image: IUploadedImage) {
@@ -129,15 +130,27 @@ export const useImagesStore = defineStore('images', {
     clearSelection() {
       this.selectedElements = [];
     },
-
-
-    setDefaultBackground() {
-      this.originalImage = createWhiteImage();
-      this.imageUrl = WHITE_BG_SRC;
+    flipHorizontal() {
+      if (this.selectedElement?.config) {
+        if (typeof this.selectedElement.config.scaleX === "number") {
+          this.selectedElement.config.scaleX *= -1;
+        } else {
+          this.selectedElement.config.scaleX = -1;
+        }
+      }
     },
-    setBackgroundSize(width: number, height: number) {
-      this.originalImage = new Image(width, height);
-      this.imageUrl = 'xxxx';
+    flipVertical() {
+      if (this.selectedElement?.config) {
+        if (typeof this.selectedElement.config.scaleY === "number") {
+          this.selectedElement.config.scaleY *= -1
+        } else {
+          this.selectedElement.config.scaleY = -1;
+        }
+      }
     }
+
+
+
+
   },
 });

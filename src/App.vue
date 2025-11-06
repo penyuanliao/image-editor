@@ -41,6 +41,10 @@ const handleElementSelected = (element: ICanvasElement | null) => {
 const handleUpdateElement = (newProps: Partial<ICanvasElement>) => {
   editor.value?.updateSelectedElement(newProps);
 };
+const handleAlignElement = (hAlign: string, vAlign: string) => {
+  console.log('alignSelectedElement', hAlign, vAlign);
+  editor.value?.alignSelectedElement(hAlign, vAlign);
+}
 
 const selectedElement = computed(() => {
   if (imagesStore.selectedElements.length <= 0) return null;
@@ -140,6 +144,7 @@ const mainStyle = computed(() => {
           />
           <ImagePropsPanel
               v-if="selectedElement?.type === ElementTypesEnum.Image"
+              @align-element="handleAlignElement"
           />
         </div>
       </div>

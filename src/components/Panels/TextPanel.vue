@@ -37,6 +37,19 @@ const getDefaultTextProps = () => ({
   x: 0,
   y: 0
 });
+// const getDefaultMutiColorTextProps = () => ({
+//   segments: [
+//     {
+//       text: '新增内文',
+//       color: '#FF0000',
+//     },
+//     {
+//       text: '文本',
+//       color: '#FF0000',
+//     }
+//   ],
+//   ...getDefaultTextProps()
+// });
 
 const getDefaultShadow = () => ({
   enabled: false,
@@ -330,6 +343,7 @@ onMounted(() => {
   <NPanel :searchEnabled="false" title="文字編輯" :padding="`${controlEnabled ? `30px 16px 0 16px` : `30px 35px 0 32px`}`">
     <div class="categories" v-if="!props.controlEnabled">
       <NPanelButton @click="addText">+ 添加文字</NPanelButton>
+      <textarea class="text-editable">HERE IS TEXT</textarea>
     </div>
     <div class="categories" v-if="props.controlEnabled">
       <div class="ctrl">
