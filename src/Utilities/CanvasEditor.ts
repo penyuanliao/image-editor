@@ -2,6 +2,8 @@ import {
     calculateConstrainedSize,
     drawBackground,
     drawControls,
+    drawCropControls,
+    getActionForCropHandle,
     drawCropMarks,
     drawSticker,
     drawSVG,
@@ -116,6 +118,7 @@ export class CanvasEditor {
     public isDraggingCropBox: boolean = false;
     public isDraggingElement: boolean = false;
     public isResizing: string|null = null;
+    public isCroppingAction: string|null = null; // 新增：用於標記正在進行的剪裁操作
     public isRotating: boolean = false;
 
     // 拖曳選擇相關狀態
@@ -123,6 +126,8 @@ export class CanvasEditor {
     public selectionRect: { x: number, y: number, width: number, height: number } | null = null;
     public selectionStartPoint: { x: number, y: number } = { x: 0, y: 0 };
     public editingDropBox: boolean = false;
+    // 圖片可以進行剪裁
+    public enabledImageCropping: boolean = false;
 
     constructor(store: ImagesStore) {
         this.store = store;
@@ -278,14 +283,23 @@ export class CanvasEditor {
         // 4. 繪製所有元素
         store.elements.forEach(element => {
 
+            const isCroppingThisElement = (element.config as IImageConfig).cropConfig?.isCropping;
+
             // 如果元素正在被編輯，則不在 canvas 上繪製它，由 input 框取代
-            if (this.editingElement?.id === element.id) return;
+            // 如果圖片正在剪裁，我們依然要繪製它，但之後會蓋上遮罩
+            if (this.editingElement?.id === element.id && !isCroppingThisElement) return;
 
             if (element.type === ElementTypesEnum.Text) {
                 drawText(ctx, element);
             } else if (element.type === ElementTypesEnum.SVG) {
                 drawSVG(ctx, element);
             } else if (element.type === ElementTypesEnum.Image) {
+                // 如果正在剪裁，則繪製完整的圖片，並在上面蓋上剪裁UI
+                if (isCroppingThisElement) {
+                    drawSticker(ctx, element, true); // forceDrawFullImage = true
+                    drawCropControls(ctx, element);
+                    return; // 避免下面再繪製一次控制項
+                }
                 drawSticker(ctx, element);
             }
         });
@@ -293,8 +307,11 @@ export class CanvasEditor {
         // 5. 繪製控制項
         if (store.selectedElements.length > 0 && !this.editingElement) {
             store.selectedElements.forEach(selected => {
+                // 如果元素正在剪裁，則不繪製普通的控制項
+                if ((selected.config as IImageConfig).cropConfig?.isCropping) return;
+
                 const box = getElementBoundingBox(ctx, selected);
-                drawControls(ctx, selected, box, store.selectedElements.length > 1);
+                drawControls(ctx, selected, box, store.selectedElements.length > 1, this.isResizing);
             });
         }
         // 6. 顯示提示選單
@@ -364,6 +381,35 @@ export class CanvasEditor {
             }
         }
         return null;
+    }
+    //開始剪裁圖片編輯狀態
+    private startImageCropperEditing(clickedElement: ICanvasElement) {
+        const config = clickedElement.config as IImageConfig;
+
+        // 初始化 cropConfig
+        if (!config.cropConfig) {
+            config.cropConfig = {};
+        }
+
+        // 切換剪裁狀態
+        config.cropConfig.isCropping = !config.cropConfig.isCropping;
+
+        if (config.cropConfig.isCropping) {
+            // 進入剪裁模式，選取此元素
+            // 如果 cropRect 不存在，則初始化為完整圖片大小
+            if (!config.cropConfig.cropRect && config.img) {
+                config.cropConfig.cropRect = {
+                    x: 0,
+                    y: 0,
+                    width: config.img.naturalWidth,
+                    height: config.img.naturalHeight,
+                };
+            }
+            this.store.setSelectedElements([clickedElement]);
+        } else {
+            // 結束剪裁模式
+            this.store.clearSelection();
+        }
     }
 
     // --- 事件處理方法 ---
@@ -435,6 +481,21 @@ export class CanvasEditor {
         const { x, y } = this.screenToWorld(event.offsetX, event.offsetY);
         const isShiftPressed = event.shiftKey;
         this.showPopOverMenu(false);
+
+        // 檢查是否正在剪裁
+        const croppingElement = this.store.elements.find(el => (el.config as IImageConfig).cropConfig?.isCropping);
+        if (croppingElement) {
+            const action = getActionForCropHandle(this.ctx!, x, y, croppingElement);
+            if (action) {
+                this.handleCropTransformStart(x, y, action, croppingElement);
+                return; // 攔截事件，不再往下執行
+            }
+            // 如果點擊在剪裁框外，則結束剪裁
+            (croppingElement.config as IImageConfig).cropConfig!.isCropping = false;
+            this.store.clearSelection();
+            this.render();
+            return; // 結束剪裁後直接返回
+        }
 
         // 優先處理控制項的點擊 (只有在單選時才允許變形)
         if (this.store.selectedElements.length === 1) {
@@ -529,6 +590,21 @@ export class CanvasEditor {
         }
         this.render();
     }
+
+    private handleCropTransformStart(x: number, y: number, action: string, element: ICanvasElement) {
+        this.isCroppingAction = action;
+        this.dragStart.x = x;
+        this.dragStart.y = y;
+
+        const config = element.config as IImageConfig;
+        const cropRect = config.cropConfig?.cropRect;
+        if (cropRect) {
+            this.dragStart.boxX = cropRect.x;
+            this.dragStart.boxY = cropRect.y;
+            this.dragStart.elementWidth = cropRect.width;
+            this.dragStart.elementHeight = cropRect.height;
+        }
+    }
     private handleMouseMove(event: MouseEvent) {
         if (!this.canvas || !this.store.imageUrl) return;
         const { x, y } = this.screenToWorld(event.offsetX, event.offsetY);
@@ -567,6 +643,69 @@ export class CanvasEditor {
             // 更新 dragStart 以便下次 mousemove 計算增量
             this.dragStart.x = x;
             this.dragStart.y = y;
+            this.render();
+            return;
+        }
+
+        // 處理剪裁框的拖曳與縮放
+        if (this.isCroppingAction && this.store.selectedElements.length === 1) {
+            const element = this.store.selectedElements[0];
+            if (!element) return;
+            const config = element.config as IImageConfig;
+            const cropRect = config.cropConfig?.cropRect;
+            if (!cropRect || !config.img) return;
+
+            // 將滑鼠位移從畫布座標系轉換為原始圖片座標系
+            const originalImgWidth = config.img.naturalWidth;
+            const elementWidthOnCanvas = config.width;
+            const scaleRatio = originalImgWidth / elementWidthOnCanvas;
+
+            const dx = (x - this.dragStart.x) * scaleRatio;
+            const dy = (y - this.dragStart.y) * scaleRatio;
+
+            let newX = this.dragStart.boxX;
+            let newY = this.dragStart.boxY;
+            let newWidth = this.dragStart.elementWidth;
+            let newHeight = this.dragStart.elementHeight;
+
+            if (this.isCroppingAction === 'move') {
+                newX += dx;
+                newY += dy;
+            } else {
+                // 處理縮放
+                if (this.isCroppingAction.includes('t')) {
+                    newY += dy;
+                    newHeight -= dy;
+                }
+                if (this.isCroppingAction.includes('b')) {
+                    newHeight += dy;
+                }
+                if (this.isCroppingAction.includes('l')) {
+                    newX += dx;
+                    newWidth -= dx;
+                }
+                if (this.isCroppingAction.includes('r')) {
+                    newWidth += dx;
+                }
+            }
+
+            // 邊界約束，確保剪裁框不會超出原始圖片範圍
+            if (newWidth < 10) newWidth = 10;
+            if (newHeight < 10) newHeight = 10;
+
+            cropRect.x = Math.max(0, Math.min(newX, originalImgWidth - newWidth));
+            cropRect.y = Math.max(0, Math.min(newY, config.img.naturalHeight - newHeight));
+            cropRect.width = Math.min(newWidth, originalImgWidth - cropRect.x);
+            cropRect.height = Math.min(newHeight, config.img.naturalHeight - cropRect.y);
+
+            // 更新 dragStart 以便下次計算
+            this.dragStart.x = x;
+            this.dragStart.y = y;
+            this.dragStart.boxX = cropRect.x;
+            this.dragStart.boxY = cropRect.y;
+            this.dragStart.elementWidth = cropRect.width;
+            this.dragStart.elementHeight = cropRect.height;
+
             this.render();
             return;
         }
@@ -615,32 +754,31 @@ export class CanvasEditor {
                     sticker.y = this.dragStart.elementY - deltaWidth * sin * sign;
                 }
             } else {
-                // Corner handles (proportional scaling for all types)
-                // Project mouse movement onto the vector from center to corner
+                // Corner handles (proportional scaling for all types) - REVISED LOGIC
+                // 計算滑鼠到元素中心的距離，以確保縮放不受旋轉影響
+                const distFromCenterX = x - element.config.x;
+                const distFromCenterY = y - element.config.y;
+                const currentDistance = Math.hypot(distFromCenterX, distFromCenterY);
 
-                // Get the vector for the dragged corner in its un-rotated state
-                let cornerVectorX = this.isResizing.includes('r') ? 1 : -1;
-                let cornerVectorY = this.isResizing.includes('b') ? 1 : -1;
+                // 獲取拖曳開始時，控制點到中心的距離
+                const handleKey = this.isResizing as 'tl' | 'tr' | 'bl' | 'br';
+                const handles = getTransformHandles(this.ctx!, element)!;
+                const startHandlePos = handles.points[handleKey];
+                const startDistance = Math.hypot(startHandlePos.x - element.config.x, startHandlePos.y - element.config.y);
 
-                // Rotate the corner vector
-                const rotatedCornerVectorX = cornerVectorX * cos - cornerVectorY * sin;
-                const rotatedCornerVectorY = cornerVectorX * sin + cornerVectorY * cos;
-
-                // Dot product of mouse delta and corner vector to find projected distance
-                const projectedDistance = (dx * rotatedCornerVectorX + dy * rotatedCornerVectorY);
+                // 計算縮放比例
+                const scaleRatio = currentDistance / startDistance;
 
                 if (element.type === ElementTypesEnum.Image) {
                     // For stickers, scale width and height proportionally
-                    const newWidth = Math.max(10, this.dragStart.elementWidth + projectedDistance * Math.SQRT2);
-                    const newHeight = newWidth / this.dragStart.aspectRatio;
-                    (element.config as IImageConfig).width = newWidth;
-                    (element.config as IImageConfig).height = newHeight;
+                    (element.config as IImageConfig).width = Math.max(10, this.dragStart.elementWidth * scaleRatio);
+                    (element.config as IImageConfig).height = (element.config as IImageConfig).width! / this.dragStart.aspectRatio;
                 } else if (element.type === ElementTypesEnum.Text) {
                     // For text, scale font size
-                    (element.config as ITextConfig).fontSize = Math.max(10, this.dragStart.elementSize + projectedDistance * Math.SQRT2);
+                    (element.config as ITextConfig).fontSize = Math.max(10, this.dragStart.elementSize * scaleRatio);
                 } else if (element.type === ElementTypesEnum.SVG) {
                     // For icons, scale size
-                    (element.config as ISVGConfig).width = (element.config as ISVGConfig).height = Math.max(10, this.dragStart.elementSize + projectedDistance * Math.SQRT2);
+                    (element.config as ISVGConfig).width = (element.config as ISVGConfig).height = Math.max(10, this.dragStart.elementSize * scaleRatio);
                 }
             }
 
@@ -699,14 +837,20 @@ export class CanvasEditor {
     private handleDoubleClick(event: MouseEvent) {
         if (!this.store.imageUrl || !this.ctx) return;
         const { x, y } = this.screenToWorld(event.offsetX, event.offsetY);
-        const clickedElement = this.findElementAtPosition(x, y);
+        const clickedElement = this.findElementAtPosition(x, y) as ICanvasElement;
+
+        // 檢查是否有其他元素正在剪裁，若有則先結束它
+        this.clearEditing(clickedElement);
 
         // 只有文字元素可以雙擊編輯
         if (clickedElement && clickedElement.type === ElementTypesEnum.Text) {
             const box = getElementBoundingBox(this.ctx, clickedElement)!;
             this.updateTextInputStyle(clickedElement, box);
             this.onStartEditText?.(clickedElement);
+        } else if (this.enabledImageCropping && clickedElement && clickedElement.type === ElementTypesEnum.Image) {
+            this.startImageCropperEditing(clickedElement);
         }
+        this.render();
     }
     private handleMouseUp(_: MouseEvent) {
         // 如果正在拖曳選擇
@@ -740,16 +884,26 @@ export class CanvasEditor {
         this.clear();
         // this.showPopOverMenu(false);
     }
+    // 清除狀態
     private clear() {
         this.isDraggingCropBox = false;
         this.isDraggingElement = false;
         this.isResizing = null;
+        this.isCroppingAction = null;
         this.isRotating = false;
         if (this.canvas) {
             this.isSelectionDragging = false;
             this.selectionRect = null;
             // 恢復指標樣式，讓mousemove事件下次可以重新判斷
             this.canvas.style.cursor = "default";
+        }
+    }
+    // 檢查是否有其他元素正在剪裁，若有則先結束它
+    private clearEditing(clickedElement?: ICanvasElement) {
+        const currentlyCroppingElement = this.store.elements.find(el => (el.config as IImageConfig).cropConfig?.isCropping);
+        if (currentlyCroppingElement && currentlyCroppingElement.id !== clickedElement?.id) {
+            (currentlyCroppingElement.config as IImageConfig).cropConfig!.isCropping = false;
+            this.store.clearSelection(); // 清除選取以隱藏控制項
         }
     }
 

@@ -9,6 +9,13 @@ export const ElementTypesEnum = {
 
 export type ICanvasTypes = typeof ElementTypesEnum[keyof typeof ElementTypesEnum];
 
+export interface IGRect {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+}
+
 export interface ICanvasElement {
     id: number;
     type: ICanvasTypes;
@@ -35,13 +42,19 @@ export interface StageConfig extends AbsoluteConfig {
     color: string;
 }
 
+export interface IImageCropConfig {
+    isCropping?: boolean; // 是否正在剪裁
+    cropRect?: IGRect; // 剪裁區域 (相對於原始圖片)
+}
+
 export interface IImageConfig extends AbsoluteConfig {
     img?: HTMLImageElement;
     url?: string;
     width: number;
     height: number;
     base64?: string;
-    radius?: number | number[]; // 角圓
+    radius?: number | number[]; // 圓角
+    cropConfig?: IImageCropConfig; // 圖片剪裁設定
 }
 
 // 多顏色區塊的段落

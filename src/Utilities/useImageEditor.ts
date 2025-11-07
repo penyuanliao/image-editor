@@ -271,8 +271,13 @@ export const drawSVG = (ctx: CanvasRenderingContext2D, element: ICanvasElement) 
  * 繪製圖示
  * @param ctx
  * @param element
+ * @param forceDrawFullImage - 如果為 true，則強制繪製完整圖片，忽略剪裁設定。用於剪裁模式。
  */
-export const drawSticker = (ctx: CanvasRenderingContext2D, element: ICanvasElement) => {
+export const drawSticker = (
+    ctx: CanvasRenderingContext2D,
+    element: ICanvasElement,
+    forceDrawFullImage: boolean = false
+) => {
     if (!element) return;
     const config: IImageConfig = element.config as IImageConfig;
     if (config.img && config.width && config.height) {
@@ -293,7 +298,24 @@ export const drawSticker = (ctx: CanvasRenderingContext2D, element: ICanvasEleme
             ctx.clip();
         }
 
-        ctx.drawImage(config.img, -config.width / 2, -config.height / 2, config.width, config.height);
+        const cropRect = config.cropConfig?.cropRect;
+        // 如果不是強制繪製全圖，且存在剪裁設定，則繪製剪裁後的圖片
+        if (!forceDrawFullImage && cropRect) {
+            ctx.drawImage(
+                config.img,
+                cropRect.x, // 來源圖片的 x
+                cropRect.y, // 來源圖片的 y
+                cropRect.width, // 來源圖片的寬度
+                cropRect.height, // 來源圖片的高度
+                -config.width / 2, // 畫布上的 x
+                -config.height / 2, // 畫布上的 y
+                config.width, // 畫布上的寬度
+                config.height // 畫布上的高度
+            );
+        } else {
+            // 否則，繪製完整的圖片
+            ctx.drawImage(config.img, -config.width / 2, -config.height / 2, config.width, config.height);
+        }
         ctx.restore();
     }
 }
@@ -399,7 +421,12 @@ export const getTransformHandles = (ctx: CanvasRenderingContext2D, element: ICan
     };
 };
 // 產生編輯用的邊框
-export const drawTransformHandles = (ctx: CanvasRenderingContext2D, element: ICanvasElement, multiple: boolean = false) => {
+export const drawTransformHandles = (
+    ctx: CanvasRenderingContext2D,
+    element: ICanvasElement,
+    multiple: boolean = false,
+    isResizing: string | null = null
+) => {
     const handles = getTransformHandles(ctx, element);
     if (!handles) return null;
 
@@ -413,6 +440,9 @@ export const drawTransformHandles = (ctx: CanvasRenderingContext2D, element: ICa
     // Draw handles
     Object.entries(handles.points).forEach(([key, p]) => {
         if (!p) return;
+
+        // 如果正在縮放，則高亮顯示對應的控制點
+        const isActiveHandle = isResizing === key;
 
         const sideHandles = ['tm', 'bm', 'ml', 'mr'];
         ctx.save();
@@ -448,7 +478,7 @@ export const drawTransformHandles = (ctx: CanvasRenderingContext2D, element: ICa
             } else { // 'ml' or 'mr'
                 ctx.rect(-rectHeight / 2, -rectWidth / 2, rectHeight, rectWidth);
             }
-            ctx.fillStyle = stageTheme.anchorColor;
+            ctx.fillStyle = isActiveHandle ? stageTheme.borderColor : stageTheme.anchorColor;
             ctx.fill();
             ctx.strokeStyle = stageTheme.anchorBorderColor;
             ctx.lineWidth = stageTheme.anchorBorderWidth;
@@ -457,7 +487,7 @@ export const drawTransformHandles = (ctx: CanvasRenderingContext2D, element: ICa
             // 繪製圓形的角落和旋轉控制點
             ctx.beginPath();
             ctx.arc(0, 0, 6, 0, 2 * Math.PI);
-            ctx.fillStyle = stageTheme.anchorColor;
+            ctx.fillStyle = isActiveHandle ? stageTheme.borderColor : stageTheme.anchorColor;
             ctx.fill();
             ctx.strokeStyle = stageTheme.anchorBorderColor;
             ctx.lineWidth = stageTheme.anchorBorderWidth;
@@ -472,24 +502,182 @@ export const drawTransformHandles = (ctx: CanvasRenderingContext2D, element: ICa
  * @param element
  * @param box
  * @param multiple
+ * @param isResizing - 正在縮放的控制點 key ('tl', 'br', etc.)
  */
 export const drawControls = (ctx: CanvasRenderingContext2D,
                              element: ICanvasElement,
                              box: { x: number, y: number, width: number, height: number } | null,
-                             multiple: boolean = false
+                             multiple: boolean = false,
+                             isResizing: string | null = null
 ) => {
     if (box) { // Draw a simple dashed box for non-sticker elements
         ctx.strokeStyle = stageTheme.borderColor;
         ctx.lineWidth = stageTheme.borderStrokeWidth;
         const isTransformable = element.type === ElementTypesEnum.Image || element.type === ElementTypesEnum.Text;
         if (isTransformable) {
-            drawTransformHandles(ctx, element, multiple);
+            drawTransformHandles(ctx, element, multiple, isResizing);
         } else { // Draw simple dashed box for other types like 'icon'
             ctx.setLineDash([6, 3]);
             ctx.strokeRect(box.x - 5, box.y - 5, box.width + 10, box.height + 10);
             ctx.setLineDash([]);
         }
     }
+};
+
+/**
+ * 獲取剪裁框的控制點
+ */
+export const getCropHandles = (_: CanvasRenderingContext2D, element: ICanvasElement) => {
+    const config = element.config as IImageConfig;
+    const cropRect = config.cropConfig?.cropRect;
+    if (!config || !cropRect) return null;
+
+    // 獲取元素在畫布上的實際邊界
+    const elementWidth = config.width || 0;
+    const elementHeight = config.height || 0;
+
+    // 將相對於原始圖片的 cropRect 轉換為相對於畫布上顯示的元素尺寸
+    const originalImgWidth = config.img?.naturalWidth || elementWidth;
+    const originalImgHeight = config.img?.naturalHeight || elementHeight;
+
+    const scaleX = elementWidth / originalImgWidth;
+    const scaleY = elementHeight / originalImgHeight;
+
+    const displayCropX = cropRect.x * scaleX - elementWidth / 2;
+    const displayCropY = cropRect.y * scaleY - elementHeight / 2;
+    const displayCropWidth = cropRect.width * scaleX;
+    const displayCropHeight = cropRect.height * scaleY;
+
+    // 旋轉後的中心點
+    const cx = config.x;
+    const cy = config.y;
+    const angle = config.rotation || 0;
+
+    const rotatePoint = (x: number, y: number) => {
+        const cos = Math.cos(angle);
+        const sin = Math.sin(angle);
+        return {
+            x: cx + (x * cos - y * sin),
+            y: cy + (x * sin + y * cos),
+        };
+    };
+
+    const halfW = displayCropWidth / 2;
+    const halfH = displayCropHeight / 2;
+    const cropCenterX = displayCropX + halfW;
+    const cropCenterY = displayCropY + halfH;
+
+    return {
+        box: { x: displayCropX, y: displayCropY, width: displayCropWidth, height: displayCropHeight },
+        points: {
+            tl: rotatePoint(cropCenterX - halfW, cropCenterY - halfH),
+            tr: rotatePoint(cropCenterX + halfW, cropCenterY - halfH),
+            bl: rotatePoint(cropCenterX - halfW, cropCenterY + halfH),
+            br: rotatePoint(cropCenterX + halfW, cropCenterY + halfH),
+            tm: rotatePoint(cropCenterX, cropCenterY - halfH),
+            bm: rotatePoint(cropCenterX, cropCenterY + halfH),
+            ml: rotatePoint(cropCenterX - halfW, cropCenterY),
+            mr: rotatePoint(cropCenterX + halfW, cropCenterY),
+        }
+    };
+};
+
+export const getActionForCropHandle = (ctx: CanvasRenderingContext2D, x: number, y: number, element: ICanvasElement) => {
+    const handles = getCropHandles(ctx, element);
+    if (!handles) return null;
+
+    const handleRadius = 10; // 點擊區域半徑
+    for (const [key, p] of Object.entries(handles.points)) {
+        if (Math.hypot(p.x - x, p.y - y) < handleRadius) {
+            return key; // 'tl', 'tr', 'tm', etc.
+        }
+    }
+    // 檢查是否點擊在剪裁框內部 (用於拖曳)
+    // 這裡需要一個點擊測試，考慮到旋轉，最簡單的方式是將點擊座標轉換到元素本地座標系
+    // 暫時簡化為檢查未旋轉的邊界框
+    return null;
+};
+
+/**
+ * 繪製圖片剪裁的控制項和遮罩
+ * @param ctx
+ * @param element
+ */
+export const drawCropControls = (ctx: CanvasRenderingContext2D, element: ICanvasElement) => {
+    const config = element.config as IImageConfig;
+    const cropRect = config.cropConfig?.cropRect;
+
+    if (!config || !cropRect) return;
+
+    // 獲取元素在畫布上的實際邊界
+    const elementWidth = config.width || 0;
+    const elementHeight = config.height || 0;
+
+    // 剪裁框相對於畫布上元素的位置和大小
+    // 我們需要將相對於原始圖片的 cropRect 轉換為相對於畫布上顯示的元素尺寸
+    const originalImgWidth = config.img?.naturalWidth || elementWidth;
+    const originalImgHeight = config.img?.naturalHeight || elementHeight;
+
+    const scaleX = elementWidth / originalImgWidth;
+    const scaleY = elementHeight / originalImgHeight;
+
+    const displayCropX = cropRect.x * scaleX - elementWidth / 2;
+    const displayCropY = cropRect.y * scaleY - elementHeight / 2;
+    const displayCropWidth = cropRect.width * scaleX;
+    const displayCropHeight = cropRect.height * scaleY;
+
+    ctx.save();
+    // 變換到元素中心並旋轉，確保遮罩和控制項與圖片對齊
+    ctx.translate(config.x, config.y);
+    ctx.rotate(config.rotation || 0);
+
+    // 1. 繪製半透明遮罩
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+    ctx.beginPath();
+    // 繪製一個覆蓋整個元素的大矩形
+    ctx.rect(-elementWidth / 2, -elementHeight / 2, elementWidth, elementHeight);
+    // 在大矩形中挖出剪裁框區域 (使用 evenodd 規則)
+    ctx.rect(displayCropX, displayCropY, displayCropWidth, displayCropHeight);
+    ctx.fill('evenodd');
+
+    // 2. 繪製剪裁框的白色邊框
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(displayCropX, displayCropY, displayCropWidth, displayCropHeight);
+
+    // 3. 繪製輔助線 (九宮格)
+    ctx.lineWidth = 0.5;
+    ctx.beginPath();
+    // 垂直線
+    ctx.moveTo(displayCropX + displayCropWidth / 3, displayCropY);
+    ctx.lineTo(displayCropX + displayCropWidth / 3, displayCropY + displayCropHeight);
+    ctx.moveTo(displayCropX + (displayCropWidth / 3) * 2, displayCropY);
+    ctx.lineTo(displayCropX + (displayCropWidth / 3) * 2, displayCropY + displayCropHeight);
+    // 水平線
+    ctx.moveTo(displayCropX, displayCropY + displayCropHeight / 3);
+    ctx.lineTo(displayCropX + displayCropWidth, displayCropY + displayCropHeight / 3);
+    ctx.moveTo(displayCropX, displayCropY + (displayCropHeight / 3) * 2);
+    ctx.lineTo(displayCropX + displayCropWidth, displayCropY + (displayCropHeight / 3) * 2);
+    ctx.stroke();
+
+    // 4. 繪製角落和邊緣的控制點 (可選，為後續拖曳做準備)
+    const handles = getCropHandles(ctx, element);
+    if (handles) {
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+        Object.values(handles.points).forEach(p => {
+            // 繪製控制點時，需要從世界座標轉換回元素的本地座標
+            const localX = p.x - config.x;
+            const localY = p.y - config.y;
+            const angle = -(config.rotation || 0);
+            const rotatedX = localX * Math.cos(angle) - localY * Math.sin(angle);
+            const rotatedY = localX * Math.sin(angle) + localY * Math.cos(angle);
+
+            ctx.beginPath();
+            ctx.arc(rotatedX, rotatedY, 4, 0, 2 * Math.PI);
+            ctx.fill();
+        });
+    }
+    ctx.restore();
 };
 
 /**
