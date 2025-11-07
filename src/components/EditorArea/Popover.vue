@@ -36,6 +36,7 @@ const popoverMenu = reactive({
 const updatePosition = () => {
   nextTick(() => {
     const element = popoverRef.value as HTMLDivElement;
+    if (!element) return;
     // const e = controls.value as HTMLDivElement;
     element.style.left = `${(-1 * element.offsetWidth / 2)}px`;
     element.style.top = `${-1 * element.offsetHeight / 2}px`
