@@ -41,6 +41,7 @@ export interface IImageConfig extends AbsoluteConfig {
     width: number;
     height: number;
     base64?: string;
+    radius?: number | number[]; // 角圓
 }
 
 // 多顏色區塊的段落
