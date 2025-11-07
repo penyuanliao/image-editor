@@ -281,10 +281,18 @@ export const drawSticker = (ctx: CanvasRenderingContext2D, element: ICanvasEleme
         ctx.translate(config.x, config.y);
         ctx.rotate(config.rotation || 0);
         // Draw the image centered on the new (0,0) origin
-        if (typeof config.opacity === 'number') ctx.globalAlpha = config.opacity;
+        if (typeof config.opacity === "number") ctx.globalAlpha = config.opacity;
         const scaleX: number = (typeof config.scaleX === 'number' ? config.scaleX : 1);
         const scaleY: number = (typeof config.scaleY === 'number' ? config.scaleY : 1);
         ctx.scale(scaleX, scaleY);
+
+        // 支持圓角
+        if (typeof config.radius === "number" || Array.isArray(config.radius)) {
+            ctx.beginPath();
+            ctx.roundRect(-config.width / 2, -config.height / 2, config.width, config.height, config.radius);
+            ctx.clip();
+        }
+
         ctx.drawImage(config.img, -config.width / 2, -config.height / 2, config.width, config.height);
         ctx.restore();
     }
