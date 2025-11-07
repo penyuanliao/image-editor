@@ -37,10 +37,11 @@ const filteredGallery = computed<IGallery[]>(() => {
 // 上傳的圖片
 const customizedGallery = computed(() => {
 
-  const list: { src: string, name: string }[] = [];
+  const list: { src: string, name: string, id: number }[] = [];
   imagesStore.imageList.forEach(({ image }) => {
     list.push({
       src: image.src,
+      id: -1,
       name: image.src.split('/').pop() || ''
     })
   });
@@ -55,14 +56,15 @@ const tagOptions = computed(() => {
   return options;
 });
 
-const onStickerClick = (stickerUrl: string, name: string) => {
+const onStickerClick = (item: { id: number, src: string, name: string }) => {
   emit('add-element', {
     type: ElementTypesEnum.Image,
     config: {
-      url: stickerUrl,
+      url: item.src,
+      id: item.id,
       x: 0,
       y: 0,
-    }, name: name
+    }, name: item.name
   });
 };
 const onSearchIconClick = () => {
@@ -97,7 +99,7 @@ const onSearchIconClick = () => {
             v-for="(item, index) in customizedGallery"
             :key="index"
             class="image"
-            @click="onStickerClick(item.src, item.name)">
+            @click="onStickerClick(item)">
           <img :src="item.src" alt=""/>
         </div>
       </div>
@@ -108,7 +110,7 @@ const onSearchIconClick = () => {
               v-for="(item, index) in group.items"
               :key="index"
               class="image"
-              @click="onStickerClick(item.src, item.name)">
+              @click="onStickerClick(item)">
             <img :src="item.src" alt=""/>
           </div>
         </div>

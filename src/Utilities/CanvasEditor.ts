@@ -24,6 +24,7 @@ import {
     type ITextConfig,
 } from "../types.ts";
 import {processUrl} from "./FileProcessor.ts";
+import { advancedDefaults } from "@/config/settings.ts";
 
 interface ICanvasViewport {
     width: number;
@@ -127,7 +128,7 @@ export class CanvasEditor {
     public selectionStartPoint: { x: number, y: number } = { x: 0, y: 0 };
     public editingDropBox: boolean = false;
     // 圖片可以進行剪裁
-    public enabledImageCropping: boolean = false;
+    public imageCropEditEnabled: boolean = advancedDefaults.imageCropEditEnabled;
 
     constructor(store: ImagesStore) {
         this.store = store;
@@ -206,6 +207,7 @@ export class CanvasEditor {
                 height: image.height * initialScale,
                 img: image,
                 url: image.src,
+                base64,
                 rotation: 0,
                 draggable: true
             }
@@ -847,7 +849,7 @@ export class CanvasEditor {
             const box = getElementBoundingBox(this.ctx, clickedElement)!;
             this.updateTextInputStyle(clickedElement, box);
             this.onStartEditText?.(clickedElement);
-        } else if (this.enabledImageCropping && clickedElement && clickedElement.type === ElementTypesEnum.Image) {
+        } else if (this.imageCropEditEnabled && clickedElement && clickedElement.type === ElementTypesEnum.Image) {
             this.startImageCropperEditing(clickedElement);
         }
         this.render();

@@ -1,26 +1,66 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import {computed, ref} from "vue";
 import Symbols from "../Symbols.vue";
-const styles = ref([
-  { name: '自订', key: 'custom', url: './assets/themes/img_custom.png' },
-  { name: '3D插画', key: '3d-illustration', url: './assets/themes/img_3d.jpg' },
-  { name: '卡通', key: 'cartoon', url: './assets/themes/img_cartoon.jpg' },
-  { name: '赛博庞克', key: 'cyberpunk', class: 'cyberpunk', url: './assets/themes/img_cyberpunk.jpg' },
-  { name: '动漫', key: 'anime', url: './assets/themes/img_anime.jpg' },
-  { name: '像素', key: 'pixel-art', url: './assets/themes/img_pixel_art.jpg' },
-  { name: '复古插画', key: 'retro-illustration', url: './assets/themes/img_illustration.jpg' },
-  { name: '水彩', key: 'watercolor', url: './assets/themes/img_watercolor.jpg' },
-  { name: '油画', key: 'oil-painting', url: './assets/themes/img_oil_painting.jpg' },
-  { name: '素描', key: 'sketch', url: './assets/themes/img_sketch.jpg' },
-]);
+import { useAIGenStore } from "@/store/useAIGenStore.ts";
+import {useImagesStore} from "@/store/images.ts";
+import type {IImageConfig} from "@/types.ts";
+import {processUrlToBase64} from "@/Utilities/FileProcessor.ts";
+import {appearanceDefaults} from "@/config/settings.ts";
+// import {calculateConstrainedSize} from "@/Utilities/useImageEditor.ts";
 
-const selectedStyle = ref('3d-illustration');
+const aiGenStore = useAIGenStore();
+const imageStore = useImagesStore();
+
+const emit = defineEmits(['refresh']);
+
+const styles = ref([...appearanceDefaults.AIStyles]);
+
+// console.log(calculateConstrainedSize(300, 200, 150, 150));
+
+const originalImage = computed(() => {
+  if (imageStore.selectedElement) {
+    const config = imageStore.selectedElement?.config;
+    if (config.id && aiGenStore.hasOriginalImage(config.id)) {
+      return aiGenStore.getOriginalImage(config.id)
+    }
+  }
+  return null;
+})
+
+const selectedStyle = ref<number | null>(null);
 
 const remainingTries = ref<Number>(10);
 
-const selectStyle = (styleKey: string) => {
-  selectedStyle.value = styleKey;
+const selectStyle = (style: number) => {
+  selectedStyle.value = style;
 };
+
+const onSubmit = async () => {
+  const config = imageStore.selectedElement?.config as IImageConfig;
+  if (config) {
+    const id = config.id || -1;
+    let result;
+    if (!config.img || !config.base64) {
+      const load = await processUrlToBase64(config.url || '');
+      result = await aiGenStore.fetchMaterials({
+        image: load.image,
+        base64: load.base64,
+        id
+      });
+    } else {
+      result = await aiGenStore.fetchMaterials({
+        image: config.img,
+        base64: config.base64,
+        id
+      });
+    }
+    if (result) {
+      imageStore.replaceSelectedElementImage(result.image, result.base64);
+      emit('refresh');
+    }
+  }
+}
+
 </script>
 
 <template>
@@ -35,15 +75,18 @@ const selectStyle = (styleKey: string) => {
     <div class="categories">
       <span class="label">風格轉換</span>
       <div class="category-group">
+        <div v-if="originalImage" class="item">
+          <img :src="originalImage.image.src" alt="原始圖片"/>
+        </div>
         <div
           v-for="style in styles"
           :key="style.key"
           class="item"
-          @click="selectStyle(style.key)"
+          @click="selectStyle(style.value)"
         >
           <div
               class="image"
-              :class="{ selected: selectedStyle === style.key }"
+              :class="{ selected: selectedStyle === style.value }"
           >
             <img :src="style.url" alt=""/>
           </div>
@@ -51,7 +94,7 @@ const selectStyle = (styleKey: string) => {
         </div>
       </div>
     </div>
-    <el-button class="submit-btn">
+    <el-button class="submit-btn" @pointerup="onSubmit">
       <template #default>
         <span>生成</span>
       </template>

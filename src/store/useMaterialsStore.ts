@@ -43,7 +43,7 @@ export const useMaterialsStore = defineStore('materialsStore', () => {
             ID: 1,
             CategoryName: '聯名活動素材',
             Info: [
-                { ID: 1, Urlpath: './assets/stickers/coffee.svg', MaterialName: 'coffee' },
+                { ID: 1, Urlpath: './assets/stickers/coffee.png', MaterialName: 'coffee' },
                 { ID: 2, Urlpath: './assets/stickers/dollar.svg', MaterialName: 'dollar' },
                 { ID: 3, Urlpath: './assets/stickers/fries.svg', MaterialName: 'fries' },
                 { ID: 4, Urlpath: './assets/stickers/gambler-luck.svg', MaterialName: 'gambler-luck' },

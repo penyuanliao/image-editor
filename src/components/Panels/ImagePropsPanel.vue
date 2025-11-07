@@ -10,7 +10,7 @@ import NPosition from "@/components/Basic/NPosition.vue";
 const imagesStore = useImagesStore();
 // Only show and operate on the panel if a sticker is selected
 
-const emit = defineEmits(['alignElement']);
+const emit = defineEmits(['alignElement', 'refresh']);
 
 // Computed property to handle degree-radian conversion for the rotation slider
 const rotationInDegrees = computed({
@@ -75,6 +75,12 @@ const handlePositionChange = (value: string) => {
     }
   }
 }
+const handleDeleted = () => {
+  const id = imagesStore.selectedElement?.id;
+  if (id) {
+    imagesStore.removeElements([id]);
+  }
+}
 
 </script>
 
@@ -127,13 +133,13 @@ const handlePositionChange = (value: string) => {
           <el-button :icon="imagesStore.selectedElement?.config.draggable ? Unlock : Lock" circle @click="handleLockAndUnlock"/>
         </el-tooltip>
         <el-tooltip content="刪除" placement="top">
-          <el-button type="danger" :icon="Delete" circle />
+          <el-button type="danger" :icon="Delete" circle @pointerup="handleDeleted"/>
         </el-tooltip>
       </div>
     </div>
     <el-divider border-style="solid"/>
     <div class="additional">
-      <AIPanel/>
+      <AIPanel @refresh="emit('refresh')"/>
     </div>
   </NPanel>
 </template>

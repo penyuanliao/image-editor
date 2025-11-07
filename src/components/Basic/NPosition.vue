@@ -1,8 +1,11 @@
 <script setup lang="ts" xmlns="http://www.w3.org/1999/html">
 
 import Symbols from "@/components/Symbols.vue";
+import {ref} from "vue";
 
 const emits = defineEmits(['change']);
+
+const alignEnabled = ref<boolean>(false);
 
 const onClickHandle = (value: string) => {
   emits('change', value);
@@ -23,8 +26,8 @@ const onClickHandle = (value: string) => {
     <template #dropdown>
       <el-dropdown-menu>
         <div class="group">
-          <span>對齊</span>
-          <div class="row">
+          <span v-if="alignEnabled">對齊</span>
+          <div v-if="alignEnabled" class="row">
             <div class="col">
               <div class="item" @pointerup="onClickHandle('top')">
                 <div><Symbols name="align-top"/></div>
@@ -54,7 +57,7 @@ const onClickHandle = (value: string) => {
               </div>
             </div>
           </div>
-          <el-divider/>
+          <el-divider v-if="alignEnabled"/>
           <div class="row">
             <div class="item" @pointerup="onClickHandle('flip-horizontal')">
               <div class="icon">

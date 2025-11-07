@@ -243,7 +243,7 @@ const saveImage = async () => {
     // 4. 將暫時畫布的內容轉換為圖片的 data URL 並觸發下載
     const link = document.createElement('a');
     link.href = href;
-    link.download = `edited-image-${Date.now()}.png`; // 加上時間戳避免檔名重複
+    link.download = imagesStore.pageName ? `${imagesStore.pageName}.png` : `edited-image-${Date.now()}.png`; // 加上時間戳避免檔名重複
     document.body.appendChild(link); // Firefox 需要將 link 加入 DOM
     link.click();
     document.body.removeChild(link); // 清理 DOM
@@ -325,6 +325,9 @@ const alignSelectedElement = (horizontal: string, vertical: string) => {
     editor.value.align(horizontal, vertical);
   }
 }
+const refresh = () => {
+  editor.value.render();
+}
 
 // --- 鍵盤事件處理 ---
 const handleDeleteSelected = () => {
@@ -361,7 +364,7 @@ const handleTextEditing = (type: string, action: string) => {
 
 }
 
-defineExpose({ addElement, updateSelectedElement, alignSelectedElement });
+defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh });
 
 </script>
 

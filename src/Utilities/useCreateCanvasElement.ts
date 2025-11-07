@@ -1,4 +1,4 @@
-import {processUrl} from "./FileProcessor.ts";
+import { processUrlToBase64 } from "./FileProcessor.ts";
 import {ElementTypesEnum, type ICanvasElement, type IImageConfig, type ISVGConfig, type ITextConfig} from "../types.ts";
 // 產生一個新的 CanvasElement
 export const createCanvasElement = (element: ICanvasElement, canvas: { width: number, height: number }, scale: number = 1) => {
@@ -37,23 +37,30 @@ export const createCanvasElement = (element: ICanvasElement, canvas: { width: nu
         }
         else if (element.type === ElementTypesEnum.Image) {
             const config: IImageConfig = element.config as IImageConfig;
-            let img: HTMLImageElement;
+            let img: HTMLImageElement | undefined = undefined;
+            let base64;
             if (config.img) {
                 img = config.img;
-            } else {
-                img = await processUrl(config.url || '');
+                base64 = config.base64;
+            } else if (config.url) {
+                const load = await processUrlToBase64(config.url);
+                img = load.image;
+                base64 = load.base64;
             }
+
             resolve({
                 id: Date.now(),
                 type: ElementTypesEnum.Image,
                 name: element.name || '新貼圖',
                 config: {
-                    url: img.src,
-                    img,
+                    url: img?.src,
+                    img: img,
+                    base64,
+                    id: config.id,
                     x: canvas.width / 2,
                     y: canvas.height / 2,
-                    width: img.naturalWidth * scale,
-                    height: img.naturalHeight * scale,
+                    width: (img?.naturalWidth || 1) * scale,
+                    height: (img?.naturalHeight || 1) * scale,
                     rotation: 0,
                     opacity: Math.min(Math.max(config.opacity || 1, 0), 1.0),
                     draggable: true

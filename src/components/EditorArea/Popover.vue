@@ -10,7 +10,7 @@ const controls = ref<HTMLDivElement | null>(null);
 const popoverMenu = reactive({
   route: 'image',
   menus: [
-    {
+/*    {
       event: 'left',
       icon: 'align-left',
       title: '靠左對齊'
@@ -24,7 +24,7 @@ const popoverMenu = reactive({
       event: 'right',
       icon: 'align-right',
       title: '靠左對齊'
-    },
+    },*/
     {
       event: 'delete',
       icon: 'delete',

@@ -45,12 +45,11 @@ const handleAlignElement = (hAlign: string, vAlign: string) => {
   console.log('alignSelectedElement', hAlign, vAlign);
   editor.value?.alignSelectedElement(hAlign, vAlign);
 }
+const handleRefresh = () => {
+  editor.value?.refresh();
+}
 
-const selectedElement = computed(() => {
-  if (imagesStore.selectedElements.length <= 0) return null;
-  if (imagesStore.selectedElements.length > 1) return null;
-  return imagesStore.selectedElements[0];
-})
+const selectedElement = computed(() => imagesStore.selectedElement);
 
 // 處理從 DropZone 元件傳來的檔案
 const handleFilesDropped = async (files: FileList) => {
@@ -145,6 +144,7 @@ const mainStyle = computed(() => {
           <ImagePropsPanel
               v-if="selectedElement?.type === ElementTypesEnum.Image"
               @align-element="handleAlignElement"
+              @refresh="handleRefresh"
           />
         </div>
       </div>

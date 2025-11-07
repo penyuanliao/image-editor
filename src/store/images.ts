@@ -1,5 +1,11 @@
 import { defineStore } from 'pinia';
-import {ElementTypesEnum, type ICanvasElement, type IUploadedImage, type StageConfig} from "../types.ts";
+import {
+  ElementTypesEnum,
+  type ICanvasElement,
+  type IImageConfig,
+  type IUploadedImage,
+  type StageConfig
+} from "../types.ts";
 
 // 為了讓 CanvasEditor 能夠傳入 store，我們需要匯出 store 的類型
 export type ImagesStore = ReturnType<typeof useImagesStore>;
@@ -11,7 +17,7 @@ interface ImagesStoreState {
   elements: ICanvasElement[];
   selectedElements: ICanvasElement[]; // 將用此完全取代 selectedElement
   editingElement: ICanvasElement | null;
-  imageUrl: string | null;
+  pageName: string | null;
   deleteIcon: HTMLImageElement;
   savingImage: boolean;
 }
@@ -37,7 +43,8 @@ export const useImagesStore = defineStore('images', {
     // --- 互動狀態管理 ---
     selectedElements: [],
     editingElement: null, // 用於文字雙擊編輯
-    imageUrl: 'xxxxx',
+    // 檔案名稱
+    pageName: null,
     // --- 預載入控制項圖示 ---
     deleteIcon: new Image(),
 
@@ -65,7 +72,6 @@ export const useImagesStore = defineStore('images', {
     setOriginalImage(index: number) {
       if (index >= 0 && index < this.imageList.length) {
         this.originalImage = this.imageList[index]?.image;
-        this.imageUrl = this.imageList[index]?.image.src || null;
       }
     },
     addElement(element: ICanvasElement) {
@@ -147,10 +153,15 @@ export const useImagesStore = defineStore('images', {
           this.selectedElement.config.scaleY = -1;
         }
       }
+    },
+    // 替換圖片
+    replaceSelectedElementImage(image: HTMLImageElement, base64?: string) {
+      if (this.selectedElement) {
+        const config = this.selectedElement.config as IImageConfig;
+        config.img = image;
+        config.url = image.src;
+        config.base64 = base64;
+      }
     }
-
-
-
-
   },
 });

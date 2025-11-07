@@ -48,3 +48,26 @@ export const processUrl = (url: string) => {
         image.src = url;
     });
 }
+export const processUrlToBase64 = (url: string) => {
+    return new Promise<{ image: HTMLImageElement, base64: string }>(async (resolve, reject) => {
+        const image = new Image();
+        image.crossOrigin = "anonymous";
+        image.onload = () => {
+
+            const canvas = document.createElement("canvas");
+            canvas.width = image.width;
+            canvas.height = image.height;
+            const ctx = canvas.getContext("2d");
+            if (!ctx) return reject("Failed to get 2D context");
+            // 畫上圖片
+            ctx.drawImage(image, 0, 0);
+            // 轉成 base64
+            const base64 = canvas.toDataURL("image/png"); // 或 "image/jpeg"
+            resolve({
+                base64,
+                image
+            });
+        };
+        image.src = url;
+    });
+}
