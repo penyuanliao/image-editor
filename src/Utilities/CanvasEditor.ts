@@ -212,13 +212,12 @@ export class CanvasEditor {
                 draggable: true
             }
         } as ICanvasElement);
-        this.store.imageUrl = image.src;
         this.render();
     }
 
     public async addElement(element: any):Promise<boolean> {
-        if (!this.canvas || !this.store.imageUrl) {
-            ErrorMessage('請先上傳一張圖片！');
+        if (!this.canvas ) {
+            ErrorMessage('畫布並未被建立!!');
             return false;
         }
         const el = await createCanvasElement(element, this.canvas, this.viewport.scale);
@@ -608,7 +607,7 @@ export class CanvasEditor {
         }
     }
     private handleMouseMove(event: MouseEvent) {
-        if (!this.canvas || !this.store.imageUrl) return;
+        if (!this.canvas) return;
         const { x, y } = this.screenToWorld(event.offsetX, event.offsetY);
 
         // 處理拖曳選擇
@@ -837,7 +836,7 @@ export class CanvasEditor {
         }
     }
     private handleDoubleClick(event: MouseEvent) {
-        if (!this.store.imageUrl || !this.ctx) return;
+        if (!this.ctx) return;
         const { x, y } = this.screenToWorld(event.offsetX, event.offsetY);
         const clickedElement = this.findElementAtPosition(x, y) as ICanvasElement;
 
