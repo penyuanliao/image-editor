@@ -1,3 +1,5 @@
+import {generalDefaults} from "@/config/settings.ts";
+
 export interface ClipboardList {
     type: string,
     value: string | HTMLImageElement | null
@@ -15,7 +17,7 @@ export const clipboardPaste = async ():Promise<{
         if (item.types.includes('text/plain')) {
             let blob = await item.getType("text/plain");
             texts.push( await blob.text());
-        } else if (item.types.includes('image/png') || item.types.includes('image/jpeg')) {
+        } else if (item.types.every((type) => generalDefaults.supportedImageFiles.includes(type))) {
             const png = item.types.includes('image/png');
             const blob = await item.getType(png ? "image/png" : "image/jpeg");
             const image = await loadImage(blob);

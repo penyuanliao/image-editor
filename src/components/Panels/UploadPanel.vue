@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { UploadFilled } from "@element-plus/icons-vue";
-import { useImagesStore } from "../../store/images.ts";
-import {CreateImageElement} from "../../Utilities/useCreateCanvasElement.ts";
+import { useImagesStore } from "@/store/images.ts";
+import {CreateImageElement} from "@/Utilities/useCreateCanvasElement.ts";
 import NPanel from "../Basic/NPanel.vue";
 import NPanelButton from "@/components/Basic/NPanelButton.vue";
+import { generalDefaults } from "@/config/settings.ts";
 import {processFile} from "@/Utilities/FileProcessor.ts";
 import type {IUploadedImage} from "@/types.ts";
 
@@ -51,7 +52,7 @@ const triggerFileInput = () => {
         ref="fileInput"
         @change="handleFileChange"
         multiple
-        accept="image/*"
+        :accept="generalDefaults.supportedImageFiles.join(',')"
         hidden
     />
     <div class="categories">

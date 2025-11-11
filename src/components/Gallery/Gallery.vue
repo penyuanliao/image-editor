@@ -1,9 +1,9 @@
 <script setup lang="ts">
 
-const props = defineProps(['data']);
+const props = defineProps([ "label", "data"]);
 const emits = defineEmits(['item-click']);
 
-const onStickerClick = (value: any) => {
+const onItemClickHandle = (value: any) => {
   emits('item-click', value);
 }
 
@@ -11,25 +11,22 @@ const onStickerClick = (value: any) => {
 
 <template>
   <div class="gallery">
-    <template v-for="(group, index) in props.data"
-              :key="index">
-      <span class="label">{{ group.label }}></span>
-      <div class="image-wrapper">
-        <slot v-if="$slots.default"/>
-        <div
-            v-else
-            v-for="(item, index) in group.items"
-            :key="index"
-            class="image-grid"
-            @click="onStickerClick(item.value)">
-          <img v-if="item.url" :src="item.url" alt=""/>
-          <div class="content">
-            <span v-if="item.filename">{{ item.filename }}</span>
-            <span v-if="item.content">{{ item.content }}</span>
-          </div>
+    <span class="label">{{ props.label }}></span>
+    <div class="image-wrapper">
+      <slot v-if="$slots.default"/>
+      <div
+          v-else
+          v-for="(item, index) in props.data"
+          :key="index"
+          class="image-grid"
+          @click="onItemClickHandle(item.value)">
+        <img v-if="item.url" :src="item.url" alt=""/>
+        <div class="content">
+          <span v-if="item.filename">{{ item.filename }}</span>
+          <span v-if="item.content">{{ item.content }}</span>
         </div>
       </div>
-    </template>
+    </div>
   </div>
 </template>
 

@@ -6,7 +6,9 @@ export interface IGeneralSettings {
         color: string;
         maxWidth: number;
         maxHeight: number;
-    }
+    },
+    // 支援的圖片格式
+    supportedImageFiles: string[];
 }
 
 export interface IAdvancedSettings {
@@ -14,6 +16,17 @@ export interface IAdvancedSettings {
     alignEnabled: boolean;
 
 }
+
+export const generalDefaults: IGeneralSettings = {
+    viewport: {
+        width: 720,
+        height: 480,
+        color: "transparent",
+        maxWidth: 800,
+        maxHeight: 600
+    },
+    supportedImageFiles: ["image/png", "image/jpeg"]
+};
 
 export const appearanceDefaults = {
     AIStyles: [
@@ -26,15 +39,7 @@ export const appearanceDefaults = {
         { name: '塗鴉藝術', value: 6, key: 'Graffiti', url: './assets/themes/img_oil_painting.jpg' },
     ]
 }
-export const generalDefaults: IGeneralSettings = {
-    viewport: {
-        width: 720,
-        height: 480,
-        color: "transparent",
-        maxWidth: 800,
-        maxHeight: 600
-    },
-};
+
 export const advancedDefaults:IAdvancedSettings = {
     imageCropEditEnabled: true,
     alignEnabled: true,

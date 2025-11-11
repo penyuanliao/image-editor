@@ -1,12 +1,13 @@
 import { ErrorMessage } from "./AlertMessage.ts";
 import type { IUploadedImage } from "@/types.ts";
+import { generalDefaults } from "@/config/settings.ts";
 // 處理選擇或拖曳的檔案
 export const processFile = (file: File) => {
 
     return new Promise<IUploadedImage>((resolve, reject) => {
         // 驗證是否為圖片檔案
-        if (!file.type.startsWith('image/')) {
-            ErrorMessage('請上傳圖片檔案');
+        if (!generalDefaults.supportedImageFiles.includes(file.type)) {
+            ErrorMessage(`不支援的檔案格式。請上傳 ${generalDefaults.supportedImageFiles.join(', ')} 格式的檔案。`);
             reject('Invalid file type')
             return;
         }
@@ -45,6 +46,15 @@ export const processUrl = (url: string) => {
             resolve(image);
         };
         image.src = url;
+    });
+}
+export const processBase64 = (base64: string) => {
+    return new Promise<HTMLImageElement>(async (resolve) => {
+        const image = new Image();
+        image.onload = () => {
+            resolve(image);
+        };
+        image.src = `data:image/png;base64,${base64}`;
     });
 }
 const blobToBase64 = (blob: Blob) => {

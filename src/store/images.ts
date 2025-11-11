@@ -6,6 +6,7 @@ import {
   type IUploadedImage,
   type StageConfig
 } from "../types.ts";
+import {calculateConstrainedSize} from "@/Utilities/useImageEditor.ts";
 
 // 為了讓 CanvasEditor 能夠傳入 store，我們需要匯出 store 的類型
 export type ImagesStore = ReturnType<typeof useImagesStore>;
@@ -181,6 +182,10 @@ export const useImagesStore = defineStore('images', {
     replaceSelectedElementImage(image: HTMLImageElement, base64?: string) {
       if (this.selectedElement) {
         const config = this.selectedElement.config as IImageConfig;
+
+        const { width, height } = calculateConstrainedSize(image.naturalWidth, image.naturalHeight, config.width, config.height);
+        image.width = width;
+        image.height = height;
         config.img = image;
         config.url = image.src;
         config.base64 = base64;

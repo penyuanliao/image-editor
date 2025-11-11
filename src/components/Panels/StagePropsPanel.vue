@@ -12,24 +12,19 @@ const emit = defineEmits(['update-element']);
 
 const stageViews = ref([
   {
-    label: "預設尺寸",
-    items: [
-      {
-        filename: "標誌",
-        content: "800 x 600 像素",
-        value: { width: 800, height: 600 }
-      },
-      {
-        filename: "橫幅A",
-        content: "750 x 750 像素",
-        value: { width: 750, height: 750 }
-      },
-      {
-        filename: "橫幅B",
-        content: "750 x 200 像素",
-        value: { width: 750, height: 200 }
-      }
-    ]
+    filename: "標誌",
+    content: "800 x 600 像素",
+    value: { width: 800, height: 600 }
+  },
+  {
+    filename: "橫幅A",
+    content: "750 x 750 像素",
+    value: { width: 750, height: 750 }
+  },
+  {
+    filename: "橫幅B",
+    content: "750 x 200 像素",
+    value: { width: 750, height: 200 }
   }
 ]);
 
@@ -70,7 +65,7 @@ const handleStageChange = (value: { width: number; height: number }) => {
     </div>
     <div class="additional">
       <NPanelButton @pointerup="applyStageHandle">设定</NPanelButton>
-      <Gallery :data="stageViews" @itemClick="handleStageChange"/>
+      <Gallery label="預設尺寸" :data="stageViews" @itemClick="handleStageChange"/>
     </div>
   </div>
 </template>

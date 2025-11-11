@@ -12,6 +12,26 @@ const imagesStore = useImagesStore();
 
 const emit = defineEmits(['alignElement', 'refresh']);
 
+const safeConfigAccess = (prop: keyof IImageConfig, defaultValue: number) => {
+  return computed({
+    get() {
+      return (imagesStore.selectedElement?.config as IImageConfig)?.[prop] as number ?? defaultValue;
+    },
+    set(value: number) {
+      if (imagesStore.selectedElement?.config) {
+        // @ts-ignore
+        (imagesStore.selectedElement.config as IImageConfig)[prop] = value;
+      }
+    }
+  });
+};
+
+const configX = safeConfigAccess('x', 0);
+const configY = safeConfigAccess('y', 0);
+const configWidth = safeConfigAccess('width', 100);
+const configHeight = safeConfigAccess('height', 100);
+
+
 // Computed property to handle degree-radian conversion for the rotation slider
 const rotationInDegrees = computed({
   get() {
@@ -82,32 +102,32 @@ const handleDeleted = () => {
   }
 }
 
+
 </script>
 
 <template>
   <NPanel
-      v-if="imagesStore.selectedElement"
       padding="30px 25px 0 25px"
       :searchEnabled="false">
-    <div class="properties">
+    <div v-if="imagesStore.selectedElement" class="properties">
       <div class="view once-line">
         <img :src="(imagesStore.selectedElement?.config as IImageConfig)?.url" alt="">
       </div>
       <div class="ctrl">
         <span>X：</span>
-        <el-input-number class="el-input" v-model="imagesStore.selectedElement.config.x" :controls="false" style="width: 100%" />
+        <el-input-number class="el-input" v-model="configX" :controls="false" style="width: 100%" />
       </div>
       <div class="ctrl">
         <span>Y：</span>
-        <el-input-number class="el-input" v-model="imagesStore.selectedElement.config.y" :controls="false" style="width: 100%" />
+        <el-input-number class="el-input" v-model="configY" :controls="false" style="width: 100%" />
       </div>
       <div class="ctrl">
         <span>寬：</span>
-        <el-input-number class="el-input" v-model="imagesStore.selectedElement.config.width" :controls="false" style="width: 100%" />
+        <el-input-number class="el-input" v-model="configWidth" :controls="false" style="width: 100%" />
       </div>
       <div class="ctrl">
         <span>高：</span>
-        <el-input-number class="el-input" v-model="imagesStore.selectedElement.config.height" :controls="false" style="width: 100%" />
+        <el-input-number class="el-input" v-model="configHeight" :controls="false" style="width: 100%" />
       </div>
       <div class="ctrl once-line">
         <span>旋轉角度：</span>

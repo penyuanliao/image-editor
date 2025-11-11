@@ -4,7 +4,7 @@ import Symbols from "../Symbols.vue";
 import { useAIGenStore } from "@/store/useAIGenStore.ts";
 import {useImagesStore} from "@/store/images.ts";
 import type {IImageConfig} from "@/types.ts";
-import {processUrlToBase64} from "@/Utilities/FileProcessor.ts";
+import {processBase64, processUrlToBase64} from "@/Utilities/FileProcessor.ts";
 import {appearanceDefaults} from "@/config/settings.ts";
 import {AlertMessage, PromptMessage} from "@/Utilities/AlertMessage.ts";
 // import {calculateConstrainedSize} from "@/Utilities/useImageEditor.ts";
@@ -65,8 +65,9 @@ const onSubmit = async () => {
   }
 
   const config = imageStore.selectedElement?.config as IImageConfig;
+  const id = imageStore.selectedElement?.id || 0;
   if (config) {
-    const id = config.id || -1;
+    const materialId = config.id || -1;
     let image: HTMLImageElement;
     let base64: string;
     let result;
@@ -82,13 +83,14 @@ const onSubmit = async () => {
     result = await aiGenStore.fetchGenerate({
       image,
       base64,
-      id
+      id,
+      materialId
     }, {
       choice: selectedStyle.value,
       prompt: prompt.value
     });
     if (result) {
-      imageStore.replaceSelectedElementImage(result.image, result.base64);
+      imageStore.replaceSelectedElementImage(await processBase64(result.image), result.image);
       emit('refresh');
     }
   }
@@ -105,9 +107,10 @@ const onSubmit = async () => {
         <span class="remaining-tries">{{ remainingTries }}</span>
       </div>
     </div>
-    <div class="categories">
+    <div class="ai-select-stylize">
       <span class="label">風格轉換</span>
-      <div class="category-group">
+      
+      <div class="stylize">
         <div
           v-for="style in styles"
           :key="style.key"
@@ -177,14 +180,14 @@ const onSubmit = async () => {
     color: theme.$button-text-color;
   }
 }
-.categories {
+.ai-select-stylize {
   width: 100%;
   position: relative;
   display: flex;
   flex-direction: column;
   padding-bottom: 16px;
 
-  .category-group {
+  .stylize {
     display: flex;
     flex-wrap: wrap;
     flex-direction: row;
