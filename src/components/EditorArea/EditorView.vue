@@ -7,6 +7,7 @@ import {ElementTypesEnum, type ICanvasElement, type ITextConfig} from "@/types.t
 import Popover from "./Popover.vue";
 import KeyboardController from "../KeyboardController.vue";
 import Symbols from "@/components/Symbols.vue";
+import {generalDefaults} from "@/config/settings.ts";
 
 const imagesStore = useImagesStore();
 const emit = defineEmits(['element-selected']);
@@ -89,11 +90,14 @@ const popOverMenu = reactive({
 });
 
 onMounted(() => {
+
+  const { viewport } = generalDefaults;
+
   if (canvas.value) {
     editor.value.setup(canvas.value, uploaderContainer.value);
     editor.value.textInput = textInput.value;
     // 預設畫布大小
-    editor.value.updateViewportSize(800, 600);
+    editor.value.updateViewportSize(viewport.width, viewport.height, viewport.color);
     // 支援貼圖Ctrl+C和Ctrl+V
     editor.value.enableCopyAndPasteSupport();
     // 尺寸變更後需要重新繪製所有內容

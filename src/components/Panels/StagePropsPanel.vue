@@ -69,7 +69,7 @@ const handleStageChange = (value: { width: number; height: number }) => {
       </div>
     </div>
     <div class="additional">
-      <NPanelButton @pointerup="applyStageHandle">设定背景</NPanelButton>
+      <NPanelButton @pointerup="applyStageHandle">设定</NPanelButton>
       <Gallery :data="stageViews" @itemClick="handleStageChange"/>
     </div>
   </div>

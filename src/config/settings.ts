@@ -1,8 +1,19 @@
+
+export interface IGeneralSettings {
+    viewport: {
+        width: number;
+        height: number;
+        color: string;
+        maxWidth: number;
+        maxHeight: number;
+    }
+}
+
 export interface IAdvancedSettings {
     imageCropEditEnabled: boolean;
     alignEnabled: boolean;
-}
 
+}
 
 export const appearanceDefaults = {
     AIStyles: [
@@ -15,7 +26,15 @@ export const appearanceDefaults = {
         { name: '塗鴉藝術', value: 6, key: 'Graffiti', url: './assets/themes/img_oil_painting.jpg' },
     ]
 }
-
+export const generalDefaults: IGeneralSettings = {
+    viewport: {
+        width: 720,
+        height: 480,
+        color: "transparent",
+        maxWidth: 800,
+        maxHeight: 600
+    },
+};
 export const advancedDefaults:IAdvancedSettings = {
     imageCropEditEnabled: false,
     alignEnabled: false,

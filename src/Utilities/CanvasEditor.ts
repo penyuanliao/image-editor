@@ -24,7 +24,7 @@ import {
     type ITextConfig,
 } from "../types.ts";
 import {processUrl} from "./FileProcessor.ts";
-import { advancedDefaults } from "@/config/settings.ts";
+import {advancedDefaults, generalDefaults} from "@/config/settings.ts";
 
 interface ICanvasViewport {
     width: number;
@@ -965,7 +965,7 @@ export class CanvasEditor {
     // 同步更新 canvas 的繪圖表面尺寸
     public updateViewportSize(width: number, height: number, color: string = "transparent") {
         const { canvas, divContainer } = this;
-        this.viewport = calculateConstrainedSize(width, height, 800, 600);
+        this.viewport = calculateConstrainedSize(width, height, generalDefaults.viewport.maxWidth, generalDefaults.viewport.maxHeight);
         if (canvas) {
             canvas.width = this.viewport.width;
             canvas.height = this.viewport.height;
