@@ -55,18 +55,24 @@ const handleLockAndUnlock = () => {
 }
 const handlePositionChange = (value: string) => {
 
-  const horizontally: string[] = ['left', 'center', 'right'];
-  const vertically: string[] = ['top', 'middle', 'bottom'];
-  let horizontal = null;
-  let vertical = null;
-  if (horizontally.includes(value)) {
-    horizontal = value;
-  }
-  if (vertically.includes(value)) {
-    vertical = value;
-  }
-  if (horizontal || vertical) {
-    emit('alignElement', horizontal, vertical);
+  if (value === 'flip-horizontal') {
+    imagesStore.flipHorizontal();
+  } else if (value === 'flip-vertical') {
+    imagesStore.flipVertical();
+  } else {
+    const horizontally: string[] = ['left', 'center', 'right'];
+    const vertically: string[] = ['top', 'middle', 'bottom'];
+    let horizontal = null;
+    let vertical = null;
+    if (horizontally.includes(value)) {
+      horizontal = value;
+    }
+    if (vertically.includes(value)) {
+      vertical = value;
+    }
+    if (horizontal || vertical) {
+      emit('alignElement', horizontal, vertical);
+    }
   }
 }
 const handleDeleted = () => {
@@ -81,7 +87,7 @@ const handleDeleted = () => {
 <template>
   <NPanel
       v-if="imagesStore.selectedElement"
-      padding="30px 16px 0 16px"
+      padding="30px 25px 0 25px"
       :searchEnabled="false">
     <div class="properties">
       <div class="view once-line">

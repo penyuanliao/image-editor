@@ -48,6 +48,7 @@ interface IDragStart {
     elementRotation: number,
     angle: number,
     elementSize: number, // for text and icons
+    startHandleDistance?: number;
 }
 
 interface IContextMenuEvent {
@@ -102,6 +103,7 @@ export class CanvasEditor {
         elementRotation: 0,
         angle: 0,
         elementSize: 0, // for text and icons
+        startHandleDistance: 0,
     };
     public textInputStyle: any = {
         top: '0px',
@@ -459,12 +461,11 @@ export class CanvasEditor {
                 // 2. 計算邊界框的總寬度和中心點
                 const totalWidth = maxX - minX;
                 const centerX = minX + totalWidth / 2;
-                const topY = minY; // Popover 顯示在最頂部
 
-                // console.log(`選取了 ${selectedElements.length} 個物件，總寬度: ${totalWidth.toFixed(2)} x: ${centerX} y: ${topY}`);
+                // console.log(`選取了 ${selectedElements.length} 個物件，總寬度: ${totalWidth.toFixed(2)} x: ${centerX} y: ${minY}`);
 
                 // 3. 觸發 onPopOverMenu 事件，傳遞計算後的位置
-                this.onPopOverMenu?.({ visible: true, x: centerX, y: topY, element: null });
+                this.onPopOverMenu?.({ visible: true, x: centerX, y: minY, element: null });
             }
         } else {
             // 如果沒有選取物件或要隱藏 Popover，則發送隱藏事件
@@ -588,6 +589,15 @@ export class CanvasEditor {
             this.dragStart.angle = Math.atan2(y - element.config.y, x - element.config.x) - this.dragStart.elementRotation;
         } else {
             this.isResizing = action; // 'tl', 'tr', 'bl', 'br'
+            // 在這裡計算並儲存初始拖曳時，控制點到中心的距離
+            if (this.ctx && !['tm', 'bm', 'ml', 'mr'].includes(action)) {
+                const handleKey = action as 'tl' | 'tr' | 'bl' | 'br';
+                const handles = getTransformHandles(this.ctx, element);
+                if (handles) {
+                    const startHandlePos = handles.points[handleKey];
+                    this.dragStart.startHandleDistance = Math.hypot(startHandlePos.x - element.config.x, startHandlePos.y - element.config.y);
+                }
+            }
         }
         this.render();
     }
@@ -727,32 +737,41 @@ export class CanvasEditor {
             const cos = Math.cos(angle);
             const sin = Math.sin(angle);
             const element = this.store.selectedElements[0];
-            const dx = x - this.dragStart.x;
-            const dy = y - this.dragStart.y;
             if (!element) return;
             // Side handles for non-proportional scaling (stickers only)
-            if (element.type === ElementTypesEnum.Image && ['tm', 'bm', 'ml', 'mr'].includes(this.isResizing)) {
+            if (element.type === ElementTypesEnum.Image && this.isResizing && ['tm', 'bm', 'ml', 'mr'].includes(this.isResizing)) {
                 const sticker = element.config as IImageConfig;
+                const sign = ['tm', 'ml'].includes(this.isResizing) ? -1 : 1;
+
                 if (this.isResizing === 'tm' || this.isResizing === 'bm') {
-                    // Project mouse delta onto element's local Y-axis
-                    const projectedDistance = -dx * sin + dy * cos;
-                    const sign = this.isResizing === 'tm' ? -1 : 1;
-                    const newHeight = Math.max(10, this.dragStart.elementHeight + projectedDistance * sign);
+                    // 1. 計算固定邊的中點 (pivot)
+                    const pivotX = this.dragStart.elementX - this.dragStart.elementHeight / 2 * sin * sign;
+                    const pivotY = this.dragStart.elementY - this.dragStart.elementHeight / 2 * cos * sign;
+
+                    // 2. 計算從 pivot 到滑鼠的向量，並投影到元素的局部 Y 軸上，得到新高度
+                    const dx = x - pivotX;
+                    const dy = y - pivotY;
+                    const newHeight = Math.max(10, Math.abs(-dx * sin + dy * cos));
                     sticker.height = newHeight;
-                    // Adjust position to keep the opposite edge in place
-                    const deltaHeight = (newHeight - this.dragStart.elementHeight) / 2;
-                    sticker.x = this.dragStart.elementX + deltaHeight * sin * sign;
-                    sticker.y = this.dragStart.elementY + deltaHeight * cos * sign;
+
+                    // 3. 根據新高度和 pivot 重新計算元素中心點
+                    sticker.x = this.dragStart.elementX + (newHeight / 2 - this.dragStart.elementHeight / 2) * sin * sign;
+                    sticker.y = this.dragStart.elementY + (newHeight / 2 - this.dragStart.elementHeight / 2) * cos * sign;
+
                 } else { // 'ml' or 'mr'
-                    // Project mouse delta onto element's local X-axis
-                    const projectedDistance = dx * cos + dy * sin;
-                    const sign = this.isResizing === 'ml' ? -1 : 1;
-                    const newWidth = Math.max(10, this.dragStart.elementWidth + projectedDistance * sign);
+                    // 1. 計算固定邊的中點 (pivot)
+                    const pivotX = this.dragStart.elementX - this.dragStart.elementWidth / 2 * cos * sign;
+                    const pivotY = this.dragStart.elementY + this.dragStart.elementWidth / 2 * sin * sign;
+
+                    // 2. 計算從 pivot 到滑鼠的向量，並投影到元素的局部 X 軸上，得到新寬度
+                    const dx = x - pivotX;
+                    const dy = y - pivotY;
+                    const newWidth = Math.max(10, Math.abs(dx * cos + dy * sin));
                     sticker.width = newWidth;
-                    // Adjust position to keep the opposite edge in place
-                    const deltaWidth = (newWidth - this.dragStart.elementWidth) / 2;
-                    sticker.x = this.dragStart.elementX + deltaWidth * cos * sign;
-                    sticker.y = this.dragStart.elementY - deltaWidth * sin * sign;
+
+                    // 3. 根據新寬度和 pivot 重新計算元素中心點
+                    sticker.x = this.dragStart.elementX + (newWidth / 2 - this.dragStart.elementWidth / 2) * cos * sign;
+                    sticker.y = this.dragStart.elementY - (newWidth / 2 - this.dragStart.elementWidth / 2) * sin * sign;
                 }
             } else {
                 // Corner handles (proportional scaling for all types) - REVISED LOGIC
@@ -762,10 +781,8 @@ export class CanvasEditor {
                 const currentDistance = Math.hypot(distFromCenterX, distFromCenterY);
 
                 // 獲取拖曳開始時，控制點到中心的距離
-                const handleKey = this.isResizing as 'tl' | 'tr' | 'bl' | 'br';
-                const handles = getTransformHandles(this.ctx!, element)!;
-                const startHandlePos = handles.points[handleKey];
-                const startDistance = Math.hypot(startHandlePos.x - element.config.x, startHandlePos.y - element.config.y);
+                const startDistance = this.dragStart.startHandleDistance;
+                if (!startDistance) return;
 
                 // 計算縮放比例
                 const scaleRatio = currentDistance / startDistance;

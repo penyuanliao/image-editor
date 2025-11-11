@@ -36,6 +36,6 @@ export const generalDefaults: IGeneralSettings = {
     },
 };
 export const advancedDefaults:IAdvancedSettings = {
-    imageCropEditEnabled: false,
-    alignEnabled: false,
+    imageCropEditEnabled: true,
+    alignEnabled: true,
 }

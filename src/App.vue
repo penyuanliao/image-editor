@@ -68,7 +68,7 @@ const handleFilesDropped = async (files: FileList) => {
 const mainStyle = computed(() => {
   // console.log(window.innerHeight);
   return {
-    '--panel-max-height': `${window.innerHeight - 80 - 21}px`
+    // '--panel-max-height': `${window.innerHeight - 80 - 21}px`
   }
 });
 
