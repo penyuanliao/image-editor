@@ -5,8 +5,8 @@ import {CanvasEditor} from "@/Utilities/CanvasEditor.ts";
 import {type CroppedExportOptions, exportCroppedArea} from "@/Utilities/useCanvasExporter.ts";
 import {ElementTypesEnum, type ICanvasElement, type ITextConfig} from "@/types.ts";
 import Popover from "./Popover.vue";
-import KeyboardController from "../KeyboardController.vue";
-import Symbols from "@/components/Symbols.vue";
+import KeyboardController from "../Basic/KeyboardController.vue";
+import Symbols from "@/components/Basic/Symbols.vue";
 import {generalDefaults} from "@/config/settings.ts";
 
 const imagesStore = useImagesStore();

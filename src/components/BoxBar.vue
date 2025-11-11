@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-import Symbols from "./Symbols.vue";
+import Symbols from "./Basic/Symbols.vue";
 import {onMounted, ref} from "vue";
 import {ImageEditorTypes} from "../types.ts";
 const selected = ref<number>(0);

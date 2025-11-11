@@ -1,16 +1,21 @@
 <script setup lang="ts">
 
-import Symbols from "@/components/Symbols.vue";
+import Symbols from "@/components/Basic/Symbols.vue";
 
-const props = defineProps(["tip", "size", "icon", "text"]);
+const props = defineProps(["tip", "size", "icon", "text", "width", "height"]);
+
 </script>
 
 <template>
-  <div v-if="props.tip">
+  <div>
     <el-tooltip
+        v-if="props.tip"
         :content="props.tip"
         placement="top">
-      <el-button class="el-btn">
+      <el-button class="el-btn" :style="{
+        width: `${props.width ? props.width + 'px' : '100%'} `,
+        height: `${props.width ? props.height + 'px' : '100%'} `,
+      }">
         <el-icon v-if="props.icon" :size="props.size">
           <Symbols :name="props.icon"/>
         </el-icon>
@@ -19,24 +24,28 @@ const props = defineProps(["tip", "size", "icon", "text"]);
         <slot v-else-if="$slots.default" name="default"/>
       </el-button>
     </el-tooltip>
+    <el-button v-else class="el-btn" :style="{
+        width: `${props.width ? props.width + 'px' : '100%'} `,
+        height: `${props.width ? props.height + 'px' : '100%'} `,
+      }">
+      <el-icon v-if="props.icon" :size="props.size">
+        <Symbols :name="props.icon"/>
+      </el-icon>
+      <slot v-else-if="$slots.icon" name="icon"/>
+      <span v-if="props.text" class="text">{{ props.text }}</span>
+      <slot v-else-if="$slots.default" name="default"/>
+    </el-button>
   </div>
-  <el-button v-else class="el-btn">
-    <el-icon v-if="props.icon" :size="props.size">
-      <Symbols :name="props.icon"/>
-    </el-icon>
-    <slot v-else-if="$slots.icon" name="icon"/>
-    <span v-if="props.text" class="text">{{ props.text }}</span>
-    <slot v-else-if="$slots.default" name="default"/>
-  </el-button>
+
 </template>
 
 <style scoped lang="scss">
 .el-btn {
-  width: 24px;
-  height: 24px;
+  min-width: 24px;
+  min-height: 24px;
   border: none;
   background: transparent;
-  padding: 0 0;
+  padding: 0 4px;
   border-radius: 4px;
 
   &:hover {

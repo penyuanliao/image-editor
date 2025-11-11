@@ -6,7 +6,7 @@ import TextPanel from "./components/Panels/TextPanel.vue";
 import StickersPanel from "./components/Panels/StickersPanel.vue";
 import UploadPanel from "./components/Panels/UploadPanel.vue";
 import LayersPanel from "./components/Panels/LayersPanel.vue";
-import DropZone from "./components/DropZone.vue"; // 引入新的 DropZone 元件
+import DropZone from "./components/Basic/DropZone.vue"; // 引入新的 DropZone 元件
 import { useImagesStore } from "./store/images";
 import ImagePropsPanel from "./components/Panels/ImagePropsPanel.vue";
 import EditorView from "./components/EditorArea/EditorView.vue";

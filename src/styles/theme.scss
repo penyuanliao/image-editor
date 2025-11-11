@@ -83,8 +83,12 @@ h2 {
   }
 }
 .slider-with-input {
+  :deep(.show-input) {
+    margin-right: 20px;
+  }
   :deep(.el-slider__input) {
     width: 50%; // 在這裡調整您想要的寬度
+    gap: 0;
   }
   :deep(.el-input-number) {
     width: 60px;
@@ -107,4 +111,20 @@ h2 {
   border: 2px solid $border-color-base;
   box-shadow: 0 1px 5px rgba(39,59,69,.05),0 1px 2px rgba(39,59,69,.05);
   background-color: #f15624;
+}
+
+:deep(.el-dropdown-menu__item) {
+  &:not(.is-disabled):hover,
+  &:not(.is-disabled):focus {
+    background-color: #EEEEEE;
+    color: $text-color;
+  }
+  &:not(.is-disabled) {
+    color: $text-color;
+  }
+
+  &.is-disabled:focus {
+    background-color: transparent;
+    color: var(--el-color-info-light-3);
+  }
 }

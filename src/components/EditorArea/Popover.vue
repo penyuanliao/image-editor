@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import Symbols from "../Symbols.vue";
+import Symbols from "../Basic/Symbols.vue";
 import {computed, nextTick, onMounted, onUpdated, reactive, ref} from "vue";
 import {useImagesStore} from "@/store/images.ts";
 import type {DropdownInstance} from "element-plus";
 import NButton from "@/components/Basic/NButton.vue";
 import NPosition from "@/components/Basic/NPosition.vue";
 import {advancedDefaults} from "@/config/settings.ts";
+import NRotation from "@/components/NRotation.vue";
 
 const imagesStore = useImagesStore();
 
@@ -153,10 +154,11 @@ const handleOnClick = (value: string) => {
         </el-dropdown>
       </el-tooltip>
       <NPosition :flipEnabled="false" v-if="advancedDefaults.alignEnabled" @change="handlePositionChange">
-        <NButton icon="align-left" size="20" tip="對齊"></NButton>
+        <NButton icon="align-left" size="20" tip="對齊" width="24" height="24"></NButton>
       </NPosition>
+      <NRotation/>
       <template v-for="item in popoverMenu.menus">
-        <NButton :tip="item.title" size="20" :icon="item.icon" @click="handleOnClick(item.event)"/>
+        <NButton :tip="item.title" size="20" width="24" height="24" :icon="item.icon" @click="handleOnClick(item.event)"/>
       </template>
       <slot/>
     </div>
@@ -241,17 +243,6 @@ const handleOnClick = (value: string) => {
   }
 }
 
-:deep(.el-dropdown-menu__item) {
-  &:not(.is-disabled):hover,
-  &:not(.is-disabled):focus {
-    background-color: #EEEEEE;
-    color: #3a3a3a;
-  }
 
-  &.is-disabled:focus {
-    background-color: transparent;
-    color: var(--el-color-info-light-3);
-  }
-}
 
 </style>

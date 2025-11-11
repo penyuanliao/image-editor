@@ -42,10 +42,10 @@ export const useAIGenStore = defineStore('aiGenStore', () => {
             const body:AIGenRequest  = {
                 choice: args.choice
             };
-            if (source.materialId) {
+            if (source.materialId && source.materialId > 0) {
                 body.materialid = source.materialId;
             } else if (source.base64) {
-                body.originalimage = source.base64;
+                body.originalimage = source.base64.replace(/^data:image\/[a-z]+;base64,/, '')
             } else {
                 body.originalurl = source.image.src;
             }
@@ -53,6 +53,8 @@ export const useAIGenStore = defineStore('aiGenStore', () => {
             if (args.prompt && args.choice === 0) {
                 body.prompt = args.prompt;
             }
+            console.log('generated:', JSON.stringify(body, null, '\t'));
+
             // 這裡替換成你真實的 API 請求
             const response = await fetch(`/api/frontend/image/generate`, {
                 method: 'POST',

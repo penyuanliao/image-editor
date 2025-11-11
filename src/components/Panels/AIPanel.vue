@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {computed, ref} from "vue";
-import Symbols from "../Symbols.vue";
+import Symbols from "../Basic/Symbols.vue";
 import { useAIGenStore } from "@/store/useAIGenStore.ts";
 import {useImagesStore} from "@/store/images.ts";
 import type {IImageConfig} from "@/types.ts";
