@@ -15,7 +15,9 @@ const onStickerClick = (value: any) => {
               :key="index">
       <span class="label">{{ group.label }}></span>
       <div class="image-wrapper">
+        <slot v-if="$slots.default"/>
         <div
+            v-else
             v-for="(item, index) in group.items"
             :key="index"
             class="image-grid"

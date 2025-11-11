@@ -8,7 +8,7 @@ export interface ResponseResult {
 }
 // 產生的AI圖片action
 export const useAIGenStore = defineStore('aiGenStore', () => {
-    const originalImages: Map<number, { image: HTMLImageElement, base64: string, id: number }> = new Map();
+    const originalImages: Map<number, { image: HTMLImageElement, base64?: string, id: number, blob?:Blob }> = new Map();
     // 存放處理過後圖片資料
     const rawData = ref<any[]>([]);
     // 記錄讀取狀態
@@ -17,17 +17,50 @@ export const useAIGenStore = defineStore('aiGenStore', () => {
     const error = ref<string | null>(null);
 
     // 從 API 獲取模板的 action
-    const fetchMaterials = async (source: { image: HTMLImageElement, base64: string, id: number }) => {
+    const fetchGenerate = async (source: {
+        image: HTMLImageElement,
+        id: number,
+        base64?: string,
+        blob?:Blob
+    }, args: {
+        prompt?: string,
+        choice: number,
+    }) => {
         isLoading.value = true;
         error.value = null;
         try {
-            // 這裡替換成你真實的 API 請求
-            const response = await fetch('/api/ai-generated');
-            let base64: string = source?.base64;
-            // 記錄原圖
-            if (originalImages.has(source.id)) {
-                base64 = originalImages.get(source.id)?.base64 || '';
+            let contentType: string;
+            let body;
+            let query = '';
+            if (source.blob) {
+                contentType = 'multipart/form-data';
+                body = new FormData();
+                body.append('image', source.blob);
             } else {
+                contentType = 'application/json';
+                body = JSON.stringify({
+                    image: source.base64
+                });
+            }
+            if (args.choice >= 0) {
+                query = `?id=${source.id}`;
+            }
+            // 選擇的
+            if (args.prompt && args.choice === 0) {
+                query += `&prompt=${args.prompt}`;
+            }
+
+
+            // 這裡替換成你真實的 API 請求
+            const response = await fetch(`/api/image/generate${query}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': contentType
+                },
+                body
+            });
+            // 記錄原圖
+            if (source.id > 0 && !originalImages.has(source.id)) {
                 originalImages.set(source.id, source);
             }
             if (!response.ok) {
@@ -57,7 +90,7 @@ export const useAIGenStore = defineStore('aiGenStore', () => {
     return {
         isLoading,
         error,
-        fetchMaterials,
+        fetchGenerate,
         hasOriginalImage,
         getOriginalImage
     };

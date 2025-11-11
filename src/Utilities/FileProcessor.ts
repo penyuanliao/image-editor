@@ -32,7 +32,6 @@ export const processFile = (file: File) => {
 export const processBlob = (blob: Blob) => {
     return new Promise<HTMLImageElement>(async (resolve) => {
         const pngImage = new Image();
-        pngImage.alt = "PNG image from clipboard";
         pngImage.onload = () => {
             resolve(pngImage);
         };
@@ -48,26 +47,28 @@ export const processUrl = (url: string) => {
         image.src = url;
     });
 }
-export const processUrlToBase64 = (url: string) => {
-    return new Promise<{ image: HTMLImageElement, base64: string }>(async (resolve, reject) => {
-        const image = new Image();
-        image.crossOrigin = "anonymous";
-        image.onload = () => {
-
-            const canvas = document.createElement("canvas");
-            canvas.width = image.width;
-            canvas.height = image.height;
-            const ctx = canvas.getContext("2d");
-            if (!ctx) return reject("Failed to get 2D context");
-            // 畫上圖片
-            ctx.drawImage(image, 0, 0);
-            // 轉成 base64
-            const base64 = canvas.toDataURL("image/png"); // 或 "image/jpeg"
-            resolve({
-                base64,
-                image
-            });
-        };
-        image.src = url;
+const blobToBase64 = (blob: Blob) => {
+    return new Promise<string>(async (resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string); // 這裡會得到 base64 字串（含 data:... 前綴）
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
     });
+}
+export const processUrlToBase64 = async (url: string) => {
+
+    const response = await fetch(url);
+
+    if (!response.ok) {
+        throw new Error(`下載圖片失敗: ${response.status}`);
+    }
+    const blob = await response.blob();
+
+    const base64 = await blobToBase64(blob);
+
+    return {
+        image: await processBlob(blob),
+        base64: base64,
+        blob: blob
+    }
 }

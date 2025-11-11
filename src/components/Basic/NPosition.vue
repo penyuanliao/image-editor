@@ -2,10 +2,11 @@
 
 import Symbols from "@/components/Symbols.vue";
 import {ref} from "vue";
-
+import {advancedDefaults} from "@/config/settings.ts";
+const { flipEnabled } = defineProps(['flipEnabled'])
 const emits = defineEmits(['change']);
 
-const alignEnabled = ref<boolean>(false);
+const alignEnabled = ref<boolean>(advancedDefaults.alignEnabled);
 
 const onClickHandle = (value: string) => {
   emits('change', value);
@@ -20,7 +21,8 @@ const onClickHandle = (value: string) => {
       :show-arrow="false"
       placement="bottom-start"
   >
-    <div class="position-btn">
+    <slot v-if="$slots.default"/>
+    <div v-else class="position-btn">
       <Symbols name="align-left"/> 位置
     </div>
     <template #dropdown>
@@ -57,8 +59,8 @@ const onClickHandle = (value: string) => {
               </div>
             </div>
           </div>
-          <el-divider v-if="alignEnabled"/>
-          <div class="row">
+          <el-divider v-if="alignEnabled && flipEnabled !== false"/>
+          <div class="row" v-if="flipEnabled !== false">
             <div class="item" @pointerup="onClickHandle('flip-horizontal')">
               <div class="icon">
                 <Symbols name="flip-horizontal"/>

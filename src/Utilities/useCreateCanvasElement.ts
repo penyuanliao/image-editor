@@ -53,7 +53,7 @@ export const createCanvasElement = (element: ICanvasElement, canvas: { width: nu
                 type: ElementTypesEnum.Image,
                 name: element.name || '新貼圖',
                 config: {
-                    url: img?.src,
+                    url: config.url ? config.url : img?.src,
                     img: img,
                     base64,
                     id: config.id,

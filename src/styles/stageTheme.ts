@@ -7,4 +7,7 @@ export const stageTheme = {
     dropBoxColor: "#78EFB2",
     dropBoxBorderWidth: 3,
 }
+export const htmlTheme = {
+    progressBarColor: "#F15624"
+}
 export default stageTheme;

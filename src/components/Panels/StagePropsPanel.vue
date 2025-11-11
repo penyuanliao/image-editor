@@ -63,6 +63,10 @@ const handleStageChange = (value: { width: number; height: number }) => {
           <ColorPicker use-type="pure" format="hex4" v-model:pureColor="(store.stage.config as StageConfig).color"/>
         </div>
       </div>
+      <div class="ctrl once-line">
+        <span>專案名稱：</span>
+        <el-input placeholder="輸出檔案名稱" v-model="store.pageName"></el-input>
+      </div>
     </div>
     <div class="additional">
       <NPanelButton @pointerup="applyStageHandle">设定背景</NPanelButton>

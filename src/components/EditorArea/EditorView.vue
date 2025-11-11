@@ -407,7 +407,8 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh 
           ref="popOverRef">
         <Popover
             v-show="popOverMenu.visible && (selectedElement?.type === ElementTypesEnum.Image || imagesStore.selectedElements.length > 1)"
-            @change="handlePopOverMenuChange"/>
+            @change="handlePopOverMenuChange"
+            @alignElement="alignSelectedElement"/>
       </div>
       <!-- 自訂右鍵選單 -->
       <div

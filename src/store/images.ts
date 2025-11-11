@@ -57,10 +57,17 @@ export const useImagesStore = defineStore('images', {
       if (state.selectedElements.length <= 0) return null;
       if (state.selectedElements.length > 1) return null;
       const element = state.selectedElements[0];
-      if (element && (element.type === ElementTypesEnum.Image || element.type === ElementTypesEnum.Stage)) {
+      if (element) {
         return element as ICanvasElement;
       }
       return null;
+    },
+    selectedIndex(state): number {
+      const selected = this.selectedElement;
+      if (selected !== null) {
+        return state.elements.findIndex(el => el.id === selected.id);
+      }
+      return -1;
     }
   },
   actions: {
@@ -96,19 +103,35 @@ export const useImagesStore = defineStore('images', {
       }
     },
     // 往前一層
-    forwardElement(elementId: number) {
+    moveForwardElement(elementId: number) {
       const index = this.elements.findIndex(el => el.id === elementId);
-      if (index > 0 && index < this.elements.length - 1) {
+      if (index >= 0 && index <= this.elements.length - 1) {
+        const moveElement = this.elements.splice(index, 1)[0] as ICanvasElement;
+        this.elements.splice(index + 1, 0, moveElement);
+      }
+    },
+    // 往後一層
+    moveBackwardElement(elementId: number) {
+      const index = this.elements.findIndex(el => el.id === elementId);
+      if (index >= 0 && index <= this.elements.length - 1) {
         const moveElement = this.elements.splice(index, 1)[0] as ICanvasElement;
         this.elements.splice(index - 1, 0, moveElement);
       }
     },
-    // 往後一層
-    backwardElement(elementId: number) {
+    // 推到最下層
+    moveBottomElement(elementId: number) {
       const index = this.elements.findIndex(el => el.id === elementId);
-      if (index > 0 && index < this.elements.length - 1) {
+      if (index >= 0 && index <= this.elements.length - 1) {
         const moveElement = this.elements.splice(index, 1)[0] as ICanvasElement;
-        this.elements.splice(index + 1, 0, moveElement);
+        this.elements.unshift(moveElement)
+      }
+    },
+    // 推到最上層
+    moveTopElement(elementId: number) {
+      const index = this.elements.findIndex(el => el.id === elementId);
+      if (index >= 0 && index <= this.elements.length - 1) {
+        const moveElement = this.elements.splice(index, 1)[0] as ICanvasElement;
+        this.elements.push(moveElement);
       }
     },
     reorderElements(elements: ICanvasElement[]) {

@@ -88,6 +88,18 @@ export default defineComponent({
       </g>
     </svg>
   </template>
+  <template v-else-if="name === 'layers-up'">
+    <svg width="24" height="24" viewBox="0 0 0.72 0.72" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M.15.39.339.201a.03.03 0 0 1 .042 0L.57.39M.15.54h.42" stroke="#000" stroke-width=".06" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </template>
+  <template v-else-if="name === 'layers-down'">
+    <svg width="24" height="24" viewBox="0 0 0.72 0.72" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M.57.33.381.519a.03.03 0 0 1-.042 0L.15.33M.57.18H.15" stroke="#000" stroke-width=".06" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </template>
+  <template v-else-if="name === 'layers-top'">
+    <svg width="24px" height="24px" viewBox="0 0 0.72 0.72" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0.57 0.12H0.15m0.21 0.48V0.24m0 0 -0.09 0.09m0.09 -0.09 0.09 0.09" stroke="#000000" stroke-width="0.06" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </template>
+  <template v-else-if="name === 'layers-bottom'">
+    <svg width="24" height="24" viewBox="0 0 0.72 0.72" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M.15.6h.42M.36.12v.36m0 0L.45.39M.36.48.27.39" stroke="#000" stroke-width=".06" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </template>
   <template v-else-if="name === 'align-left'">
     <svg width="24" height="24" viewBox="0 0 7.68 7.68" xmlns="http://www.w3.org/2000/svg">
       <path
@@ -291,8 +303,11 @@ export default defineComponent({
     <svg width="69" height="69" viewBox="0 0 69 69" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M69 13.815C69 6.197 62.803 0 55.185 0h-41.37a13.74 13.74 0 0 0-8.26 2.748 14 14 0 0 0-1.961 1.784A13.76 13.76 0 0 0 0 13.815v41.371c0 3.412 1.245 6.54 3.302 8.952v.674l.61-.004a13.9 13.9 0 0 0 3.92 2.828q.604.293 1.238.524c1.48.542 3.08.84 4.745.84h41.37C62.803 69 69 62.803 69 55.185V33.59c0-.243-.031-.48-.083-.706q.082-.342.083-.706zM10.87 6.837a7.5 7.5 0 0 1 1.421-.443 7.6 7.6 0 0 1 1.524-.155h4.006a.7.7 0 0 0-.048.144c-1.831 8.35-4.033 11.015-11.532 12.935v-5.503a7.59 7.59 0 0 1 4.63-6.978M62.76 33.593v3.695L53.02 26.19c-3.046-3.471-8.478-3.383-11.408.185L27.97 42.98l-4.387-4.753c-3.017-3.268-8.203-3.2-11.133.15l-6.212 7.1v-23.91c7.499 1.918 9.701 4.586 11.532 12.936.162.74 1.217.74 1.379 0 1.972-8.997 4.373-11.396 13.368-13.369.741-.162.741-1.217 0-1.379-8.997-1.972-11.396-4.373-13.368-13.368a.7.7 0 0 0-.048-.144h36.081c4.177 0 7.574 3.397 7.574 7.574v18.366c0 .242.031.48.083.706a3 3 0 0 0-.083.706z" fill="#F15624"/></svg>
   </template>
   <template v-else-if="name === 'delete'">
-
-    <svg width="24" height="24" viewBox="0 0 1.08 1.08" xmlns="http://www.w3.org/2000/svg"><title>trash-line</title><path class="clr-i-outline clr-i-outline-path-1" d="M.814 1.02H.266A.09.09 0 0 1 .18.93V.337h.06V.93a.03.03 0 0 0 .026.03h.548A.03.03 0 0 0 .84.93V.337H.9V.93a.09.09 0 0 1-.086.09"/><path class="clr-i-outline clr-i-outline-path-2" d="M.923.27H.15a.03.03 0 0 1 0-.06h.773a.03.03 0 0 1 0 .06"/><path class="clr-i-outline clr-i-outline-path-3" d="M.63.39h.06v.45H.63z"/><path class="clr-i-outline clr-i-outline-path-4" d="M.39.39h.06v.45H.39z"/><path class="clr-i-outline clr-i-outline-path-5" d="M.69.176H.633V.12H.447v.056H.39V.12A.06.06 0 0 1 .447.06h.186A.06.06 0 0 1 .69.12Z"/><path d="M0 0h1.08v1.08H0z" fill="none"/></svg>
+    <svg width="24" height="24" viewBox="0 0 0.72 0.72" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M.3.36v.15M.42.36v.15m-.3-.3H.6M.18.3v.24a.09.09 0 0 0 .09.09h.18A.09.09 0 0 0 .54.54V.3M.27.15A.06.06 0 0 1 .33.09h.06a.06.06 0 0 1 .06.06v.06H.27z" stroke="currentColor" stroke-width=".06" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </template>
+  <template v-else-if="name === 'copy'">
+    <svg width="24" height="24" viewBox="0 0 0.72 0.72" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M.15.45C.122.45.108.45.097.445A.06.06 0 0 1 .065.413C.06.402.06.388.06.36V.156c0-.034 0-.05.007-.063A.06.06 0 0 1 .093.067C.106.06.122.06.156.06H.36c.028 0 .042 0 .053.005a.06.06 0 0 1 .032.032C.45.108.45.122.45.15M.366.66h.198c.034 0 .05 0 .063-.007A.06.06 0 0 0 .653.627C.66.614.66.598.66.564V.366c0-.034 0-.05-.007-.063A.06.06 0 0 0 .627.277C.614.27.598.27.564.27H.366c-.034 0-.05 0-.063.007a.06.06 0 0 0-.026.026C.27.316.27.332.27.366v.198c0 .034 0 .05.007.063a.06.06 0 0 0 .026.026C.316.66.332.66.366.66" stroke="#000" stroke-width=".06" stroke-linecap="round" stroke-linejoin="round"/></svg>
   </template>
   <template v-else-if="name === 'lock'">
     <Lock/>

@@ -6,6 +6,7 @@ import {useImagesStore} from "@/store/images.ts";
 import type {IImageConfig} from "@/types.ts";
 import {processUrlToBase64} from "@/Utilities/FileProcessor.ts";
 import {appearanceDefaults} from "@/config/settings.ts";
+import {AlertMessage, PromptMessage} from "@/Utilities/AlertMessage.ts";
 // import {calculateConstrainedSize} from "@/Utilities/useImageEditor.ts";
 
 const aiGenStore = useAIGenStore();
@@ -13,9 +14,7 @@ const imageStore = useImagesStore();
 
 const emit = defineEmits(['refresh']);
 
-const styles = ref([...appearanceDefaults.AIStyles]);
-
-// console.log(calculateConstrainedSize(300, 200, 150, 150));
+// const styles = ref([...appearanceDefaults.AIStyles]);
 
 const originalImage = computed(() => {
   if (imageStore.selectedElement) {
@@ -25,35 +24,69 @@ const originalImage = computed(() => {
     }
   }
   return null;
+});
+const prompt = ref<string>('');
+
+const styles = computed(() => {
+  const list = [];
+  if (originalImage.value) list.push({
+    name: '原始圖片',
+    value: -1,
+    key: 'original',
+    url: originalImage.value.image.src
+  });
+
+  return [...list, ...appearanceDefaults.AIStyles];
 })
 
-const selectedStyle = ref<number | null>(null);
+const selectedStyle = ref<number>(-1);
 
 const remainingTries = ref<Number>(10);
 
 const selectStyle = (style: number) => {
   selectedStyle.value = style;
+  if (selectedStyle.value !== 0) {
+    prompt.value = '';
+  }
 };
 
 const onSubmit = async () => {
+
+  if (selectedStyle.value === -1) {
+    await AlertMessage("請選擇風格");
+    return;
+  }
+  if (selectedStyle.value === 0 && !prompt.value) {
+    const message = await PromptMessage("請輸入提示詞").catch(() => {
+      return { action: "cancel", value: '' };
+    });
+    if (message.action === "confirm" && message.value.trim().length > 0) prompt.value = message.value;
+    else await AlertMessage("必須輸入提示詞");
+  }
+
   const config = imageStore.selectedElement?.config as IImageConfig;
   if (config) {
     const id = config.id || -1;
+    let image: HTMLImageElement;
+    let base64: string;
     let result;
     if (!config.img || !config.base64) {
       const load = await processUrlToBase64(config.url || '');
-      result = await aiGenStore.fetchMaterials({
-        image: load.image,
-        base64: load.base64,
-        id
-      });
+      image = load.image;
+      base64 = load.base64;
     } else {
-      result = await aiGenStore.fetchMaterials({
-        image: config.img,
-        base64: config.base64,
-        id
-      });
+      image = config.img;
+      base64 = config.base64;
     }
+
+    result = await aiGenStore.fetchGenerate({
+      image,
+      base64,
+      id
+    }, {
+      choice: selectedStyle.value,
+      prompt: prompt.value
+    });
     if (result) {
       imageStore.replaceSelectedElementImage(result.image, result.base64);
       emit('refresh');
@@ -75,9 +108,6 @@ const onSubmit = async () => {
     <div class="categories">
       <span class="label">風格轉換</span>
       <div class="category-group">
-        <div v-if="originalImage" class="item">
-          <img :src="originalImage.image.src" alt="原始圖片"/>
-        </div>
         <div
           v-for="style in styles"
           :key="style.key"
@@ -90,7 +120,7 @@ const onSubmit = async () => {
           >
             <img :src="style.url" alt=""/>
           </div>
-          <span :class="style.class">{{ style.name }}</span>
+          <span>{{ style.name }}</span>
         </div>
       </div>
     </div>
@@ -158,7 +188,7 @@ const onSubmit = async () => {
     display: flex;
     flex-wrap: wrap;
     flex-direction: row;
-    justify-content: flex-start;
+    justify-content: center;
     gap: 10px;
   }
 
@@ -169,6 +199,7 @@ const onSubmit = async () => {
     width: 80px;
     height: auto;
     display: flex;
+    position: relative;
     flex-wrap: wrap;
     flex-direction: row;
     justify-content: center;
@@ -176,8 +207,11 @@ const onSubmit = async () => {
   }
   .image {
     position: relative;
+    display: flex;
     width: 80px;
     height: 80px;
+    max-height: 80px;
+    max-width: 80px;
     flex-shrink: 0;
     background-color: rgba(80, 80, 80, 0.3);
     border-radius: 4px;
@@ -209,7 +243,7 @@ const onSubmit = async () => {
     img {
       width: 100%;
       height: 100%;
-      object-fit: contain;
+      object-fit: cover;
     }
   }
 }

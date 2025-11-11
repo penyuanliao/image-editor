@@ -55,24 +55,18 @@ const handleLockAndUnlock = () => {
 }
 const handlePositionChange = (value: string) => {
 
-  if (value === 'flip-horizontal') {
-    imagesStore.flipHorizontal();
-  } else if (value === 'flip-vertical') {
-    imagesStore.flipVertical();
-  } else {
-    const horizontally: string[] = ['left', 'center', 'right'];
-    const vertically: string[] = ['top', 'middle', 'bottom'];
-    let horizontal = null;
-    let vertical = null;
-    if (horizontally.includes(value)) {
-      horizontal = value;
-    }
-    if (vertically.includes(value)) {
-      vertical = value;
-    }
-    if (horizontal || vertical) {
-      emit('alignElement', horizontal, vertical);
-    }
+  const horizontally: string[] = ['left', 'center', 'right'];
+  const vertically: string[] = ['top', 'middle', 'bottom'];
+  let horizontal = null;
+  let vertical = null;
+  if (horizontally.includes(value)) {
+    horizontal = value;
+  }
+  if (vertically.includes(value)) {
+    vertical = value;
+  }
+  if (horizontal || vertical) {
+    emit('alignElement', horizontal, vertical);
   }
 }
 const handleDeleted = () => {
@@ -133,7 +127,7 @@ const handleDeleted = () => {
           <el-button :icon="imagesStore.selectedElement?.config.draggable ? Unlock : Lock" circle @click="handleLockAndUnlock"/>
         </el-tooltip>
         <el-tooltip content="刪除" placement="top">
-          <el-button type="danger" :icon="Delete" circle @pointerup="handleDeleted"/>
+          <el-button type="danger" :icon="Delete" @pointerup="handleDeleted">刪除</el-button>
         </el-tooltip>
       </div>
     </div>
