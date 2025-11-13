@@ -7,13 +7,14 @@ import {ElementTypesEnum, type ICanvasElement, type ITextConfig} from "@/types.t
 import Popover from "./Popover.vue";
 import KeyboardController from "../Basic/KeyboardController.vue";
 import Symbols from "@/components/Basic/Symbols.vue";
-import {generalDefaults} from "@/config/settings.ts";
+import {advancedDefaults, generalDefaults} from "@/config/settings.ts";
 
 const editorStore = useEditorStore();
 const emit = defineEmits(['element-selected']);
 
 const canvas = ref<HTMLCanvasElement | null>(null);
 const uploaderContainer = ref<HTMLDivElement | null>(null);
+const editorView = ref<HTMLDivElement | null>(null);
 const popOverRef = ref<InstanceType<typeof Popover> | null>(null);
 
 const editor = ref<CanvasEditor>(new CanvasEditor(editorStore));
@@ -48,6 +49,10 @@ const selectedElement = computed(() => {
   if (editorStore.selectedElements.length > 1) return null;
   return editorStore.selectedElements[0];
 });
+
+const zoom = computed(() => {
+  return editor.value.divScale * editor.value.viewport.scale;
+})
 
 const handleChange = (key: string, currentValue: number) => {
   if (key === 'x') {
@@ -91,10 +96,11 @@ const popOverMenu = reactive({
 
 onMounted(() => {
 
-  const { viewport } = generalDefaults;
+  const {viewport} = generalDefaults;
 
   if (canvas.value) {
-    editor.value.setup(canvas.value, uploaderContainer.value);
+    editor.value.setup(canvas.value, editorView.value);
+    if (uploaderContainer.value && advancedDefaults.zoomEnabled) editor.value.setupZoomView(uploaderContainer.value);
     editor.value.textInput = textInput.value;
     // 預設畫布大小
     editor.value.updateViewportSize(viewport.width, viewport.height, viewport.color);
@@ -139,12 +145,12 @@ watch(() => editorStore.selectedElements, (newSelection) => {
   emit('element-selected', newSelection.length > 0 ? JSON.parse(JSON.stringify(newSelection)) : []);
   editor.value.render();
   // popOverMenu.visible = (newSelection.length === 1);
-}, { deep: true });
+}, {deep: true});
 
 // 這邊檢查物件有異動就刷新畫面
 watch(() => editorStore.elements, () => {
   editor.value.render();
-}, { deep: true });
+}, {deep: true});
 
 watch(() => editorStore.originalImage, () => {
   if (editorStore.originalImage) {
@@ -152,7 +158,7 @@ watch(() => editorStore.originalImage, () => {
   }
   editor.value.resetCropMarks();
   editor.value.render(); // 進行初次繪製
-}, { deep: true });
+}, {deep: true});
 
 // 監聽裁切框的任何變更（來自拖曳或輸入框）
 watch(editor.value.cropBox, () => {
@@ -164,7 +170,7 @@ watch(editor.value.cropBox, () => {
   if (!wasConstrained) {
     editor.value.render();
   }
-}, { deep: true });
+}, {deep: true});
 
 // --- 文字編輯狀態 ---
 let minWidth = ref(0);
@@ -190,10 +196,10 @@ const updateTextareaSize = () => {
   textarea.style.width = `${w}px`;
   if (countLines > (config._countLines || 1)) {
     const top: number = Number.parseFloat(textarea.style.top.replace('px', ''));
-    textarea.style.top =  `${top - ((config._lineSpacing || 0) / 2)}px`;
+    textarea.style.top = `${top - ((config._lineSpacing || 0) / 2)}px`;
   } else if (countLines < (config._countLines || 1)) {
     const top: number = Number.parseFloat(textarea.style.top.replace('px', ''));
-    textarea.style.top =  `${top + ((config._lineSpacing || 0) / 2)}px`;
+    textarea.style.top = `${top + ((config._lineSpacing || 0) / 2)}px`;
   }
 };
 
@@ -342,7 +348,7 @@ const handleDeleteSelected = () => {
   }
 };
 
-const handleMoveSelected = ({ dx, dy }: { dx: number, dy: number }) => {
+const handleMoveSelected = ({dx, dy}: { dx: number, dy: number }) => {
   if (editorStore.selectedElements.length > 0) {
     editorStore.selectedElements.forEach(el => {
       el.config.x += dx;
@@ -357,7 +363,7 @@ const handleTextEditing = (type: string, action: string) => {
     editorStore.selectedElements.forEach(el => {
       if (type === el.type) {
         if (action === 'bold') {
-          const { fontWeight } = el.config as ITextConfig;
+          const {fontWeight} = el.config as ITextConfig;
           (el.config as ITextConfig).fontWeight = fontWeight === 'bold' ? 'normal' : 'bold';
         }
       }
@@ -368,73 +374,77 @@ const handleTextEditing = (type: string, action: string) => {
 
 }
 
-defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh });
+defineExpose({addElement, updateSelectedElement, alignSelectedElement, refresh});
 
 </script>
 
 <template>
-  <div class="editor-wrapper" :style="{
-    minHeight: editor.viewport.height,
-    minWidth: editor.viewport.width
-  }">
+  <div class="editor-wrapper">
     <!-- 鍵盤控制器，用於處理快捷鍵 -->
     <KeyboardController
         @delete-selected="handleDeleteSelected"
         @move-selected="handleMoveSelected"
         @text-editing="handleTextEditing"
     />
-    <div
-        class="uploader-container"
-        ref="uploaderContainer">
-      <canvas
-          ref="canvas"
-          class="editor-canvas"
-      ></canvas>
-      <textarea
-          v-if="editor.editingElement"
-          ref="textInput"
-          v-model="(editor.editingElement.config as ITextConfig).content"
-          :style="textInputStyle"
-          class="text-editor-input"
-          wrap="off"
-          @input="handleTextInput"
-          @compositionstart="compositionStart"
-          @compositionend="compositionEnd"
-          @focusout="finishEditing"
-          @keydown.enter.shift.prevent="finishEditing"
-          @select="textAreaSelected"
-      />
-      <!-- 快速選單 -->
+    <div class="uploader-container" ref="uploaderContainer">
       <div
-          :style="{ transform: `translate(${popOverMenu.x}px, ${popOverMenu.y}px)`}"
-          class="pop-over-menu"
-          ref="popOverRef">
-        <Popover
-            v-show="popOverMenu.visible && (selectedElement?.type === ElementTypesEnum.Image || editorStore.selectedElements.length > 1)"
-            @change="handlePopOverMenuChange"
-            @alignElement="alignSelectedElement"/>
-      </div>
-      <!-- 自訂右鍵選單 -->
-      <div
-          v-if="contextMenu.visible && contextMenu.element"
-          class="context-menu"
-          :style="{ top: `${contextMenu.y}px`, left: `${contextMenu.x}px` }"
-          @click.stop
-      >
-        <div class="context-menu-item" @click="deleteSelectedElement">
-          刪除
+          :key="`zoom-${zoom}`"
+          class="editor-view" :style="{
+            minHeight: `${editor.viewport.height}px`,
+            minWidth: `${editor.viewport.width}px`,
+            transform: `scale(${editor.divScale})`
+          }"
+          ref="editorView">
+        <canvas
+            ref="canvas"
+            class="editor-canvas"
+        ></canvas>
+        <textarea
+            v-if="editor.editingElement"
+            ref="textInput"
+            v-model="(editor.editingElement.config as ITextConfig).content"
+            :style="textInputStyle"
+            class="text-editor-input"
+            wrap="off"
+            @input="handleTextInput"
+            @compositionstart="compositionStart"
+            @compositionend="compositionEnd"
+            @focusout="finishEditing"
+            @keydown.enter.shift.prevent="finishEditing"
+            @select="textAreaSelected"
+        />
+        <!-- 快速選單 -->
+        <div
+            :style="{ transform: `translate(${popOverMenu.x}px, ${popOverMenu.y}px)`}"
+            class="pop-over-menu"
+            ref="popOverRef">
+          <Popover
+              v-show="popOverMenu.visible && (selectedElement?.type === ElementTypesEnum.Image || editorStore.selectedElements.length > 1)"
+              @change="handlePopOverMenuChange"
+              @alignElement="alignSelectedElement"/>
         </div>
-        <!-- 在這裡可以新增更多選項，例如： -->
-        <!-- <div class="context-menu-item">上移一層</div> -->
-        <!-- <div class="context-menu-item">下移一層</div> -->
-      </div>
-      <div class="upload-prompt-overlay" :style="{
+        <!-- 自訂右鍵選單 -->
+        <div
+            v-if="contextMenu.visible && contextMenu.element"
+            class="context-menu"
+            :style="{ top: `${contextMenu.y}px`, left: `${contextMenu.x}px` }"
+            @click.stop
+        >
+          <div class="context-menu-item" @click="deleteSelectedElement">
+            刪除
+          </div>
+          <!-- 在這裡可以新增更多選項，例如： -->
+          <!-- <div class="context-menu-item">上移一層</div> -->
+          <!-- <div class="context-menu-item">下移一層</div> -->
+        </div>
+        <div class="upload-prompt-overlay" :style="{
         opacity: editorStore.elements.length === 0 ? 1 : 0
       }">
-        <div class="prompt-content">
-          <Symbols name="picture"/>
-          <h1>开始产生影像</h1>
-          <p>选择素材添加文字、效果和AI，线上编辑您的图片。</p>
+          <div class="prompt-content">
+            <Symbols name="picture"/>
+            <h1>开始产生影像</h1>
+            <p>选择素材添加文字、效果和AI，线上编辑您的图片。</p>
+          </div>
         </div>
       </div>
     </div>
@@ -442,31 +452,40 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh 
       <el-button class="save-button" @click="saveImage">
         <div style="margin-right: 10px;">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M8.00199 1.99997C8.37297 1.99997 8.67485 2.30185 8.67485 2.67283L8.67485 8.14618L9.98808 6.82308L10.0321 6.80087C10.0592 6.7873 10.1592 6.74288 10.2982 6.74288C10.4269 6.74288 10.6186 6.78113 10.8004 6.96251C11.1129 7.27508 10.9747 7.6514 10.8583 7.80687L10.846 7.82332L8.19982 10.5032C8.16486 10.5419 8.09371 10.5851 8.00158 10.5851C7.90945 10.5851 7.84118 10.5419 7.80663 10.5032L5.15016 7.82332L5.13782 7.80687C5.02143 7.6514 4.88365 7.27508 5.19581 6.96251C5.37719 6.78113 5.56926 6.74288 5.69799 6.74288C5.837 6.74288 5.93653 6.7873 5.96409 6.80087L6.0081 6.82308L7.32872 8.15399L7.32872 2.67283C7.32872 2.30185 7.63061 1.99997 8.00158 1.99997L8.00199 1.99997Z" fill="black"/>
-            <path d="M3.25628 15C1.46052 15 0 13.5544 0 11.7771V7.68354C0 7.3066 0.30977 7 0.690615 7C1.07146 7 1.38123 7.3066 1.38123 7.68354V11.7746C1.38123 12.7237 2.16141 13.4963 3.12071 13.4963H12.7922C13.7996 13.4963 14.6188 12.6851 14.6188 11.6884V7.68354C14.6188 7.3066 14.9285 7 15.3094 7C15.6902 7 16 7.3066 16 7.68354V11.5794C16 13.4658 14.4495 15 12.544 15H3.25628Z" fill="black"/>
+            <path
+                d="M8.00199 1.99997C8.37297 1.99997 8.67485 2.30185 8.67485 2.67283L8.67485 8.14618L9.98808 6.82308L10.0321 6.80087C10.0592 6.7873 10.1592 6.74288 10.2982 6.74288C10.4269 6.74288 10.6186 6.78113 10.8004 6.96251C11.1129 7.27508 10.9747 7.6514 10.8583 7.80687L10.846 7.82332L8.19982 10.5032C8.16486 10.5419 8.09371 10.5851 8.00158 10.5851C7.90945 10.5851 7.84118 10.5419 7.80663 10.5032L5.15016 7.82332L5.13782 7.80687C5.02143 7.6514 4.88365 7.27508 5.19581 6.96251C5.37719 6.78113 5.56926 6.74288 5.69799 6.74288C5.837 6.74288 5.93653 6.7873 5.96409 6.80087L6.0081 6.82308L7.32872 8.15399L7.32872 2.67283C7.32872 2.30185 7.63061 1.99997 8.00158 1.99997L8.00199 1.99997Z"
+                fill="black"/>
+            <path
+                d="M3.25628 15C1.46052 15 0 13.5544 0 11.7771V7.68354C0 7.3066 0.30977 7 0.690615 7C1.07146 7 1.38123 7.3066 1.38123 7.68354V11.7746C1.38123 12.7237 2.16141 13.4963 3.12071 13.4963H12.7922C13.7996 13.4963 14.6188 12.6851 14.6188 11.6884V7.68354C14.6188 7.3066 14.9285 7 15.3094 7C15.6902 7 16 7.3066 16 7.68354V11.5794C16 13.4658 14.4495 15 12.544 15H3.25628Z"
+                fill="black"/>
           </svg>
-        </div>储存图片
+        </div>
+        储存图片
       </el-button>
       <div class="crop-controls">
         <div class="input-group">
           <label for="crop-x">X:</label>
-          <input id="crop-x" type="number" v-model.number="displayCropBox.x" @change="(e: Event) => handleChange('x', parseInt((e.target as HTMLInputElement)?.value) || 0)"/>
+          <input id="crop-x" type="number" v-model.number="displayCropBox.x"
+                 @change="(e: Event) => handleChange('x', parseInt((e.target as HTMLInputElement)?.value) || 0)"/>
         </div>
         <div class="input-group">
           <label for="crop-y">Y:</label>
-          <input id="crop-y" type="number" v-model.number="displayCropBox.y" @change="(e: Event) => handleChange('y', parseInt((e.target as HTMLInputElement)?.value) || 0)"/>
+          <input id="crop-y" type="number" v-model.number="displayCropBox.y"
+                 @change="(e: Event) => handleChange('y', parseInt((e.target as HTMLInputElement)?.value) || 0)"/>
         </div>
         <div class="input-group">
           <label for="crop-width">寬:</label>
-          <input id="crop-width" type="number" v-model.number="displayCropBox.width" @change="(e: Event) => handleChange('width', parseInt((e.target as HTMLInputElement)?.value) || 0)" />
+          <input id="crop-width" type="number" v-model.number="displayCropBox.width"
+                 @change="(e: Event) => handleChange('width', parseInt((e.target as HTMLInputElement)?.value) || 0)"/>
         </div>
         <div class="input-group">
           <label for="crop-height">高:</label>
-          <input id="crop-height" type="number" v-model.number="displayCropBox.height" @change="(e: Event) => handleChange('height', parseInt((e.target as HTMLInputElement)?.value) || 0)" />
+          <input id="crop-height" type="number" v-model.number="displayCropBox.height"
+                 @change="(e: Event) => handleChange('height', parseInt((e.target as HTMLInputElement)?.value) || 0)"/>
         </div>
         <div class="input-group">
           <span>{{ `${editor.viewport.originalWidth} x ${editor.viewport.originalHeight}` }}</span>
-          <span>{{ `${Math.floor(editor.viewport.scale * 100)}%` }}</span>
+          <span>{{ `${Math.floor(zoom * 100)}%` }}</span>
         </div>
       </div>
     </div>
@@ -480,7 +499,6 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh 
 .editor-wrapper {
   width: 100%;
   height: 100%;
-  min-width: 800px;
   display: flex;
   flex-direction: column;
   padding: 78px 10px 10px 10px;
@@ -493,6 +511,16 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh 
 }
 
 .uploader-container {
+  position: relative;
+  display: flex;
+  border-radius: 20px;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  justify-content: center;
+}
+
+.editor-view {
   position: relative;
   display: flex;
   border-radius: 20px;
@@ -530,13 +558,14 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh 
 }
 
 
-
 .actions-bar {
+  position: absolute;
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 2rem;
   flex-wrap: wrap;
+  bottom: 40px;
 }
 
 .upload-button {
@@ -628,6 +657,7 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh 
   -webkit-appearance: none;
   margin: 0;
 }
+
 .input-group input[type=number] {
   -moz-appearance: textfield;
 }

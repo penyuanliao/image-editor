@@ -16,6 +16,7 @@ export interface IAdvancedSettings {
     popupMenu: boolean;
     imageCropEditEnabled: boolean;
     alignEnabled: boolean;
+    zoomEnabled: boolean;
 
 }
 
@@ -47,4 +48,5 @@ export const advancedDefaults:IAdvancedSettings = {
     popupMenu: false,
     imageCropEditEnabled: false,
     alignEnabled: false,
+    zoomEnabled: false,
 }

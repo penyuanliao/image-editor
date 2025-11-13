@@ -62,6 +62,7 @@ interface IContextMenuEvent {
 export class CanvasEditor {
     private handlePaste:((event: ClipboardEvent) => Promise<void>) | null = null;
     private handleCopy:((event: ClipboardEvent) => Promise<void>) | null = null;
+    protected wheelElement?: HTMLDivElement | null = null;
     protected divContainer?: HTMLDivElement | null = null;
     protected canvas?: HTMLCanvasElement;
     protected ctx?: CanvasRenderingContext2D;
@@ -77,9 +78,11 @@ export class CanvasEditor {
     public cropBox: { x: number, y: number, width: number, height: number };
 
     // 縮放與平移狀態
-    public scale: number = 1;
+    public scale: number = 1; // 這邊是canvas縮放比例
     public viewOffsetX: number = 0;
     public viewOffsetY: number = 0;
+    // 因為canvas scale 實作麻煩只接使用div
+    public divScale: number = 1;
 
     public viewport: ICanvasViewport = {
         width: 800,
@@ -150,7 +153,14 @@ export class CanvasEditor {
         this.canvas?.addEventListener('mouseup', this.handleMouseUp.bind(this));
         this.canvas?.addEventListener('contextmenu', this.handleContextMenu.bind(this));
         this.canvas?.addEventListener('mouseleave', this.handleMouseLeave.bind(this));
-        // this.canvas?.addEventListener('wheel', this.handleWheel.bind(this));
+
+    }
+    public setupZoomView(wheelElement: HTMLDivElement) {
+        if (wheelElement) {
+            this.wheelElement = wheelElement;
+            // 因為滑鼠滾輪放大無法觸發scrollbar顯示事件這邊透過:key改變強制 Vue 重掛載該 DOM
+            this.wheelElement?.addEventListener('wheel', this.handleWheel.bind(this));
+        }
     }
 
     public setup(canvas: HTMLCanvasElement, div: HTMLDivElement | null, store?: EditorStore) {
@@ -925,33 +935,27 @@ export class CanvasEditor {
         }
     }
 
-    private handleWheel(event: WheelEvent) {
+    public handleWheel(event: WheelEvent) {
         event.preventDefault();
         if (!this.canvas) return;
 
+        // 檢查 Ctrl 鍵 (或 Mac 上的 Command 鍵) 是否被按下
+        if (!event.ctrlKey && !event.metaKey) {
+            return; // 如果沒有按下，則不執行縮放
+        }
+
         const zoomIntensity = 0.05;
         const delta = -event.deltaY * zoomIntensity;
-        const newScale = this.scale + delta;
+        const newScale = this.divScale + delta;
 
         // 限制縮放範圍
         const minScale = 0.2;
         const maxScale = 5;
         const clampedScale = Math.max(minScale, Math.min(newScale, maxScale));
 
-        if (clampedScale === this.scale) return; // 縮放比例未改變
+        if (clampedScale === this.divScale) return; // 縮放比例未改變
 
-        // 改為使用畫布中心點作為縮放中心
-        const centerX = this.canvas.width / 2;
-        const centerY = this.canvas.height / 2;
-
-        // 計算縮放前，畫布中心點對應的世界座標
-        const worldCenterX = (centerX - this.viewOffsetX) / this.scale;
-        const worldCenterY = (centerY - this.viewOffsetY) / this.scale;
-
-        this.scale = clampedScale;
-        // 更新 viewOffset，使得畫布中心的世界座標點在縮放後仍在畫布中心
-        this.viewOffsetX = centerX - worldCenterX * this.scale;
-        this.viewOffsetY = centerY - worldCenterY * this.scale;
+        this.divScale = clampedScale;
 
         this.render();
     }
@@ -1165,7 +1169,7 @@ export class CanvasEditor {
         this.canvas?.removeEventListener('mouseup', this.handleMouseUp.bind(this));
         this.canvas?.removeEventListener('mouseleave', this.handleMouseLeave.bind(this));
         this.canvas?.removeEventListener('contextmenu', this.handleContextMenu.bind(this));
-        this.canvas?.removeEventListener('wheel', this.handleWheel.bind(this));
+        this.wheelElement?.removeEventListener('wheel', this.handleWheel.bind(this));
         this.disableCopyAndPasteSupport();
         this.canvas = undefined;
         this.ctx = undefined;

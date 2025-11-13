@@ -189,7 +189,7 @@ const mainStyle = computed(() => {
   display: flex;
   justify-content: center;
   align-items: center;
-  overflow: auto; /* 如果編輯器太大，允許滾動 */
+  overflow: hidden; /* 如果編輯器太大，允許滾動 */
   flex-shrink: 0;
 
 }
