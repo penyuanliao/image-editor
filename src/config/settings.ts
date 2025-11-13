@@ -1,3 +1,4 @@
+import {BoxBarTypes} from "@/types.ts";
 
 export interface IGeneralSettings {
     viewport: {
@@ -38,7 +39,8 @@ export const appearanceDefaults = {
         { name: '赛博庞克', value: 4, key: 'cyberpunk', class: 'cyberpunk', url: './assets/themes/img_cyberpunk.jpg' },
         { name: '水彩畫', value: 5, key: 'watercolor', url: './assets/themes/img_watercolor.jpg' },
         { name: '塗鴉藝術', value: 6, key: 'Graffiti', url: './assets/themes/img_oil_painting.jpg' },
-    ]
+    ],
+    boxBarSelected: BoxBarTypes.sticker,
 }
 
 export const advancedDefaults:IAdvancedSettings = {

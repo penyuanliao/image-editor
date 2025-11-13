@@ -1,22 +1,23 @@
 <script setup lang="ts">
 import {computed, ref} from 'vue';
-import {ElementTypesEnum, type ICanvasElement, ImageEditorTypes} from "./types";
+import {ElementTypesEnum, type ICanvasElement, BoxBarTypes} from "./types";
 import BoxBar from "./components/BoxBar.vue";
 import TextPanel from "./components/Panels/TextPanel.vue";
 import StickersPanel from "./components/Panels/StickersPanel.vue";
 import UploadPanel from "./components/Panels/UploadPanel.vue";
 import LayersPanel from "./components/Panels/LayersPanel.vue";
 import DropZone from "./components/Basic/DropZone.vue"; // 引入新的 DropZone 元件
-import { useEditorStore } from "./store/editorStore.ts";
+import {useEditorStore} from "./store/editorStore.ts";
 import ImagePropsPanel from "./components/Panels/ImagePropsPanel.vue";
 import EditorView from "./components/EditorArea/EditorView.vue";
-import { processFile } from "./Utilities/FileProcessor.ts";
+import {processFile} from "./Utilities/FileProcessor.ts";
 import {CreateImageElement} from "./Utilities/useCreateCanvasElement.ts";
 import StagePropsPanel from "./components/Panels/StagePropsPanel.vue";
 import NNavbar from "@/components/Basic/NNavbar.vue";
+
 const editorStore = useEditorStore();
 const editor = ref<InstanceType<typeof EditorView> | null>(null);
-const selected = ref<string>('');
+const selected = ref<string>();
 
 // State to hold the currently selected element from the canvas
 const selectedElementForPanel = ref<any | null>(null);
@@ -87,22 +88,21 @@ const mainStyle = computed(() => {
             class="sidebar"
             :style="{
             width: selected !== '' ? '420px' : '85px'
-          }"
-        >
+          }">
           <BoxBar @boxItemClick="boxItemClickHandle"/>
           <div class="sidebar-content">
             <TextPanel
-                v-if="selected === ImageEditorTypes.text"
+                v-if="selected === BoxBarTypes.text"
                 :controlEnabled="false"
                 @add-element="handleAddElement"
                 @update-element="handleUpdateElement"
             />
             <StickersPanel
-                v-if="selected === ImageEditorTypes.sticker"
+                v-if="selected === BoxBarTypes.sticker"
                 @add-element="handleAddElement"
             />
             <UploadPanel
-                v-if="selected === ImageEditorTypes.upload"
+                v-if="selected === BoxBarTypes.upload"
                 @add-element="handleAddElement"
             />
           </div>
@@ -164,12 +164,15 @@ const mainStyle = computed(() => {
   background-color: theme.$primary-color;
   border-top-left-radius: 20px;
   border-top-right-radius: 20px;
+  transition: width 0.2s ease;
+
   .sidebar-content {
     width: 100%;
     position: relative;
     display: flex;
   }
 }
+
 .content {
   display: grid;
   grid-template-columns: auto 1fr auto; /* 左側面板 240px，右側佔滿剩餘空間 */
@@ -181,14 +184,16 @@ const mainStyle = computed(() => {
 
 .editor-area {
   width: 100%;
-  height: 800px;
+  height: 100%;
   position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
   overflow: auto; /* 如果編輯器太大，允許滾動 */
   flex-shrink: 0;
+
 }
+
 .drop-zone-wrapper {
   width: 100%;
   height: 100%;
@@ -197,6 +202,7 @@ const mainStyle = computed(() => {
   align-items: center;
   position: relative; /* 確保內部元素定位正確 */
 }
+
 .layers {
   position: absolute;
   display: flex;
@@ -211,6 +217,7 @@ const mainStyle = computed(() => {
   align-items: center;
   overflow: hidden;
 }
+
 .panel-properties {
   position: relative;
   display: flex;
@@ -219,6 +226,7 @@ const mainStyle = computed(() => {
   height: var(--panel-max-height, 100%);
   flex-direction: column;
 }
+
 .props-panel {
   background-color: theme.$primary-color;
   border-top-left-radius: 20px;

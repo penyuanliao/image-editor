@@ -483,10 +483,10 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh 
   min-width: 800px;
   display: flex;
   flex-direction: column;
-  padding: 0 10px 10px 10px;
+  padding: 78px 10px 10px 10px;
   gap: 1.5rem;
   box-sizing: border-box;
-  justify-content: center;
+  //justify-content: center;
   align-items: center;
   overflow: hidden;
   flex-shrink: 0;

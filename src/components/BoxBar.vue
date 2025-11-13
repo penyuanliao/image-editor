@@ -2,19 +2,24 @@
 
 import Symbols from "./Basic/Symbols.vue";
 import {onMounted, ref} from "vue";
-import {ImageEditorTypes} from "../types.ts";
+import {BoxBarTypes} from "../types.ts";
+import {appearanceDefaults} from "@/config/settings.ts";
+
 const selected = ref<number>(0);
-const buttonGroup: { icon: string, text: string }[] = [
+const buttonGroup: { icon: string, text: string, key: string }[] = [
   {
     icon: 'sticker',
+    key: 'sticker',
     text: '素材'
   },
   {
     icon: 'text',
+    key: 'text',
     text: '文字'
   },
   {
     icon: 'upload',
+    key: 'upload',
     text: '上傳'
   }
 ];
@@ -23,11 +28,12 @@ const emit = defineEmits(['box-item-click']);
 
 const handleClick = (index: number) => {
   selected.value = index;
-  const key: string = buttonGroup[index]?.icon || '';
-  emit('box-item-click', ImageEditorTypes[key] || '');
+  const key: string = buttonGroup[index]?.key || '';
+  emit('box-item-click', BoxBarTypes[key] || '');
 };
 
 onMounted(() => {
+  selected.value = buttonGroup.findIndex(({key}) => key === appearanceDefaults.boxBarSelected);
   handleClick(selected.value);
 });
 

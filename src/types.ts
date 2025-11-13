@@ -120,15 +120,16 @@ export interface IUploadedImage {
     file?: File;
 }
 
-export const ImageEditorTypes: {
+export const BoxBarTypes: {
     [key: string]: string
 } = {
     star: 'ai',
     image: 'image',
     text: 'text',
     sticker: 'sticker',
-    'upload': 'upload',
-    layers: 'layers'
+    upload: 'upload',
+    layers: 'layers',
+    none: ''
 }
 
 
