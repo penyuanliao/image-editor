@@ -79,17 +79,18 @@ export const useMaterialsStore = defineStore('materialsStore', () => {
     const error = ref<string | null>(null);
 
     // 從 API 獲取模板的 action
-    const fetchMaterials = async () => {
+    const getMaterials = async () => {
         isLoading.value = true;
         error.value = null;
         try {
             // 這裡替換成你真實的 API 請求
-            const response = await fetch('/api/templates');
+            const response = await fetch('/api/material/list');
             if (!response.ok) {
                 throw new Error('Failed to fetch materials');
             }
             const result: ResponseResult = await response.json();
             if (result.status) rawData.value = result.data;
+            return result;
         } catch (e: any) {
             error.value = e.message;
         } finally {
@@ -119,7 +120,7 @@ export const useMaterialsStore = defineStore('materialsStore', () => {
     return {
         isLoading,
         error,
-        fetchMaterials,
+        getMaterials,
         materials,
     };
 });

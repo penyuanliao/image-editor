@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {computed, ref} from "vue";
+import {computed, onMounted, ref} from "vue";
 import { Search, Close } from "@element-plus/icons-vue";
 import {useEditorStore} from "@/store/editorStore.ts";
 import {ElementTypesEnum} from "@/types.ts";
@@ -13,16 +13,14 @@ const emit = defineEmits<{ (e: 'add-element', action: any): void }>();
 
 const input = ref<string>('');
 const selectTag = ref('全部');
-// 取得素材庫
-const gallery: IGallery[] = materialsStore.materials;
 // 用來過濾資料的 computed
 const filteredGallery = computed<IGallery[]>(() => {
   const searchValue: string = input.value || '';
   let result: IGallery[];
   if (selectTag.value === '全部') {
-    result = gallery;
+    result = materialsStore.materials;
   } else {
-    result = gallery.filter(group => group.category === selectTag.value)
+    result = materialsStore.materials.filter(group => group.category === selectTag.value)
   }
   if (searchValue) {
     return result
@@ -50,11 +48,16 @@ const customizedGallery = computed(() => {
 
 const tagOptions = computed(() => {
   const options: string[] = ["全部"];
-  for (const group of gallery) {
+  for (const group of materialsStore.materials) {
     options.push(group.category);
   }
   return options;
 });
+
+onMounted(async () => {
+  await materialsStore.getMaterials();
+
+})
 
 const onStickerClick = (item: { id: number, src: string, name: string }) => {
   emit('add-element', {

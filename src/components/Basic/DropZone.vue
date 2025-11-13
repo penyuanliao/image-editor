@@ -6,6 +6,11 @@ const emit = defineEmits(['files-dropped']);
 const isDraggingOver = ref(false);
 
 const handleDragOver = (event: DragEvent) => {
+  // 檢查拖曳的物件中是否包含檔案
+  const hasFiles = event.dataTransfer?.types.includes('Files');
+  if (!hasFiles) {
+    return; // 如果不是檔案，則不處理
+  }
   event.preventDefault();
   isDraggingOver.value = true;
 };

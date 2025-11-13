@@ -31,23 +31,6 @@ const configY = safeConfigAccess('y', 0);
 const configWidth = safeConfigAccess('width', 100);
 const configHeight = safeConfigAccess('height', 100);
 
-
-// Computed property to handle degree-radian conversion for the rotation slider
-const rotationInDegrees = computed({
-  get() {
-    if (editorStore.selectedElement && editorStore.selectedElement.config.rotation) {
-      // Convert radians to degrees and round to nearest integer
-      return Math.round((editorStore.selectedElement.config.rotation * 180) / Math.PI);
-    }
-    return 0;
-  },
-  set(degrees: number) {
-    if (editorStore.selectedElement) {
-      // Convert degrees to radians
-      editorStore.selectedElement.config.rotation = (degrees * Math.PI) / 180;
-    }
-  },
-});
 const opacityInPercentage = computed({
   get() {
     if (editorStore.selectedElement && typeof editorStore.selectedElement.config.opacity === 'number') {
@@ -131,7 +114,7 @@ const handleDeleted = () => {
       </div>
       <div class="ctrl once-line">
         <span>旋轉角度：</span>
-        <el-input-number v-model="rotationInDegrees" :controls="true" style="width: 100%" />
+        <el-input-number v-model="editorStore.rotationInDegrees" :controls="true" style="width: 100%" />
       </div>
       <div class="ctrl once-line slider-with-input">
         <span>透明度：</span>

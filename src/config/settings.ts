@@ -12,6 +12,7 @@ export interface IGeneralSettings {
 }
 
 export interface IAdvancedSettings {
+    popupMenu: boolean;
     imageCropEditEnabled: boolean;
     alignEnabled: boolean;
 
@@ -41,6 +42,7 @@ export const appearanceDefaults = {
 }
 
 export const advancedDefaults:IAdvancedSettings = {
-    imageCropEditEnabled: true,
-    alignEnabled: true,
+    popupMenu: false,
+    imageCropEditEnabled: false,
+    alignEnabled: false,
 }

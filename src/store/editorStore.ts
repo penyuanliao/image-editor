@@ -8,6 +8,7 @@ import {
   type StageConfig
 } from "../types.ts";
 import {calculateConstrainedSize} from "@/Utilities/useImageEditor.ts";
+import {degrees, radians} from "@/Utilities/Algorithm.ts";
 
 // 為了讓 CanvasEditor 能夠傳入 store，我們需要匯出 store 的類型
 export type EditorStore = ReturnType<typeof useEditorStore>;
@@ -43,6 +44,7 @@ export const useEditorStore = defineStore('editor', () => {
   const savingImage = ref(false);
 
   // --- Getters ---
+  // 取得單一選擇物件
   const selectedElement = computed({
     get: (): ICanvasElement | null => {
       if (selectedElements.value.length !== 1 || !selectedElements.value[0]) return null;
@@ -52,7 +54,23 @@ export const useEditorStore = defineStore('editor', () => {
       selectedElements.value = element ? [element] : [];
     }
   });
-
+  // Computed property to handle degree-radian conversion for the rotation slider
+  const rotationInDegrees = computed({
+    get() {
+      if (selectedElement.value && selectedElement.value.config.rotation) {
+        // Convert radians to degrees and round to nearest integer
+        return degrees(selectedElement.value.config.rotation);
+      }
+      return 0;
+    },
+    set(degrees: number) {
+      if (selectedElement.value) {
+        // Convert degrees to radians
+        selectedElement.value.config.rotation = radians(degrees);
+      }
+    }
+  });
+  // 單一選擇物件的索引
   const selectedIndex = computed<number>(() => {
     if (selectedElement.value) {
       return elements.value.findIndex(el => el.id === selectedElement.value!.id);
@@ -181,6 +199,8 @@ export const useEditorStore = defineStore('editor', () => {
       config.img = image;
       config.url = image.src;
       config.base64 = base64;
+      config.width = width;
+      config.height = height;
     }
   }
 
@@ -198,6 +218,7 @@ export const useEditorStore = defineStore('editor', () => {
     // Getters
     selectedElement,
     selectedIndex,
+    rotationInDegrees,
     // Actions
     addImage,
     setOriginalImage,

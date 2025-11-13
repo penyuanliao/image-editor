@@ -1,29 +1,12 @@
 <script setup lang="ts">
 import {RefreshLeft, RefreshRight} from "@element-plus/icons-vue";
 import {useEditorStore} from "@/store/editorStore.ts";
-import {computed} from "vue";
 import NButton from "@/components/Basic/NButton.vue";
 
 const editorStore = useEditorStore();
 
-// Computed property to handle degree-radian conversion for the rotation slider
-const rotationInDegrees = computed({
-  get() {
-    if (editorStore.selectedElement && editorStore.selectedElement.config.rotation) {
-      // Convert radians to degrees and round to nearest integer
-      return Math.round((editorStore.selectedElement.config.rotation * 180) / Math.PI);
-    }
-    return 0;
-  },
-  set(degrees: number) {
-    if (editorStore.selectedElement) {
-      // Convert degrees to radians
-      editorStore.selectedElement.config.rotation = (degrees * Math.PI) / 180;
-    }
-  },
-});
 const handleRadians = (degrees: number) => {
-  rotationInDegrees.value += degrees;
+  editorStore.rotationInDegrees += degrees;
 }
 
 </script>
@@ -44,7 +27,7 @@ const handleRadians = (degrees: number) => {
         <div class="item slider-with-input">
           <el-slider
               class="slider"
-              v-model="rotationInDegrees"
+              v-model="editorStore.rotationInDegrees"
               :min="-360"
               :max="360"
               show-input
