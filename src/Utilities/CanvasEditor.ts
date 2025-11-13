@@ -13,8 +13,8 @@ import {
 } from './useImageEditor.ts';
 import {ErrorMessage} from "./AlertMessage.ts";
 import {createCanvasElement} from "./useCreateCanvasElement.ts";
-// 引入 store 的類型，但不直接使用 useImagesStore()
-import type {ImagesStore} from '../store/images';
+// 引入 store 的類型，但不直接使用 useEditorStore()
+import type { EditorStore } from '../store/editorStore.ts';
 import {clipboardPaste, validationPermissions} from "./useClipboard.ts";
 import {
     ElementTypesEnum,
@@ -65,7 +65,7 @@ export class CanvasEditor {
     protected divContainer?: HTMLDivElement | null = null;
     protected canvas?: HTMLCanvasElement;
     protected ctx?: CanvasRenderingContext2D;
-    protected store: ImagesStore; // 儲存 Pinia store 的引用
+    protected store: EditorStore; // 儲存 Pinia store 的引用
     public editingElement?: ICanvasElement | null = null;
     // 回應右鍵選單監聽事件
     public onContextMenu: ((event: IContextMenuEvent) => void) | null = null;
@@ -132,7 +132,7 @@ export class CanvasEditor {
     // 圖片可以進行剪裁
     public imageCropEditEnabled: boolean = advancedDefaults.imageCropEditEnabled;
 
-    constructor(store: ImagesStore) {
+    constructor(store: EditorStore) {
         this.store = store;
         // 初始化裁切框
         this.cropBox = {
@@ -153,7 +153,7 @@ export class CanvasEditor {
         // this.canvas?.addEventListener('wheel', this.handleWheel.bind(this));
     }
 
-    public setup(canvas: HTMLCanvasElement, div: HTMLDivElement | null, store?: ImagesStore) {
+    public setup(canvas: HTMLCanvasElement, div: HTMLDivElement | null, store?: EditorStore) {
         this.canvas = canvas;
         this.divContainer = div;
         if (store) this.store = store;

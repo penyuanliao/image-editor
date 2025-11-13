@@ -9,9 +9,9 @@ import {
 import {calculateConstrainedSize} from "@/Utilities/useImageEditor.ts";
 
 // 為了讓 CanvasEditor 能夠傳入 store，我們需要匯出 store 的類型
-export type ImagesStore = ReturnType<typeof useImagesStore>;
+export type EditorStore = ReturnType<typeof useEditorStore>;
 
-interface ImagesStoreState {
+interface EditorStoreState {
   stage: ICanvasElement;
   imageList: IUploadedImage[];
   originalImage: HTMLImageElement | null | undefined;
@@ -23,8 +23,8 @@ interface ImagesStoreState {
   savingImage: boolean;
 }
 
-export const useImagesStore = defineStore('images', {
-  state: (): ImagesStoreState => ({
+export const useEditorStore = defineStore('editor', {
+  state: (): EditorStoreState => ({
     stage: {
       id: 0,
       name: '畫布',

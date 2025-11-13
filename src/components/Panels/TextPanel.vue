@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {computed, onMounted, reactive, ref, watch} from "vue";
-import { useImagesStore } from "../../store/images.ts";
+import { useEditorStore } from "../../store/editorStore.ts";
 import { Delete } from "@element-plus/icons-vue";
 import { ColorPicker } from "colorpickers";
 import {ElementTypesEnum, type ICanvasElement, type ITextConfig} from "../../types.ts";
@@ -18,7 +18,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits(['addElement', 'update-element']);
-const imagesStore = useImagesStore();
+const editorStore = useEditorStore();
 
 // --- Default State Factory ---
 const getDefaultTextProps = () => ({
@@ -80,9 +80,9 @@ const stroke = reactive(getDefaultStroke());
 const gradient = reactive(getDefaultGradient());
 
 const selectedElement = computed(() => {
-  if (imagesStore.selectedElements.length <= 0) return null;
-  if (imagesStore.selectedElements.length > 1) return null;
-  return imagesStore.selectedElements[0];
+  if (editorStore.selectedElements.length <= 0) return null;
+  if (editorStore.selectedElements.length > 1) return null;
+  return editorStore.selectedElements[0];
 });
 
 /**
@@ -196,7 +196,7 @@ watch([textProps, shadow, stroke, gradient], () => {
 
 const addText = () => {
 
-  imagesStore.selectedElements = [];
+  editorStore.selectedElements = [];
 
   const element: any = {
     type: ElementTypesEnum.Text,
@@ -249,8 +249,8 @@ const opacityInPercentage = computed({
 });
 
 const handleRemoveTextElement = () => {
-  imagesStore.removeElements([imagesStore.selectedElements[0]!.id]);
-  imagesStore.selectedElements = [];
+  editorStore.removeElements([editorStore.selectedElements[0]!.id]);
+  editorStore.selectedElements = [];
 }
 
 interface ParsedGradient {

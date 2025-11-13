@@ -1,27 +1,30 @@
 <script setup lang="ts">
 import {RefreshLeft, RefreshRight} from "@element-plus/icons-vue";
-import {useImagesStore} from "@/store/images.ts";
+import {useEditorStore} from "@/store/editorStore.ts";
 import {computed} from "vue";
 import NButton from "@/components/Basic/NButton.vue";
 
-const imagesStore = useImagesStore();
+const editorStore = useEditorStore();
 
 // Computed property to handle degree-radian conversion for the rotation slider
 const rotationInDegrees = computed({
   get() {
-    if (imagesStore.selectedElement && imagesStore.selectedElement.config.rotation) {
+    if (editorStore.selectedElement && editorStore.selectedElement.config.rotation) {
       // Convert radians to degrees and round to nearest integer
-      return Math.round((imagesStore.selectedElement.config.rotation * 180) / Math.PI);
+      return Math.round((editorStore.selectedElement.config.rotation * 180) / Math.PI);
     }
     return 0;
   },
   set(degrees: number) {
-    if (imagesStore.selectedElement) {
+    if (editorStore.selectedElement) {
       // Convert degrees to radians
-      imagesStore.selectedElement.config.rotation = (degrees * Math.PI) / 180;
+      editorStore.selectedElement.config.rotation = (degrees * Math.PI) / 180;
     }
   },
 });
+const handleRadians = (degrees: number) => {
+  rotationInDegrees.value += degrees;
+}
 
 </script>
 
@@ -51,8 +54,8 @@ const rotationInDegrees = computed({
               size="small"
           />
         </div>
-        <el-dropdown-item :icon="RefreshRight" @pointerup="rotationInDegrees-=90">逆時針旋轉90°</el-dropdown-item>
-        <el-dropdown-item :icon="RefreshLeft" @pointerup="rotationInDegrees+=90">順時針旋轉90°</el-dropdown-item>
+        <el-dropdown-item :icon="RefreshRight" @pointerup="handleRadians(-90)">逆時針旋轉90°</el-dropdown-item>
+        <el-dropdown-item :icon="RefreshLeft" @pointerup="handleRadians(90)">順時針旋轉90°</el-dropdown-item>
       </el-dropdown-menu>
     </template>
   </el-dropdown>

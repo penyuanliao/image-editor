@@ -1,4 +1,4 @@
-import { useImagesStore } from "../store/images.ts";
+import { useEditorStore } from "../store/editorStore.ts";
 import {gradientStartAndEndPoints} from "./GradientLayer.ts";
 import {
     type ICanvasElement,
@@ -435,7 +435,7 @@ export const drawTransformHandles = (
 
     // Draw bounding box
     ctx.stroke(handles.path);
-    const imagesStore = useImagesStore();
+    const editorStore = useEditorStore();
 
     // Draw handles
     Object.entries(handles.points).forEach(([key, p]) => {
@@ -462,8 +462,8 @@ export const drawTransformHandles = (
             ctx.fillStyle = '#f56c6c'; // Element Plus danger color
             ctx.fill();
 
-            if (imagesStore.deleteIcon.complete) { // 確保圖片已載入完成
-                ctx.drawImage(imagesStore.deleteIcon, -iconSize / 2, -iconSize / 2, iconSize, iconSize);
+            if (editorStore.deleteIcon.complete) { // 確保圖片已載入完成
+                ctx.drawImage(editorStore.deleteIcon, -iconSize / 2, -iconSize / 2, iconSize, iconSize);
             }
         } else if (sideHandles.includes(key)) {
             // 繪製長方形的側邊控制點

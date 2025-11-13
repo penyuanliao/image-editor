@@ -2,7 +2,7 @@
 import {computed, ref} from "vue";
 import Symbols from "../Basic/Symbols.vue";
 import { useAIGenStore } from "@/store/useAIGenStore.ts";
-import {useImagesStore} from "@/store/images.ts";
+import {useEditorStore} from "@/store/editorStore.ts";
 import type {IImageConfig} from "@/types.ts";
 import {processBase64, processUrlToBase64} from "@/Utilities/FileProcessor.ts";
 import {appearanceDefaults} from "@/config/settings.ts";
@@ -10,15 +10,15 @@ import {AlertMessage, PromptMessage} from "@/Utilities/AlertMessage.ts";
 // import {calculateConstrainedSize} from "@/Utilities/useImageEditor.ts";
 
 const aiGenStore = useAIGenStore();
-const imageStore = useImagesStore();
+const editorStore = useEditorStore();
 
 const emit = defineEmits(['refresh']);
 
 // const styles = ref([...appearanceDefaults.AIStyles]);
 
 const originalImage = computed(() => {
-  if (imageStore.selectedElement) {
-    const config = imageStore.selectedElement?.config;
+  if (editorStore.selectedElement) {
+    const config = editorStore.selectedElement?.config;
     if (config.id && aiGenStore.hasOriginalImage(config.id)) {
       return aiGenStore.getOriginalImage(config.id)
     }
@@ -64,8 +64,8 @@ const onSubmit = async () => {
     else await AlertMessage("必須輸入提示詞");
   }
 
-  const config = imageStore.selectedElement?.config as IImageConfig;
-  const id = imageStore.selectedElement?.id || 0;
+  const config = editorStore.selectedElement?.config as IImageConfig;
+  const id = editorStore.selectedElement?.id || 0;
   if (config) {
     const materialId = config.id || -1;
     let image: HTMLImageElement;
@@ -90,7 +90,7 @@ const onSubmit = async () => {
       prompt: prompt.value
     });
     if (result) {
-      imageStore.replaceSelectedElementImage(await processBase64(result.image), result.image);
+      editorStore.replaceSelectedElementImage(await processBase64(result.image), result.image);
       emit('refresh');
     }
   }

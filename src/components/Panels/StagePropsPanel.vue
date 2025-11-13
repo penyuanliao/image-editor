@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import {useImagesStore} from "@/store/images.ts";
+import {useEditorStore} from "@/store/editorStore.ts";
 import type {StageConfig} from "@/types.ts";
 import {ColorPicker} from "colorpickers";
 import NPanelButton from "@/components/Basic/NPanelButton.vue";
 import Gallery from "@/components/Gallery/Gallery.vue";
 import {ref} from "vue";
 
-const store = useImagesStore();
+const store = useEditorStore();
 
 const emit = defineEmits(['update-element']);
 

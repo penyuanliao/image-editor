@@ -7,14 +7,14 @@ import StickersPanel from "./components/Panels/StickersPanel.vue";
 import UploadPanel from "./components/Panels/UploadPanel.vue";
 import LayersPanel from "./components/Panels/LayersPanel.vue";
 import DropZone from "./components/Basic/DropZone.vue"; // 引入新的 DropZone 元件
-import { useImagesStore } from "./store/images";
+import { useEditorStore } from "./store/editorStore.ts";
 import ImagePropsPanel from "./components/Panels/ImagePropsPanel.vue";
 import EditorView from "./components/EditorArea/EditorView.vue";
 import { processFile } from "./Utilities/FileProcessor.ts";
 import {CreateImageElement} from "./Utilities/useCreateCanvasElement.ts";
 import StagePropsPanel from "./components/Panels/StagePropsPanel.vue";
 import NNavbar from "@/components/Basic/NNavbar.vue";
-const imagesStore = useImagesStore();
+const editorStore = useEditorStore();
 const editor = ref<InstanceType<typeof EditorView> | null>(null);
 const selected = ref<string>('');
 
@@ -49,7 +49,7 @@ const handleRefresh = () => {
   editor.value?.refresh();
 }
 
-const selectedElement = computed(() => imagesStore.selectedElement);
+const selectedElement = computed(() => editorStore.selectedElement);
 
 // 處理從 DropZone 元件傳來的檔案
 const handleFilesDropped = async (files: FileList) => {
@@ -58,7 +58,7 @@ const handleFilesDropped = async (files: FileList) => {
       const file = files[i];
       if (file) {
         const info = await processFile(file);
-        imagesStore.addImage(info);
+        editorStore.addImage(info);
         const newImageElement: ICanvasElement = CreateImageElement(info);
         handleAddElement(newImageElement);
       }

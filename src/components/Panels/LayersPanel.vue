@@ -1,29 +1,29 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { useImagesStore } from "@/store/images.ts";
+import { useEditorStore } from "@/store/editorStore.ts";
 import draggable from 'vuedraggable';
 import {ElementTypesEnum, type ICanvasElement, type ITextConfig} from "@/types.ts";
 import {Lock} from "@element-plus/icons-vue";
 
-const imagesStore = useImagesStore();
+const editorStore = useEditorStore();
 
 // Create a computed property to reverse the elements for display
 // and handle updating the store when the order changes.
 const reversedElements = computed({
   get() {
     // Reverse the array for display, so the top layer is at the top of the list
-    return [...imagesStore.elements].reverse();
+    return [...editorStore.elements].reverse();
   },
   set(newValue) {
     // When vuedraggable updates the model, it's already in the reversed order.
     // We need to reverse it back before committing to the store.
-    imagesStore.elements = [...newValue].reverse();
+    editorStore.elements = [...newValue].reverse();
     // const firstElement = newValue[0];
-    // imagesStore.originalImage = firstElement?.img;
+    // editorStore.originalImage = firstElement?.img;
   }
 });
 const onClickLayerHandle = (element: ICanvasElement) => {
-  imagesStore.setSelectedOnce(element);
+  editorStore.setSelectedOnce(element);
 };
 const onClickBGHandle = () => {
   const el = {
@@ -31,13 +31,13 @@ const onClickBGHandle = () => {
     type: ElementTypesEnum.Stage,
     name: 'stage',
     config: {
-      width: imagesStore.originalImage?.width,
-      height: imagesStore.originalImage?.height,
+      width: editorStore.originalImage?.width,
+      height: editorStore.originalImage?.height,
       x: 0,
       y: 0,
     }
   } as ICanvasElement;
-  imagesStore.setSelectedOnce(el);
+  editorStore.setSelectedOnce(el);
 };
 
 const textElementStyle = (element: ICanvasElement) => {
@@ -55,7 +55,7 @@ const textElementStyle = (element: ICanvasElement) => {
     <div class="layers-wrapper">
       <div class="layer" @click="onClickBGHandle">
         <div class="mask"><span>場景</span></div>
-        <img v-if="imagesStore.originalImage" :src="imagesStore.originalImage?.src" alt=""/>
+        <img v-if="editorStore.originalImage" :src="editorStore.originalImage?.src" alt=""/>
       </div>
     </div>
     <draggable

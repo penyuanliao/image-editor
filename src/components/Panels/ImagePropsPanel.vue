@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { useImagesStore } from '@/store/images.ts';
+import { useEditorStore } from '@/store/editorStore.ts';
 import AIPanel from "./AIPanel.vue";
 import {type IImageConfig} from "@/types.ts";
 import {Delete, Lock, Unlock} from "@element-plus/icons-vue";
 import NPanel from "@/components/Basic/NPanel.vue";
 import NPosition from "@/components/Basic/NPosition.vue";
 
-const imagesStore = useImagesStore();
+const editorStore = useEditorStore();
 // Only show and operate on the panel if a sticker is selected
 
 const emit = defineEmits(['alignElement', 'refresh']);
@@ -15,12 +15,12 @@ const emit = defineEmits(['alignElement', 'refresh']);
 const safeConfigAccess = (prop: keyof IImageConfig, defaultValue: number) => {
   return computed({
     get() {
-      return (imagesStore.selectedElement?.config as IImageConfig)?.[prop] as number ?? defaultValue;
+      return (editorStore.selectedElement?.config as IImageConfig)?.[prop] as number ?? defaultValue;
     },
     set(value: number) {
-      if (imagesStore.selectedElement?.config) {
+      if (editorStore.selectedElement?.config) {
         // @ts-ignore
-        (imagesStore.selectedElement.config as IImageConfig)[prop] = value;
+        (editorStore.selectedElement.config as IImageConfig)[prop] = value;
       }
     }
   });
@@ -35,50 +35,50 @@ const configHeight = safeConfigAccess('height', 100);
 // Computed property to handle degree-radian conversion for the rotation slider
 const rotationInDegrees = computed({
   get() {
-    if (imagesStore.selectedElement && imagesStore.selectedElement.config.rotation) {
+    if (editorStore.selectedElement && editorStore.selectedElement.config.rotation) {
       // Convert radians to degrees and round to nearest integer
-      return Math.round((imagesStore.selectedElement.config.rotation * 180) / Math.PI);
+      return Math.round((editorStore.selectedElement.config.rotation * 180) / Math.PI);
     }
     return 0;
   },
   set(degrees: number) {
-    if (imagesStore.selectedElement) {
+    if (editorStore.selectedElement) {
       // Convert degrees to radians
-      imagesStore.selectedElement.config.rotation = (degrees * Math.PI) / 180;
+      editorStore.selectedElement.config.rotation = (degrees * Math.PI) / 180;
     }
   },
 });
 const opacityInPercentage = computed({
   get() {
-    if (imagesStore.selectedElement && typeof imagesStore.selectedElement.config.opacity === 'number') {
-      return Math.round(imagesStore.selectedElement.config.opacity * 100);
+    if (editorStore.selectedElement && typeof editorStore.selectedElement.config.opacity === 'number') {
+      return Math.round(editorStore.selectedElement.config.opacity * 100);
     } else {
       return 100;
     }
   },
   set(percentage: number) {
-    if (imagesStore.selectedElement) {
-      imagesStore.selectedElement.config.opacity = percentage / 100;
+    if (editorStore.selectedElement) {
+      editorStore.selectedElement.config.opacity = percentage / 100;
     }
   }
 });
 
 const handleLockAndUnlock = () => {
-  if (imagesStore.selectedElement?.config) {
-    imagesStore.selectedElement.config.draggable = !imagesStore.selectedElement.config.draggable;
-    if (!imagesStore.selectedElement?.config.draggable) {
-      imagesStore.selectedElements = [];
+  if (editorStore.selectedElement?.config) {
+    editorStore.selectedElement.config.draggable = !editorStore.selectedElement.config.draggable;
+    if (!editorStore.selectedElement?.config.draggable) {
+      editorStore.selectedElements = [];
     } else {
-      imagesStore.selectedElements = [imagesStore.selectedElement];
+      editorStore.selectedElements = [editorStore.selectedElement];
     }
   }
 }
 const handlePositionChange = (value: string) => {
 
   if (value === 'flip-horizontal') {
-    imagesStore.flipHorizontal();
+    editorStore.flipHorizontal();
   } else if (value === 'flip-vertical') {
-    imagesStore.flipVertical();
+    editorStore.flipVertical();
   } else {
     const horizontally: string[] = ['left', 'center', 'right'];
     const vertically: string[] = ['top', 'middle', 'bottom'];
@@ -96,9 +96,9 @@ const handlePositionChange = (value: string) => {
   }
 }
 const handleDeleted = () => {
-  const id = imagesStore.selectedElement?.id;
+  const id = editorStore.selectedElement?.id;
   if (id) {
-    imagesStore.removeElements([id]);
+    editorStore.removeElements([id]);
   }
 }
 
@@ -109,9 +109,9 @@ const handleDeleted = () => {
   <NPanel
       padding="30px 25px 0 25px"
       :searchEnabled="false">
-    <div v-if="imagesStore.selectedElement" class="properties">
+    <div v-if="editorStore.selectedElement" class="properties">
       <div class="view once-line">
-        <img :src="(imagesStore.selectedElement?.config as IImageConfig)?.url" alt="">
+        <img :src="(editorStore.selectedElement?.config as IImageConfig)?.url" alt="">
       </div>
       <div class="ctrl">
         <span>X：</span>
@@ -149,8 +149,8 @@ const handleDeleted = () => {
         <NPosition @change="handlePositionChange"/>
       </div>
       <div class="prop-item center once-line">
-        <el-tooltip :content="`${imagesStore.selectedElement?.config.draggable ? '鎖定' : '解鎖'}`" placement="top">
-          <el-button :icon="imagesStore.selectedElement?.config.draggable ? Unlock : Lock" circle @click="handleLockAndUnlock"/>
+        <el-tooltip :content="`${editorStore.selectedElement?.config.draggable ? '鎖定' : '解鎖'}`" placement="top">
+          <el-button :icon="editorStore.selectedElement?.config.draggable ? Unlock : Lock" circle @click="handleLockAndUnlock"/>
         </el-tooltip>
         <el-tooltip content="刪除" placement="top">
           <el-button type="danger" :icon="Delete" @pointerup="handleDeleted">刪除</el-button>

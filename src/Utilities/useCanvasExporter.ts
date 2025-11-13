@@ -1,4 +1,4 @@
-import type { ImagesStore } from '../store/images';
+import type { EditorStore } from '../store/editorStore.ts';
 import {
     drawSticker,
     drawSVG,
@@ -8,7 +8,7 @@ import { ErrorMessage } from "./AlertMessage.ts";
 import {ElementTypesEnum, type IImageConfig, type ISVGConfig, type ITextConfig} from "../types.ts";
 
 interface ExportOptions {
-    store: ImagesStore;
+    store: EditorStore;
     editorCanvas: HTMLCanvasElement;
 }
 

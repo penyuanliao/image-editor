@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { UploadFilled } from "@element-plus/icons-vue";
-import { useImagesStore } from "@/store/images.ts";
+import { useEditorStore } from "@/store/editorStore.ts";
 import {CreateImageElement} from "@/Utilities/useCreateCanvasElement.ts";
 import NPanel from "../Basic/NPanel.vue";
 import NPanelButton from "@/components/Basic/NPanelButton.vue";
@@ -11,7 +11,7 @@ import type {IUploadedImage} from "@/types.ts";
 
 const emit = defineEmits<{ (e: 'add-element', action: any): void }>();
 
-const imagesStore = useImagesStore();
+const editorStore = useEditorStore();
 const fileInput = ref<HTMLInputElement | null>(null);
 
 const handleFileChange = async (event: Event) => {
@@ -19,13 +19,13 @@ const handleFileChange = async (event: Event) => {
   if (target.files) {
     for (const file of Array.from(target.files)) {
       const info = await processFile(file);
-      imagesStore.addImage(info);
+      editorStore.addImage(info);
       handleAddingElement(info);
     }
   }
 };
 const handleAddingElement = ({ name, image, imageUrl, base64 }: IUploadedImage) => {
-  // imagesStore.addElement(imagesStore.createStickerElement(img));
+  // editorStore.addElement(editorStore.createStickerElement(img));
   const element = CreateImageElement({
     name: name || '新圖片',
     image,
@@ -58,7 +58,7 @@ const triggerFileInput = () => {
     <div class="categories">
       <div class="category-items">
         <div
-            v-for="(info, index) in imagesStore.imageList"
+            v-for="(info, index) in editorStore.imageList"
             :key="index"
             class="image"
             :style="{ backgroundImage: `url(${info.image.src})` }"

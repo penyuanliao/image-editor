@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import {computed, ref} from "vue";
 import { Search, Close } from "@element-plus/icons-vue";
-import {useImagesStore} from "@/store/images.ts";
+import {useEditorStore} from "@/store/editorStore.ts";
 import {ElementTypesEnum} from "@/types.ts";
 import NCarousel from "../Basic/NCarousel.vue";
 import {type IGallery, useMaterialsStore} from "@/store/useMaterialsStore.ts";
 
-const imagesStore = useImagesStore();
+const editorStore = useEditorStore();
 const materialsStore = useMaterialsStore()
 
 const emit = defineEmits<{ (e: 'add-element', action: any): void }>();
@@ -38,7 +38,7 @@ const filteredGallery = computed<IGallery[]>(() => {
 const customizedGallery = computed(() => {
 
   const list: { src: string, name: string, id: number }[] = [];
-  imagesStore.imageList.forEach(({ image }) => {
+  editorStore.imageList.forEach(({ image }) => {
     list.push({
       src: image.src,
       id: -1,
@@ -94,7 +94,7 @@ const onSearchIconClick = () => {
     <div class="categories">
       <NCarousel v-model:options="tagOptions" v-model:selected="selectTag"/>
       <span class="label">自訂素材</span>
-      <div class="category-items">
+      <div v-if="customizedGallery.length > 0" class="category-items">
         <div
             v-for="(item, index) in customizedGallery"
             :key="index"
@@ -234,7 +234,9 @@ const onSearchIconClick = () => {
     display: flex;
     flex-wrap: wrap;
     flex-direction: row;
-    justify-content: space-between;
+    justify-content: flex-start;
+    gap: 12px;
+    padding-bottom: 10px;
   }
 }
 

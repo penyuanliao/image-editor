@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {computed, nextTick, onMounted, onUnmounted, reactive, ref, watch} from "vue";
-import {useImagesStore} from "@/store/images.ts";
+import {useEditorStore} from "@/store/editorStore.ts";
 import {CanvasEditor} from "@/Utilities/CanvasEditor.ts";
 import {type CroppedExportOptions, exportCroppedArea} from "@/Utilities/useCanvasExporter.ts";
 import {ElementTypesEnum, type ICanvasElement, type ITextConfig} from "@/types.ts";
@@ -9,14 +9,14 @@ import KeyboardController from "../Basic/KeyboardController.vue";
 import Symbols from "@/components/Basic/Symbols.vue";
 import {generalDefaults} from "@/config/settings.ts";
 
-const imagesStore = useImagesStore();
+const editorStore = useEditorStore();
 const emit = defineEmits(['element-selected']);
 
 const canvas = ref<HTMLCanvasElement | null>(null);
 const uploaderContainer = ref<HTMLDivElement | null>(null);
 const popOverRef = ref<InstanceType<typeof Popover> | null>(null);
 
-const editor = ref<CanvasEditor>(new CanvasEditor(imagesStore));
+const editor = ref<CanvasEditor>(new CanvasEditor(editorStore));
 
 // 使用 SVG 建立一個白色的 'X' 圖示
 const deleteIconSVG = `
@@ -25,7 +25,7 @@ const deleteIconSVG = `
   <line x1="6" y1="6" x2="18" y2="18"></line>
 </svg>`;
 // 將 SVG 轉為 Base64 Data URL，讓 Image 物件可以載入
-imagesStore.deleteIcon.src = `data:image/svg+xml;base64,${btoa(deleteIconSVG)}`;
+editorStore.deleteIcon.src = `data:image/svg+xml;base64,${btoa(deleteIconSVG)}`;
 
 // 裁切框的狀態
 const cropBox = reactive(editor.value.cropBox);
@@ -44,9 +44,9 @@ const displayCropBox = computed(() => {
 });
 
 const selectedElement = computed(() => {
-  if (imagesStore.selectedElements.length <= 0) return null;
-  if (imagesStore.selectedElements.length > 1) return null;
-  return imagesStore.selectedElements[0];
+  if (editorStore.selectedElements.length <= 0) return null;
+  if (editorStore.selectedElements.length > 1) return null;
+  return editorStore.selectedElements[0];
 });
 
 const handleChange = (key: string, currentValue: number) => {
@@ -134,7 +134,7 @@ onUnmounted(() => {
 
 // --- Event Emitters and Watchers ---
 // 選擇物件刷新畫面
-watch(() => imagesStore.selectedElements, (newSelection) => {
+watch(() => editorStore.selectedElements, (newSelection) => {
   // Deep copy to avoid downstream mutations affecting the original object
   emit('element-selected', newSelection.length > 0 ? JSON.parse(JSON.stringify(newSelection)) : []);
   editor.value.render();
@@ -142,13 +142,13 @@ watch(() => imagesStore.selectedElements, (newSelection) => {
 }, { deep: true });
 
 // 這邊檢查物件有異動就刷新畫面
-watch(() => imagesStore.elements, () => {
+watch(() => editorStore.elements, () => {
   editor.value.render();
 }, { deep: true });
 
-watch(() => imagesStore.originalImage, () => {
-  if (imagesStore.originalImage) {
-    editor.value.updateViewportSize(imagesStore.originalImage.width, imagesStore.originalImage.height);
+watch(() => editorStore.originalImage, () => {
+  if (editorStore.originalImage) {
+    editor.value.updateViewportSize(editorStore.originalImage.width, editorStore.originalImage.height);
   }
   editor.value.resetCropMarks();
   editor.value.render(); // 進行初次繪製
@@ -203,7 +203,7 @@ const finishEditing = () => {
   if (!editor.value.editingElement) return;
   // 如果編輯後文字為空，則移除該元素
   if ((editor.value.editingElement.config as ITextConfig).content.trim() === '') {
-    imagesStore.elements = imagesStore.elements.filter(el => el.id !== editor.value.editingElement!.id);
+    editorStore.elements = editorStore.elements.filter(el => el.id !== editor.value.editingElement!.id);
   }
   minWidth.value = 0; // 重設
   editor.value.editingElement = null;
@@ -233,7 +233,7 @@ const saveImage = async () => {
   const scaleFactor = 1 / editor.value.viewport.scale;
   // 輸出圖片的 URL
   const href = exportCroppedArea({
-    store: imagesStore,
+    store: editorStore,
     editorCanvas: canvas.value,
     cropBox: {
       x: cropBox.x,
@@ -247,7 +247,7 @@ const saveImage = async () => {
     // 4. 將暫時畫布的內容轉換為圖片的 data URL 並觸發下載
     const link = document.createElement('a');
     link.href = href;
-    link.download = imagesStore.pageName ? `${imagesStore.pageName}.png` : `edited-image-${Date.now()}.png`; // 加上時間戳避免檔名重複
+    link.download = editorStore.pageName ? `${editorStore.pageName}.png` : `edited-image-${Date.now()}.png`; // 加上時間戳避免檔名重複
     document.body.appendChild(link); // Firefox 需要將 link 加入 DOM
     link.click();
     document.body.removeChild(link); // 清理 DOM
@@ -261,13 +261,13 @@ const closeContextMenu = () => {
 
 const deleteSelectedElement = () => {
   if (contextMenu.element) {
-    imagesStore.removeElements([contextMenu.element.id]);
+    editorStore.removeElements([contextMenu.element.id]);
     editor.value.render();
   }
   closeContextMenu();
 };
 const handlePopOverMenuChange = (state: string) => {
-  const multiple: boolean = imagesStore.selectedElements.length > 1;
+  const multiple: boolean = editorStore.selectedElements.length > 1;
   switch (state) {
     case "left":
       if (multiple)
@@ -310,8 +310,8 @@ const updateSelectedElement = (newProps: Partial<any>) => {
   }
 
   // Now updates all selected elements
-  if (imagesStore.selectedElements.length === 0) return;
-  imagesStore.selectedElements.forEach(element => {
+  if (editorStore.selectedElements.length === 0) return;
+  editorStore.selectedElements.forEach(element => {
     Object.assign(element.config, newProps);
   });
   editor.value.render();
@@ -323,7 +323,7 @@ const updateSelectedElement = (newProps: Partial<any>) => {
 // 這邊處理對齊
 const alignSelectedElement = (horizontal: string, vertical: string) => {
 
-  if (imagesStore.selectedElements.length === 1) {
+  if (editorStore.selectedElements.length === 1) {
     editor.value.stageAlign(horizontal, vertical);
   } else {
     editor.value.align(horizontal, vertical);
@@ -335,16 +335,16 @@ const refresh = () => {
 
 // --- 鍵盤事件處理 ---
 const handleDeleteSelected = () => {
-  const selectedIds = imagesStore.selectedElements.map(el => el.id);
+  const selectedIds = editorStore.selectedElements.map(el => el.id);
   if (selectedIds.length > 0) {
-    imagesStore.removeElements(selectedIds);
+    editorStore.removeElements(selectedIds);
     editor.value.render();
   }
 };
 
 const handleMoveSelected = ({ dx, dy }: { dx: number, dy: number }) => {
-  if (imagesStore.selectedElements.length > 0) {
-    imagesStore.selectedElements.forEach(el => {
+  if (editorStore.selectedElements.length > 0) {
+    editorStore.selectedElements.forEach(el => {
       el.config.x += dx;
       el.config.y += dy;
     });
@@ -353,8 +353,8 @@ const handleMoveSelected = ({ dx, dy }: { dx: number, dy: number }) => {
 };
 
 const handleTextEditing = (type: string, action: string) => {
-  if (imagesStore.selectedElements.length > 0) {
-    imagesStore.selectedElements.forEach(el => {
+  if (editorStore.selectedElements.length > 0) {
+    editorStore.selectedElements.forEach(el => {
       if (type === el.type) {
         if (action === 'bold') {
           const { fontWeight } = el.config as ITextConfig;
@@ -410,7 +410,7 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh 
           class="pop-over-menu"
           ref="popOverRef">
         <Popover
-            v-show="popOverMenu.visible && (selectedElement?.type === ElementTypesEnum.Image || imagesStore.selectedElements.length > 1)"
+            v-show="popOverMenu.visible && (selectedElement?.type === ElementTypesEnum.Image || editorStore.selectedElements.length > 1)"
             @change="handlePopOverMenuChange"
             @alignElement="alignSelectedElement"/>
       </div>
@@ -429,7 +429,7 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh 
         <!-- <div class="context-menu-item">下移一層</div> -->
       </div>
       <div class="upload-prompt-overlay" :style="{
-        opacity: imagesStore.elements.length === 0 ? 1 : 0
+        opacity: editorStore.elements.length === 0 ? 1 : 0
       }">
         <div class="prompt-content">
           <Symbols name="picture"/>

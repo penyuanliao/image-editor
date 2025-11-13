@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import Symbols from "../Basic/Symbols.vue";
 import {computed, nextTick, onMounted, onUpdated, reactive, ref} from "vue";
-import {useImagesStore} from "@/store/images.ts";
+import {useEditorStore} from "@/store/editorStore.ts";
 import type {DropdownInstance} from "element-plus";
 import NButton from "@/components/Basic/NButton.vue";
 import NPosition from "@/components/Basic/NPosition.vue";
 import {advancedDefaults} from "@/config/settings.ts";
-import NRotation from "@/components/NRotation.vue";
+import NRotation from "@/components/Basic/NRotation.vue";
 
-const imagesStore = useImagesStore();
+const editorStore = useEditorStore();
 
 const emit = defineEmits(['change', 'alignElement']);
 
@@ -16,9 +16,9 @@ const popoverRef = ref<HTMLDivElement | null>(null);
 const controls = ref<HTMLDivElement | null>(null);
 const moveLayerDropdown = ref<DropdownInstance | null>(null);
 
-const hasTop = computed(() => imagesStore.selectedIndex === imagesStore.elements.length - 1);
+const hasTop = computed(() => editorStore.selectedIndex === editorStore.elements.length - 1);
 
-const hasBottom = computed(() => imagesStore.selectedIndex === 0);
+const hasBottom = computed(() => editorStore.selectedIndex === 0);
 
 const popoverMenu = reactive({
   route: 'image',
@@ -47,19 +47,19 @@ const popoverMenu = reactive({
 });
 
 const handleMoveLayer = (value: "up" | "down" | "top" | "bottom") => {
-  if (!imagesStore.selectedElement) return;
+  if (!editorStore.selectedElement) return;
   switch (value) {
     case 'up':
-      imagesStore.moveForwardElement(imagesStore.selectedElement.id);
+      editorStore.moveForwardElement(editorStore.selectedElement.id);
       break;
     case 'down':
-      imagesStore.moveBackwardElement(imagesStore.selectedElement.id);
+      editorStore.moveBackwardElement(editorStore.selectedElement.id);
       break;
     case 'top':
-      imagesStore.moveTopElement(imagesStore.selectedElement.id);
+      editorStore.moveTopElement(editorStore.selectedElement.id);
       break;
     case 'bottom':
-      imagesStore.moveBottomElement(imagesStore.selectedElement.id);
+      editorStore.moveBottomElement(editorStore.selectedElement.id);
       break;
 
   }
@@ -67,9 +67,9 @@ const handleMoveLayer = (value: "up" | "down" | "top" | "bottom") => {
 const handlePositionChange = (value: string) => {
 
   if (value === 'flip-horizontal') {
-    imagesStore.flipHorizontal();
+    editorStore.flipHorizontal();
   } else if (value === 'flip-vertical') {
-    imagesStore.flipVertical();
+    editorStore.flipVertical();
   } else {
     const horizontally: string[] = ['left', 'center', 'right'];
     const vertically: string[] = ['top', 'middle', 'bottom'];
