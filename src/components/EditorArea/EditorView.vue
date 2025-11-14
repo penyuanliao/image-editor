@@ -87,7 +87,7 @@ onMounted(() => {
 
   if (canvas.value) {
     editor.value.setup(canvas.value, uploaderContainer.value);
-    if (wheelerRef.value && !advancedDefaults.zoomEnabled) editor.value.setupZoomView(wheelerRef.value);
+    if (wheelerRef.value && advancedDefaults.zoomEnabled) editor.value.setupZoomView(wheelerRef.value);
     editor.value.textInput = textInput.value;
     // 預設畫布大小
     editor.value.updateViewportSize(width, height, color);
