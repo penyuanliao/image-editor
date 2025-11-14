@@ -18,10 +18,10 @@ import NNavbar from "@/components/Basic/NNavbar.vue";
 const editorStore = useEditorStore();
 const editor = ref<InstanceType<typeof EditorView> | null>(null);
 const selected = ref<string>();
+const version = __APP_VERSION__;
 
 // State to hold the currently selected element from the canvas
 const selectedElementForPanel = ref<any | null>(null);
-
 const handleAddElement = (element: any) => {
   if (element) {
     editor.value?.addElement(element);
@@ -136,6 +136,7 @@ const mainStyle = computed(() => {
           />
         </div>
       </div>
+      <div class="app-version">v{{ version }}</div>
     </div>
   </DropZone>
 </template>
@@ -232,6 +233,15 @@ const mainStyle = computed(() => {
   border-top-left-radius: 20px;
   border-top-right-radius: 20px;
   box-shadow: -1px 3px 3px 0 #D9D9D9;
+}
+
+.app-version {
+  position: absolute;
+  bottom: 5px;
+  right: 10px;
+  font-size: 12px;
+  color: #aaa;
+  z-index: 1000; /* 確保在最上層 */
 }
 
 </style>
