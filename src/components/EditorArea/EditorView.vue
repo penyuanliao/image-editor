@@ -14,6 +14,7 @@ const editorStore = useEditorStore();
 const emit = defineEmits(['element-selected']);
 
 const canvas = ref<HTMLCanvasElement | null>(null);
+const wheelerRef = ref<HTMLDivElement | null>(null);
 const uploaderContainer = ref<HTMLDivElement | null>(null);
 const popOverRef = ref<InstanceType<typeof Popover> | null>(null);
 
@@ -36,10 +37,6 @@ const selectedElement = computed(() => {
   if (editorStore.selectedElements.length > 1) return null;
   return editorStore.selectedElements[0];
 });
-
-const zoom = computed(() => {
-  return editor.value.divScale * editor.value.viewport.scale;
-})
 
 const handleChange = (key: string, currentValue: number) => {
   if (key === 'x') {
@@ -90,7 +87,7 @@ onMounted(() => {
 
   if (canvas.value) {
     editor.value.setup(canvas.value, uploaderContainer.value);
-    if (uploaderContainer.value && advancedDefaults.zoomEnabled) editor.value.setupZoomView(uploaderContainer.value);
+    if (wheelerRef.value && !advancedDefaults.zoomEnabled) editor.value.setupZoomView(wheelerRef.value);
     editor.value.textInput = textInput.value;
     // 預設畫布大小
     editor.value.updateViewportSize(width, height, color);
@@ -109,8 +106,8 @@ onMounted(() => {
     // 設定PopOver選單的回呼函式
     editor.value.onPopOverMenu = (event) => {
       popOverMenu.visible = event.visible || false;
-      popOverMenu.x = event.x + popOverMenu.offset.x;
-      popOverMenu.y = event.y + popOverMenu.offset.y;
+      popOverMenu.x = Math.max(Math.min(event.x + popOverMenu.offset.x, 900), -100);
+      popOverMenu.y = Math.max(event.y + popOverMenu.offset.y, -50);
     };
     // 設定文字編輯的回呼函式
     editor.value.onStartEditText = (element) => {
@@ -177,11 +174,11 @@ const updateTextareaSize = () => {
   const config = selectedElement.value?.config as ITextConfig;
 
   // 根據內容捲動寬高來設定新的寬高
-  const scrollHeight = textarea.scrollHeight;
+  // const scrollHeight = textarea.scrollHeight;
   const scrollWidth = textarea.scrollWidth;
   const w = Math.max(scrollWidth, minWidth.value);
   const countLines: number = config.content.split('\n').length;
-  console.log('countLines', countLines * (config._lineSpacing || 0), scrollHeight);
+  // console.log('countLines', countLines * (config._lineSpacing || 0), scrollHeight);
   textarea.style.height = `${countLines * (config._lineSpacing || 0)}px`;
   textarea.style.width = `${w}px`;
   if (countLines > (config._countLines || 1)) {
@@ -369,9 +366,9 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh 
 </script>
 
 <template>
-  <div class="editor-wrapper" :style="{
+  <div class="editor-wrapper" ref="wheelerRef" :style="{
     minHeight: editor.viewport.height,
-    minWidth: editor.viewport.width
+    minWidth: editor.viewport.width,
   }">
     <!-- 鍵盤控制器，用於處理快捷鍵 -->
     <KeyboardController
@@ -381,6 +378,7 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh 
     />
     <div
         class="uploader-container"
+        :style="{ scale: editor.divScale }"
         ref="uploaderContainer">
       <canvas
           ref="canvas"
@@ -464,7 +462,7 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh 
   box-sizing: border-box;
   //justify-content: center;
   align-items: center;
-  overflow: hidden;
+  overflow: auto;
   flex-shrink: 0;
 }
 

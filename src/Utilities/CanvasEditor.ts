@@ -936,14 +936,12 @@ export class CanvasEditor {
     }
 
     public handleWheel(event: WheelEvent) {
-        event.preventDefault();
-        if (!this.canvas) return;
-
         // 檢查 Ctrl 鍵 (或 Mac 上的 Command 鍵) 是否被按下
         if (!event.ctrlKey && !event.metaKey) {
             return; // 如果沒有按下，則不執行縮放
         }
-
+        event.preventDefault();
+        if (!this.canvas) return;
         const zoomIntensity = 0.05;
         const delta = -event.deltaY * zoomIntensity;
         const newScale = this.divScale + delta;

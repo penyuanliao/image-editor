@@ -9,6 +9,7 @@ import {
 } from "../types.ts";
 import {calculateConstrainedSize} from "@/Utilities/useImageEditor.ts";
 import {degrees, radians} from "@/Utilities/Algorithm.ts";
+import {generalDefaults} from "@/config/settings.ts";
 
 // 為了讓 CanvasEditor 能夠傳入 store，我們需要匯出 store 的類型
 export type EditorStore = ReturnType<typeof useEditorStore>;
@@ -20,11 +21,11 @@ export const useEditorStore = defineStore('editor', () => {
     name: '畫布',
     type: ElementTypesEnum.Stage,
     config: {
-      width: 800,
-      height: 600,
+      width: generalDefaults.viewport.width,
+      height: generalDefaults.viewport.height,
       x: 0,
       y: 0,
-      color: 'transparent'
+      color: generalDefaults.viewport.color
     } as StageConfig
   });
   const imageList = ref<IUploadedImage[]>([]);
