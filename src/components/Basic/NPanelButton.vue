@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { loading } = defineProps(['loading']);
+const { loading } = defineProps(['loading', 'update:loading']);
 
 </script>
 

@@ -3,11 +3,12 @@ import {computed, nextTick, onMounted, onUnmounted, reactive, ref, watch} from "
 import {useEditorStore} from "@/store/editorStore.ts";
 import {CanvasEditor} from "@/Utilities/CanvasEditor.ts";
 import {type CroppedExportOptions, exportCroppedArea} from "@/Utilities/useCanvasExporter.ts";
-import {ElementTypesEnum, type ICanvasElement, type ITextConfig} from "@/types.ts";
+import {ElementTypesEnum, type ICanvasElement, type ITextConfig, type StageConfig} from "@/types.ts";
 import Popover from "./Popover.vue";
 import KeyboardController from "../Basic/KeyboardController.vue";
 import Symbols from "@/components/Basic/Symbols.vue";
 import {advancedDefaults, generalDefaults} from "@/config/settings.ts";
+import NCropControls from "@/components/EditorArea/NCropControls.vue";
 
 const editorStore = useEditorStore();
 const emit = defineEmits(['element-selected']);
@@ -30,19 +31,6 @@ editorStore.deleteIcon.src = `data:image/svg+xml;base64,${btoa(deleteIconSVG)}`;
 
 // 裁切框的狀態
 const cropBox = reactive(editor.value.cropBox);
-
-// 建立一個給 UI 使用的 computed 屬性，它包含 getter 和 setter
-const displayCropBox = computed(() => {
-  // 當 UI 讀取值時，我們回傳原始值，因為縮放轉換在 CanvasEditor 內部處理更佳
-  // 如果未來需要在 UI 顯示不同單位的值，可以在這裡進行轉換
-  const scaleFactor = 1 / editor.value.viewport.scale;
-  return {
-    x: Math.round(cropBox.x * scaleFactor),
-    y: Math.round(cropBox.y * scaleFactor),
-    width: Math.min(Math.round(cropBox.width * scaleFactor * 100) / 100, editor.value.viewport.originalWidth),
-    height: Math.min(Math.round(cropBox.height * scaleFactor * 100) / 100, editor.value.viewport.originalHeight)
-  };
-});
 
 const selectedElement = computed(() => {
   if (editorStore.selectedElements.length <= 0) return null;
@@ -95,15 +83,18 @@ const popOverMenu = reactive({
 });
 
 onMounted(() => {
-
-  const {viewport} = generalDefaults;
+  const { viewport } = generalDefaults;
+  const config = editorStore.stage.config as StageConfig;
+  const width: number = config.width || viewport.width;
+  const height: number = config.height || viewport.height;
+  const color: string = config.color || viewport.color;
 
   if (canvas.value) {
     editor.value.setup(canvas.value, editorView.value);
     if (uploaderContainer.value && advancedDefaults.zoomEnabled) editor.value.setupZoomView(uploaderContainer.value);
     editor.value.textInput = textInput.value;
     // 預設畫布大小
-    editor.value.updateViewportSize(viewport.width, viewport.height, viewport.color);
+    editor.value.updateViewportSize(width, height, color);
     // 支援貼圖Ctrl+C和Ctrl+V
     editor.value.enableCopyAndPasteSupport();
     // 尺寸變更後需要重新繪製所有內容
@@ -450,44 +441,15 @@ defineExpose({addElement, updateSelectedElement, alignSelectedElement, refresh})
     </div>
     <div class="actions-bar">
       <el-button class="save-button" @click="saveImage">
-        <div style="margin-right: 10px;">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path
-                d="M8.00199 1.99997C8.37297 1.99997 8.67485 2.30185 8.67485 2.67283L8.67485 8.14618L9.98808 6.82308L10.0321 6.80087C10.0592 6.7873 10.1592 6.74288 10.2982 6.74288C10.4269 6.74288 10.6186 6.78113 10.8004 6.96251C11.1129 7.27508 10.9747 7.6514 10.8583 7.80687L10.846 7.82332L8.19982 10.5032C8.16486 10.5419 8.09371 10.5851 8.00158 10.5851C7.90945 10.5851 7.84118 10.5419 7.80663 10.5032L5.15016 7.82332L5.13782 7.80687C5.02143 7.6514 4.88365 7.27508 5.19581 6.96251C5.37719 6.78113 5.56926 6.74288 5.69799 6.74288C5.837 6.74288 5.93653 6.7873 5.96409 6.80087L6.0081 6.82308L7.32872 8.15399L7.32872 2.67283C7.32872 2.30185 7.63061 1.99997 8.00158 1.99997L8.00199 1.99997Z"
-                fill="black"/>
-            <path
-                d="M3.25628 15C1.46052 15 0 13.5544 0 11.7771V7.68354C0 7.3066 0.30977 7 0.690615 7C1.07146 7 1.38123 7.3066 1.38123 7.68354V11.7746C1.38123 12.7237 2.16141 13.4963 3.12071 13.4963H12.7922C13.7996 13.4963 14.6188 12.6851 14.6188 11.6884V7.68354C14.6188 7.3066 14.9285 7 15.3094 7C15.6902 7 16 7.3066 16 7.68354V11.5794C16 13.4658 14.4495 15 12.544 15H3.25628Z"
-                fill="black"/>
-          </svg>
-        </div>
-        储存图片
+        <el-icon size="20"><Symbols name="download"/></el-icon>
+        <span>储存图片</span>
       </el-button>
-      <div class="crop-controls">
-        <div class="input-group">
-          <label for="crop-x">X:</label>
-          <input id="crop-x" type="number" v-model.number="displayCropBox.x"
-                 @change="(e: Event) => handleChange('x', parseInt((e.target as HTMLInputElement)?.value) || 0)"/>
-        </div>
-        <div class="input-group">
-          <label for="crop-y">Y:</label>
-          <input id="crop-y" type="number" v-model.number="displayCropBox.y"
-                 @change="(e: Event) => handleChange('y', parseInt((e.target as HTMLInputElement)?.value) || 0)"/>
-        </div>
-        <div class="input-group">
-          <label for="crop-width">寬:</label>
-          <input id="crop-width" type="number" v-model.number="displayCropBox.width"
-                 @change="(e: Event) => handleChange('width', parseInt((e.target as HTMLInputElement)?.value) || 0)"/>
-        </div>
-        <div class="input-group">
-          <label for="crop-height">高:</label>
-          <input id="crop-height" type="number" v-model.number="displayCropBox.height"
-                 @change="(e: Event) => handleChange('height', parseInt((e.target as HTMLInputElement)?.value) || 0)"/>
-        </div>
-        <div class="input-group">
-          <span>{{ `${editor.viewport.originalWidth} x ${editor.viewport.originalHeight}` }}</span>
-          <span>{{ `${Math.floor(zoom * 100)}%` }}</span>
-        </div>
-      </div>
+      <NCropControls
+          :crop-box="editor.cropBox"
+          :viewport="editor.viewport"
+          :div-scale="editor.divScale"
+          @change="handleChange"
+      />
     </div>
   </div>
 </template>
@@ -501,34 +463,32 @@ defineExpose({addElement, updateSelectedElement, alignSelectedElement, refresh})
   height: 100%;
   display: flex;
   flex-direction: column;
-  padding: 78px 10px 10px 10px;
   gap: 1.5rem;
   box-sizing: border-box;
   //justify-content: center;
   align-items: center;
-  overflow: hidden;
+  //overflow: hidden;
   flex-shrink: 0;
 }
 
 .uploader-container {
   position: relative;
   display: flex;
-  border-radius: 20px;
   width: 100%;
   height: 100%;
   overflow: auto;
   justify-content: center;
+  padding: 78px 0 0 0;
 }
 
 .editor-view {
   position: relative;
   display: flex;
-  border-radius: 20px;
   width: 800px;
   height: 600px;
   max-height: 600px;
   min-height: 50px; /* 避免過度縮小 */
-  overflow: hidden;
+  border: 1px solid black;
 }
 
 .editor-canvas {
@@ -550,6 +510,7 @@ defineExpose({addElement, updateSelectedElement, alignSelectedElement, refresh})
   pointer-events: none;
   background-color: #D9D9D9;
   transition: opacity 0.3s;
+  border-radius: 20px;
 }
 
 .prompt-content {
@@ -612,54 +573,6 @@ defineExpose({addElement, updateSelectedElement, alignSelectedElement, refresh})
   overflow: hidden;
   resize: none;
   padding: 0;
-}
-
-.crop-controls {
-  display: flex;
-  position: relative;
-  gap: 1rem;
-  align-items: center;
-  background-color: #fff;
-  padding: 15px 30px;
-  border-radius: 15px;
-  height: 30px;
-}
-
-.input-group {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.input-group label {
-  font-size: 15px;
-  color: #555;
-  font-weight: 700;
-}
-
-.input-group input {
-  width: 40px;
-  max-width: 60px;
-  padding: 4px 8px;
-  border: 1px solid theme.$border-color-base;
-  border-radius: 4px;
-  text-align: right;
-}
-
-.input-group span {
-  font-size: 15px;
-  color: theme.$text-color;
-  font-weight: 700;
-}
-
-.input-group input::-webkit-outer-spin-button,
-.input-group input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-.input-group input[type=number] {
-  -moz-appearance: textfield;
 }
 
 .context-menu {

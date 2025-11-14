@@ -1,4 +1,4 @@
-import { processUrlToBase64 } from "./FileProcessor.ts";
+import {processUrl} from "./FileProcessor.ts";
 import {ElementTypesEnum, type ICanvasElement, type IImageConfig, type ISVGConfig, type ITextConfig} from "../types.ts";
 // 產生一個新的 CanvasElement
 export const createCanvasElement = (element: ICanvasElement, canvas: { width: number, height: number }, scale: number = 1) => {
@@ -43,9 +43,8 @@ export const createCanvasElement = (element: ICanvasElement, canvas: { width: nu
                 img = config.img;
                 base64 = config.base64;
             } else if (config.url) {
-                const load = await processUrlToBase64(config.url);
-                img = load.image;
-                base64 = load.base64;
+                img = await processUrl(config.url);
+                // base64 = imageToBase64(img, 'image/png');
             }
 
             resolve({

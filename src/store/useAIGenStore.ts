@@ -16,7 +16,10 @@ export interface AIGenRequest {
 }
 // 產生的AI圖片action
 export const useAIGenStore = defineStore('aiGenStore', () => {
-    const originalImages: Map<number, { image: HTMLImageElement, base64?: string, id: number, blob?:Blob }> = new Map();
+    // 使用次數
+    const remainingTries = ref<number>(10);
+    // 存放原始圖片資料
+    const originalImages: Map<number, { image?: HTMLImageElement, base64?: string, id: number, blob?:Blob }> = new Map();
     // 存放處理過後圖片資料
     const rawData = ref<Record<number, any>>({});
     // 記錄讀取狀態
@@ -53,8 +56,6 @@ export const useAIGenStore = defineStore('aiGenStore', () => {
             if (args.prompt && args.choice === 0) {
                 body.prompt = args.prompt;
             }
-            console.log('generated:', JSON.stringify(body, null, '\t'));
-
             // 這裡替換成你真實的 API 請求
             const response = await fetch(`/api/frontend/image/generate`, {
                 method: 'POST',
@@ -63,6 +64,7 @@ export const useAIGenStore = defineStore('aiGenStore', () => {
                 },
                 body: JSON.stringify(body)
             });
+            remainingTries.value--;
             // 記錄原圖
             if (source.id > 0 && !originalImages.has(source.id)) {
                 originalImages.set(source.id, source);
@@ -79,6 +81,7 @@ export const useAIGenStore = defineStore('aiGenStore', () => {
                 }
                 return result;
             } else {
+                error.value = result.error || "生成失敗";
                 return null;
             }
         } catch (e: any) {
@@ -96,6 +99,7 @@ export const useAIGenStore = defineStore('aiGenStore', () => {
     }
 
     return {
+        remainingTries,
         isLoading,
         error,
         fetchGenerate,

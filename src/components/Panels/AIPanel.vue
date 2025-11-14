@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import {computed, ref} from "vue";
-import Symbols from "../Basic/Symbols.vue";
 import { useAIGenStore } from "@/store/useAIGenStore.ts";
 import {useEditorStore} from "@/store/editorStore.ts";
 import type {IImageConfig} from "@/types.ts";
-import {processBase64, processUrlToBase64} from "@/Utilities/FileProcessor.ts";
+import { processBase64, processUrlToBase64} from "@/Utilities/FileProcessor.ts";
 import {appearanceDefaults} from "@/config/settings.ts";
 import {AlertMessage, PromptMessage} from "@/Utilities/AlertMessage.ts";
+import NPanelButton from "@/components/Basic/NPanelButton.vue";
 // import {calculateConstrainedSize} from "@/Utilities/useImageEditor.ts";
 
 const aiGenStore = useAIGenStore();
@@ -16,24 +16,17 @@ const emit = defineEmits(['refresh']);
 
 // const styles = ref([...appearanceDefaults.AIStyles]);
 
-const originalImage = computed(() => {
-  if (editorStore.selectedElement) {
-    const config = editorStore.selectedElement?.config;
-    if (config.id && aiGenStore.hasOriginalImage(config.id)) {
-      return aiGenStore.getOriginalImage(config.id)
-    }
-  }
-  return null;
-});
+const originalImage = ref<{ image?: HTMLImageElement, base64?: string, id: number, blob?:Blob }|null>(null);
 const prompt = ref<string>('');
 
 const styles = computed(() => {
+  console.log('styles');
   const list = [];
   if (originalImage.value) list.push({
     name: '原始圖片',
-    value: -1,
+    value: -2,
     key: 'original',
-    url: originalImage.value.image.src
+    url: originalImage.value.image?.src
   });
 
   return [...list, ...appearanceDefaults.AIStyles];
@@ -41,17 +34,34 @@ const styles = computed(() => {
 
 const selectedStyle = ref<number>(-1);
 
-const remainingTries = ref<Number>(10);
-
 const selectStyle = (style: number) => {
   selectedStyle.value = style;
   if (selectedStyle.value !== 0) {
     prompt.value = '';
   }
 };
+const setupOriginalImage = () => {
+  if (editorStore.selectedElement) {
+    const id = editorStore.selectedElement.id;
+    if (id && aiGenStore.hasOriginalImage(id)) {
+      originalImage.value = aiGenStore.getOriginalImage(id) || null;
+    }
+  }
+  return null;
+}
 
 const onSubmit = async () => {
 
+  if (aiGenStore.remainingTries <= 0) {
+    await AlertMessage("已經達到使用次數上限");
+    return;
+  }
+
+  if (selectedStyle.value === -2) {
+    editorStore.replaceSelectedElementImage(originalImage.value?.image as HTMLImageElement);
+    emit('refresh');
+    return;
+  }
   if (selectedStyle.value === -1) {
     await AlertMessage("請選擇風格");
     return;
@@ -68,16 +78,18 @@ const onSubmit = async () => {
   const id = editorStore.selectedElement?.id || 0;
   if (config) {
     const materialId = config.id || -1;
-    let image: HTMLImageElement;
-    let base64: string;
+    let image: HTMLImageElement = config.img as HTMLImageElement;
+    let base64: string = '';
     let result;
-    if (!config.img || !config.base64) {
-      const load = await processUrlToBase64(config.url || '');
-      image = load.image;
-      base64 = load.base64;
-    } else {
-      image = config.img;
-      base64 = config.base64;
+    if (materialId <= 0) {
+      if ((!config.img || !config.base64)) {
+        const load = await processUrlToBase64(config.url || '');
+        image = load.image;
+        base64 = load.base64;
+      } else {
+        image = config.img;
+        base64 = config.base64;
+      }
     }
 
     result = await aiGenStore.fetchGenerate({
@@ -92,6 +104,9 @@ const onSubmit = async () => {
     if (result) {
       editorStore.replaceSelectedElementImage(await processBase64(result.image), result.image);
       emit('refresh');
+      setupOriginalImage();
+    } else {
+      await AlertMessage(aiGenStore.error || 'AI生成');
     }
   }
 }
@@ -104,13 +119,15 @@ const onSubmit = async () => {
       <h2>AI生成</h2>
       <div class="description">
         <span class="text">您今日AI换图剩余次数: </span>
-        <span class="remaining-tries">{{ remainingTries }}</span>
+        <span class="remaining-tries">{{ aiGenStore.remainingTries}}</span>
       </div>
     </div>
     <div class="ai-select-stylize">
       <span class="label">風格轉換</span>
       
-      <div class="stylize">
+      <div class="stylize" :style="{
+        'pointer-events': aiGenStore.isLoading ? 'none' : 'auto'
+      }">
         <div
           v-for="style in styles"
           :key="style.key"
@@ -127,13 +144,7 @@ const onSubmit = async () => {
         </div>
       </div>
     </div>
-    <el-button class="submit-btn" @pointerup="onSubmit">
-      <template #default>
-        <span>生成</span>
-      </template>
-      <template #loading>生成...</template>
-      <template #icon><Symbols name="magic"/></template>
-    </el-button>
+    <NPanelButton :loading="aiGenStore.isLoading" @pointerup="onSubmit">{{ selectedStyle === -2 ? '還原' : '生成' }}</NPanelButton>
   </div>
 </template>
 
@@ -191,7 +202,7 @@ const onSubmit = async () => {
     display: flex;
     flex-wrap: wrap;
     flex-direction: row;
-    justify-content: space-between;
+    //justify-content: space-between;
     gap: 10px;
   }
 

@@ -13,11 +13,14 @@ export interface IGeneralSettings {
 }
 
 export interface IAdvancedSettings {
+    // 啟用: 快捷鍵選單
     popupMenu: boolean;
+    // 啟用: 圖片剪裁功能
     imageCropEditEnabled: boolean;
+    // 啟用: 對齊功能
     alignEnabled: boolean;
+    // 啟用: Ctrl + Wheel縮放Canvas
     zoomEnabled: boolean;
-
 }
 
 export const generalDefaults: IGeneralSettings = {

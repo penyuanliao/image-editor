@@ -42,6 +42,9 @@ export const processBlob = (blob: Blob) => {
 export const processUrl = (url: string) => {
     return new Promise<HTMLImageElement>(async (resolve) => {
         const image = new Image();
+        // Set crossOrigin to "Anonymous" BEFORE setting the src.
+        // This requests the image with CORS headers, preventing the canvas from being tainted.
+        // image.crossOrigin = "Anonymous";
         image.onload = () => {
             resolve(image);
         };
@@ -65,6 +68,29 @@ const blobToBase64 = (blob: Blob) => {
         reader.readAsDataURL(blob);
     });
 }
+
+/**
+ * Converts an HTMLImageElement to a Base64 data URL.
+ * @param image The loaded image element to convert.
+ * @param type The desired image format (e.g., 'image/png', 'image/jpeg').
+ * @param quality For 'image/jpeg' or 'image/webp', a number between 0 and 1 for the image quality.
+ * @returns The Base64 data URL string.
+ */
+export const imageToBase64 = (image: HTMLImageElement, type: string = 'image/png', quality?: number): string => {
+    const canvas = document.createElement('canvas');
+    canvas.width = image.naturalWidth;
+    canvas.height = image.naturalHeight;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+        throw new Error('Failed to get canvas 2d context');
+    }
+
+    ctx.drawImage(image, 0, 0);
+
+    return canvas.toDataURL(type, quality);
+}
+
 export const processUrlToBase64 = async (url: string) => {
 
     const response = await fetch(url);

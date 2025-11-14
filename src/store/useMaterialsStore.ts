@@ -39,7 +39,7 @@ export interface IGallery {
 export const useMaterialsStore = defineStore('materialsStore', () => {
     // 存放模板列表
     const rawData = ref<MaterialsData[]>([
-        {
+        /*{
             ID: 1,
             CategoryName: '聯名活動素材',
             Info: [
@@ -72,6 +72,7 @@ export const useMaterialsStore = defineStore('materialsStore', () => {
                 { ID: 15, Urlpath: './assets/stickers/smoker.svg', MaterialName: 'smoker' },
             ]
         }
+        */
     ]);
     // 記錄讀取狀態
     const isLoading = ref(false);
@@ -84,7 +85,7 @@ export const useMaterialsStore = defineStore('materialsStore', () => {
         error.value = null;
         try {
             // 這裡替換成你真實的 API 請求
-            const response = await fetch('/api/material/list');
+            const response = await fetch('/api/frontend/material/list');
             if (!response.ok) {
                 throw new Error('Failed to fetch materials');
             }

@@ -1,10 +1,9 @@
 <script setup lang="ts">
 
-import {reactive, ref, onMounted, onUpdated, onUnmounted} from "vue";
+import { defineProps, defineEmits, ref, onMounted, onUpdated, onUnmounted } from "vue";
 
-const props = defineProps(['options', 'selected']);
+const props = defineProps(['options', 'selected', "update:options"]);
 
-const tagOptions = reactive(props.options);
 
 const selected = ref<String>(props.selected)
 
@@ -63,7 +62,7 @@ const next = () => {
   <div class="tag-control">
     <div class="tag-group" ref="tagGroupRef">
       <div
-          v-for="(tag, index) in tagOptions"
+          v-for="(tag, index) in props.options"
           :key="`tag-${index}`"
           :class="{
               'tag-item': true,
