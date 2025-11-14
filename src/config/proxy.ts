@@ -10,8 +10,8 @@ interface ProxyConfig {
 }
 
 export const proxyConfig: ProxyConfig = {
-    '/api/*': {
-        target: `http://localhost:3000`,
+    '/api': {
+        target: `https://news3-test.bbinmkt.com/`,
         secure: false,
         changeOrigin: true,
         headers: {}

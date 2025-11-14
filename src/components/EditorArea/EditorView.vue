@@ -15,7 +15,6 @@ const emit = defineEmits(['element-selected']);
 
 const canvas = ref<HTMLCanvasElement | null>(null);
 const uploaderContainer = ref<HTMLDivElement | null>(null);
-const editorView = ref<HTMLDivElement | null>(null);
 const popOverRef = ref<InstanceType<typeof Popover> | null>(null);
 
 const editor = ref<CanvasEditor>(new CanvasEditor(editorStore));
@@ -90,7 +89,7 @@ onMounted(() => {
   const color: string = config.color || viewport.color;
 
   if (canvas.value) {
-    editor.value.setup(canvas.value, editorView.value);
+    editor.value.setup(canvas.value, uploaderContainer.value);
     if (uploaderContainer.value && advancedDefaults.zoomEnabled) editor.value.setupZoomView(uploaderContainer.value);
     editor.value.textInput = textInput.value;
     // 預設畫布大小
@@ -136,12 +135,12 @@ watch(() => editorStore.selectedElements, (newSelection) => {
   emit('element-selected', newSelection.length > 0 ? JSON.parse(JSON.stringify(newSelection)) : []);
   editor.value.render();
   // popOverMenu.visible = (newSelection.length === 1);
-}, {deep: true});
+}, { deep: true });
 
 // 這邊檢查物件有異動就刷新畫面
 watch(() => editorStore.elements, () => {
   editor.value.render();
-}, {deep: true});
+}, { deep: true });
 
 watch(() => editorStore.originalImage, () => {
   if (editorStore.originalImage) {
@@ -149,7 +148,7 @@ watch(() => editorStore.originalImage, () => {
   }
   editor.value.resetCropMarks();
   editor.value.render(); // 進行初次繪製
-}, {deep: true});
+}, { deep: true });
 
 // 監聽裁切框的任何變更（來自拖曳或輸入框）
 watch(editor.value.cropBox, () => {
@@ -161,7 +160,7 @@ watch(editor.value.cropBox, () => {
   if (!wasConstrained) {
     editor.value.render();
   }
-}, {deep: true});
+}, { deep: true });
 
 // --- 文字編輯狀態 ---
 let minWidth = ref(0);
@@ -187,10 +186,10 @@ const updateTextareaSize = () => {
   textarea.style.width = `${w}px`;
   if (countLines > (config._countLines || 1)) {
     const top: number = Number.parseFloat(textarea.style.top.replace('px', ''));
-    textarea.style.top = `${top - ((config._lineSpacing || 0) / 2)}px`;
+    textarea.style.top =  `${top - ((config._lineSpacing || 0) / 2)}px`;
   } else if (countLines < (config._countLines || 1)) {
     const top: number = Number.parseFloat(textarea.style.top.replace('px', ''));
-    textarea.style.top = `${top + ((config._lineSpacing || 0) / 2)}px`;
+    textarea.style.top =  `${top + ((config._lineSpacing || 0) / 2)}px`;
   }
 };
 
@@ -339,7 +338,7 @@ const handleDeleteSelected = () => {
   }
 };
 
-const handleMoveSelected = ({dx, dy}: { dx: number, dy: number }) => {
+const handleMoveSelected = ({ dx, dy }: { dx: number, dy: number }) => {
   if (editorStore.selectedElements.length > 0) {
     editorStore.selectedElements.forEach(el => {
       el.config.x += dx;
@@ -354,7 +353,7 @@ const handleTextEditing = (type: string, action: string) => {
     editorStore.selectedElements.forEach(el => {
       if (type === el.type) {
         if (action === 'bold') {
-          const {fontWeight} = el.config as ITextConfig;
+          const { fontWeight } = el.config as ITextConfig;
           (el.config as ITextConfig).fontWeight = fontWeight === 'bold' ? 'normal' : 'bold';
         }
       }
@@ -365,77 +364,73 @@ const handleTextEditing = (type: string, action: string) => {
 
 }
 
-defineExpose({addElement, updateSelectedElement, alignSelectedElement, refresh});
+defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh });
 
 </script>
 
 <template>
-  <div class="editor-wrapper">
+  <div class="editor-wrapper" :style="{
+    minHeight: editor.viewport.height,
+    minWidth: editor.viewport.width
+  }">
     <!-- 鍵盤控制器，用於處理快捷鍵 -->
     <KeyboardController
         @delete-selected="handleDeleteSelected"
         @move-selected="handleMoveSelected"
         @text-editing="handleTextEditing"
     />
-    <div class="uploader-container" ref="uploaderContainer">
+    <div
+        class="uploader-container"
+        ref="uploaderContainer">
+      <canvas
+          ref="canvas"
+          class="editor-canvas"
+      ></canvas>
+      <textarea
+          v-if="editor.editingElement"
+          ref="textInput"
+          v-model="(editor.editingElement.config as ITextConfig).content"
+          :style="textInputStyle"
+          class="text-editor-input"
+          wrap="off"
+          @input="handleTextInput"
+          @compositionstart="compositionStart"
+          @compositionend="compositionEnd"
+          @focusout="finishEditing"
+          @keydown.enter.shift.prevent="finishEditing"
+          @select="textAreaSelected"
+      />
+      <!-- 快速選單 -->
       <div
-          :key="`zoom-${zoom}`"
-          class="editor-view" :style="{
-            minHeight: `${editor.viewport.height}px`,
-            minWidth: `${editor.viewport.width}px`,
-            transform: `scale(${editor.divScale})`
-          }"
-          ref="editorView">
-        <canvas
-            ref="canvas"
-            class="editor-canvas"
-        ></canvas>
-        <textarea
-            v-if="editor.editingElement"
-            ref="textInput"
-            v-model="(editor.editingElement.config as ITextConfig).content"
-            :style="textInputStyle"
-            class="text-editor-input"
-            wrap="off"
-            @input="handleTextInput"
-            @compositionstart="compositionStart"
-            @compositionend="compositionEnd"
-            @focusout="finishEditing"
-            @keydown.enter.shift.prevent="finishEditing"
-            @select="textAreaSelected"
-        />
-        <!-- 快速選單 -->
-        <div
-            :style="{ transform: `translate(${popOverMenu.x}px, ${popOverMenu.y}px)`}"
-            class="pop-over-menu"
-            ref="popOverRef">
-          <Popover
-              v-show="popOverMenu.visible && (selectedElement?.type === ElementTypesEnum.Image || editorStore.selectedElements.length > 1)"
-              @change="handlePopOverMenuChange"
-              @alignElement="alignSelectedElement"/>
+          :style="{ transform: `translate(${popOverMenu.x}px, ${popOverMenu.y}px)`}"
+          class="pop-over-menu"
+          ref="popOverRef">
+        <Popover
+            v-show="popOverMenu.visible && (selectedElement?.type === ElementTypesEnum.Image || editorStore.selectedElements.length > 1)"
+            @change="handlePopOverMenuChange"
+            @alignElement="alignSelectedElement"/>
+      </div>
+      <!-- 自訂右鍵選單 -->
+      <div
+          v-if="contextMenu.visible && contextMenu.element"
+          class="context-menu"
+          :style="{ top: `${contextMenu.y}px`, left: `${contextMenu.x}px` }"
+          @click.stop
+      >
+        <div class="context-menu-item" @click="deleteSelectedElement">
+          刪除
         </div>
-        <!-- 自訂右鍵選單 -->
-        <div
-            v-if="contextMenu.visible && contextMenu.element"
-            class="context-menu"
-            :style="{ top: `${contextMenu.y}px`, left: `${contextMenu.x}px` }"
-            @click.stop
-        >
-          <div class="context-menu-item" @click="deleteSelectedElement">
-            刪除
-          </div>
-          <!-- 在這裡可以新增更多選項，例如： -->
-          <!-- <div class="context-menu-item">上移一層</div> -->
-          <!-- <div class="context-menu-item">下移一層</div> -->
-        </div>
-        <div class="upload-prompt-overlay" :style="{
+        <!-- 在這裡可以新增更多選項，例如： -->
+        <!-- <div class="context-menu-item">上移一層</div> -->
+        <!-- <div class="context-menu-item">下移一層</div> -->
+      </div>
+      <div class="upload-prompt-overlay" :style="{
         opacity: editorStore.elements.length === 0 ? 1 : 0
       }">
-          <div class="prompt-content">
-            <Symbols name="picture"/>
-            <h1>开始产生影像</h1>
-            <p>选择素材添加文字、效果和AI，线上编辑您的图片。</p>
-          </div>
+        <div class="prompt-content">
+          <Symbols name="picture"/>
+          <h1>开始产生影像</h1>
+          <p>选择素材添加文字、效果和AI，线上编辑您的图片。</p>
         </div>
       </div>
     </div>
@@ -461,34 +456,27 @@ defineExpose({addElement, updateSelectedElement, alignSelectedElement, refresh})
 .editor-wrapper {
   width: 100%;
   height: 100%;
+  min-width: 800px;
   display: flex;
   flex-direction: column;
+  padding: 78px 10px 10px 10px;
   gap: 1.5rem;
   box-sizing: border-box;
   //justify-content: center;
   align-items: center;
-  //overflow: hidden;
+  overflow: hidden;
   flex-shrink: 0;
 }
 
 .uploader-container {
   position: relative;
   display: flex;
-  width: 100%;
-  height: 100%;
-  overflow: auto;
-  justify-content: center;
-  padding: 78px 0 0 0;
-}
-
-.editor-view {
-  position: relative;
-  display: flex;
+  border-radius: 20px;
   width: 800px;
   height: 600px;
   max-height: 600px;
   min-height: 50px; /* 避免過度縮小 */
-  border: 1px solid black;
+  overflow: hidden;
 }
 
 .editor-canvas {
@@ -520,13 +508,11 @@ defineExpose({addElement, updateSelectedElement, alignSelectedElement, refresh})
 
 
 .actions-bar {
-  position: absolute;
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 2rem;
   flex-wrap: wrap;
-  bottom: 40px;
 }
 
 .upload-button {
