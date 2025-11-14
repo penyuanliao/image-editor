@@ -22,7 +22,7 @@ const editor = ref<CanvasEditor>(new CanvasEditor(editorStore));
 
 // 使用 SVG 建立一個白色的 'X' 圖示
 const deleteIconSVG = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
   <line x1="18" y1="6" x2="6" y2="18"></line>
   <line x1="6" y1="6" x2="18" y2="18"></line>
 </svg>`;
@@ -105,7 +105,7 @@ onMounted(() => {
     };
     // 設定PopOver選單的回呼函式
     editor.value.onPopOverMenu = (event) => {
-      popOverMenu.visible = event.visible || false;
+      popOverMenu.visible = advancedDefaults.popupMenu && (event.visible || false);
       popOverMenu.x = Math.max(Math.min(event.x + popOverMenu.offset.x, 900), -100);
       popOverMenu.y = Math.max(event.y + popOverMenu.offset.y, -50);
     };
@@ -380,8 +380,13 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh 
         class="uploader-container"
         :style="{ scale: editor.divScale }"
         ref="uploaderContainer">
+      <div class="control" :style="{
+        width: `${ editor.viewport.width * editor.divScale * editor.viewport.scale }px`,
+        height: `${ editor.viewport.height * editor.divScale * editor.viewport.scale }px`
+      }"/>
       <canvas
           ref="canvas"
+          :style="{ opacity: editorStore.elements.length === 0 ? 0 : 1 }"
           class="editor-canvas"
       ></canvas>
       <textarea
@@ -391,12 +396,12 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh 
           :style="textInputStyle"
           class="text-editor-input"
           wrap="off"
-          @input="handleTextInput"
-          @compositionstart="compositionStart"
           @compositionend="compositionEnd"
+          @compositionstart="compositionStart"
           @focusout="finishEditing"
-          @keydown.enter.shift.prevent="finishEditing"
+          @input="handleTextInput"
           @select="textAreaSelected"
+          @keydown.enter.shift.prevent="finishEditing"
       />
       <!-- 快速選單 -->
       <div
@@ -457,15 +462,18 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh 
   min-width: 800px;
   display: flex;
   flex-direction: column;
-  padding: 78px 10px 10px 10px;
+  padding: 0 10px 10px 10px;
   gap: 1.5rem;
   box-sizing: border-box;
-  //justify-content: center;
+  justify-content: center;
   align-items: center;
-  overflow: auto;
   flex-shrink: 0;
 }
-
+.control {
+  position: absolute;
+  display: flex;
+  pointer-events: none;
+}
 .uploader-container {
   position: relative;
   display: flex;
@@ -474,7 +482,6 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh 
   height: 600px;
   max-height: 600px;
   min-height: 50px; /* 避免過度縮小 */
-  overflow: hidden;
 }
 
 .editor-canvas {
@@ -506,26 +513,16 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh 
 
 
 .actions-bar {
+  position: absolute;
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 2rem;
   flex-wrap: wrap;
+  z-index: 10;
+  bottom: 50px;
 }
 
-.upload-button {
-  padding: 10px 20px;
-  border: none;
-  background-color: #409eff;
-  color: white;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.upload-button:hover {
-  background-color: #79bbff;
-}
 
 .save-button {
   width: 146px;

@@ -48,7 +48,7 @@ export const appearanceDefaults = {
 }
 
 export const advancedDefaults:IAdvancedSettings = {
-    popupMenu: false,
+    popupMenu: true,
     imageCropEditEnabled: false,
     alignEnabled: false,
     zoomEnabled: false,
