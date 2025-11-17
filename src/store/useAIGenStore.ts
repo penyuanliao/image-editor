@@ -17,7 +17,7 @@ export interface AIGenRequest {
 // 產生的AI圖片action
 export const useAIGenStore = defineStore('aiGenStore', () => {
     // 使用次數
-    const remainingTries = ref<number>(10);
+    const remainingTries = ref<number>(50);
     // 存放原始圖片資料
     const originalImages: Map<number, { image?: HTMLImageElement, base64?: string, id: number, blob?:Blob }> = new Map();
     // 存放處理過後圖片資料

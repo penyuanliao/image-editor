@@ -38,7 +38,7 @@ export const useEditorStore = defineStore('editor', () => {
   // 用於文字雙擊編輯
   const editingElement = ref<ICanvasElement | null>(null);
   // 檔案名稱
-  const pageName = ref<string | null>(null);
+  const pageName = ref<string | null>(`edited-image-${Date.now()}.png`);
   // --- 預載入控制項圖示 ---
   const deleteIcon = ref(new Image());
   //狀態控制: 儲存中
@@ -191,9 +191,10 @@ export const useEditorStore = defineStore('editor', () => {
     }
   }
   // 替換圖片
-  function replaceSelectedElementImage(image: HTMLImageElement, base64?: string) {
-    if (selectedElement.value) {
-      const config = selectedElement.value.config as IImageConfig;
+  function replaceSelectedElementImage(elementId: number, image: HTMLImageElement, base64?: string) {
+    const element = elements.value.find(el => el.id === elementId);
+    if (element) {
+      const config = element.config as IImageConfig;
       const { width, height } = calculateConstrainedSize(image.naturalWidth, image.naturalHeight, config.width, config.height);
       image.width = width;
       image.height = height;

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {computed, ref} from "vue";
+import {computed, ref, watch} from "vue";
 import { useAIGenStore } from "@/store/useAIGenStore.ts";
 import { useEditorStore } from "@/store/editorStore.ts";
 import type { IImageConfig } from "@/types.ts";
@@ -21,7 +21,6 @@ const originalImage = ref<{ image?: HTMLImageElement, base64?: string, id: numbe
 const prompt = ref<string>('');
 
 const styles = computed(() => {
-  console.log('styles');
   const list = [];
   if (originalImage.value) list.push({
     name: '原始圖片',
@@ -46,20 +45,26 @@ const setupOriginalImage = () => {
     const id = editorStore.selectedElement.id;
     if (id && aiGenStore.hasOriginalImage(id)) {
       originalImage.value = aiGenStore.getOriginalImage(id) || null;
+    } else {
+      originalImage.value = null;
     }
+  } else {
+    originalImage.value = null;
   }
-  return null;
 }
+watch(() => editorStore.selectedElement, () => {
+  setupOriginalImage();
+})
 
 const onSubmit = async () => {
-
+  const selectedId = editorStore.selectedElement?.id || 0;
   if (aiGenStore.remainingTries <= 0) {
     await AlertMessage("已經達到使用次數上限");
     return;
   }
 
   if (selectedStyle.value === -2) {
-    editorStore.replaceSelectedElementImage(originalImage.value?.image as HTMLImageElement);
+    editorStore.replaceSelectedElementImage(selectedId, originalImage.value?.image as HTMLImageElement);
     emit('refresh');
     return;
   }
@@ -103,7 +108,14 @@ const onSubmit = async () => {
       prompt: prompt.value
     });
     if (result) {
-      editorStore.replaceSelectedElementImage(await processBase64(result.image), result.image);
+      const genImage = await processBase64(result.image);
+      editorStore.addImage({
+        imageUrl: genImage.src,
+        image: genImage, // 儲存圖片物件
+        name: 'AI生成圖片',
+        base64: result.image
+      });
+      editorStore.replaceSelectedElementImage(selectedId, genImage, result.image);
       emit('refresh');
       setupOriginalImage();
     } else {
