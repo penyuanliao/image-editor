@@ -234,7 +234,9 @@ const saveImage = async () => {
       width: cropBox.width,
       height: cropBox.height
     },
-    scaleFactor
+    scaleFactor,
+    type: 'image/png',
+    color: editor.value.viewport.color
   } as CroppedExportOptions);
   if (href) {
     // 4. 將暫時畫布的內容轉換為圖片的 data URL 並觸發下載

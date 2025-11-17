@@ -15,6 +15,8 @@ interface ExportOptions {
 export interface CroppedExportOptions extends ExportOptions {
     cropBox: { x: number, y: number, width: number, height: number };
     scaleFactor: number;
+    type?: 'image/jpeg' | 'image/png'
+    color?: string;
 }
 
 /**
@@ -40,7 +42,7 @@ export function exportCroppedArea(options: CroppedExportOptions): string | null 
     // 2. 在高解析度畫布上重新繪製所有內容
     exportCtx.clearRect(0, 0, exportCanvas.width, exportCanvas.height);
     // 1. 清除畫布
-    exportCtx.fillStyle = "transparent";
+    exportCtx.fillStyle = options.color || "transparent";
     exportCtx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
 
     // 繪製背景圖
@@ -90,5 +92,5 @@ export function exportCroppedArea(options: CroppedExportOptions): string | null 
         }
     });
 
-    return exportCanvas.toDataURL('image/png');
+    return exportCanvas.toDataURL(options.type || 'image/png');
 }
