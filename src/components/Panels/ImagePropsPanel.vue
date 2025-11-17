@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useEditorStore } from '@/store/editorStore.ts';
 import AIPanel from "./AIPanel.vue";
 import {type IImageConfig} from "@/types.ts";
@@ -9,6 +9,8 @@ import NPosition from "@/components/Basic/NPosition.vue";
 
 const editorStore = useEditorStore();
 // Only show and operate on the panel if a sticker is selected
+
+const isRatioLocked = ref(true);
 
 const emit = defineEmits(['alignElement', 'refresh']);
 
@@ -28,8 +30,42 @@ const safeConfigAccess = (prop: keyof IImageConfig, defaultValue: number) => {
 
 const configX = safeConfigAccess('x', 0);
 const configY = safeConfigAccess('y', 0);
-const configWidth = safeConfigAccess('width', 100);
-const configHeight = safeConfigAccess('height', 100);
+
+const configWidth = computed({
+  get() {
+    return (editorStore.selectedElement?.config as IImageConfig)?.width ?? 100;
+  },
+  set(value: number) {
+    const el = editorStore.selectedElement;
+    if (el?.config) {
+      const config = el.config as IImageConfig;
+      // 當比例鎖定，且輸入值大於0，且原始寬度也大於0時，才進行計算
+      if (isRatioLocked.value && value > 0 && config.width > 0) {
+        const ratio = config.height / config.width;
+        config.height = Math.max(1, Math.round(value * ratio)); // 確保高度至少為 1
+      }
+      config.width = value;
+    }
+  }
+});
+
+const configHeight = computed({
+  get() {
+    return (editorStore.selectedElement?.config as IImageConfig)?.height ?? 100;
+  },
+  set(value: number) {
+    const el = editorStore.selectedElement;
+    if (el?.config) {
+      const config = el.config as IImageConfig;
+      // 當比例鎖定，且輸入值大於0，且原始高度也大於0時，才進行計算
+      if (isRatioLocked.value && value > 0 && config.height > 0) {
+        const ratio = config.width / config.height;
+        config.width = Math.max(1, Math.round(value * ratio)); // 確保寬度至少為 1
+      }
+      config.height = value;
+    }
+  }
+});
 
 const opacityInPercentage = computed({
   get() {
@@ -112,6 +148,13 @@ const handleDeleted = () => {
         <span>高：</span>
         <el-input-number class="el-input" v-model="configHeight" :controls="false" style="width: 100%" />
       </div>
+
+<!--      <div class="ratio-lock">-->
+<!--        <el-tooltip :content="isRatioLocked ? '解鎖長寬比' : '鎖定長寬比'" placement="top">-->
+<!--          <el-button :icon="isRatioLocked ? Lock : Unlock" text circle @click="isRatioLocked = !isRatioLocked"/>-->
+<!--        </el-tooltip>-->
+<!--      </div>-->
+
       <div class="ctrl once-line">
         <span>旋轉角度：</span>
         <el-input-number v-model="editorStore.rotationInDegrees" :controls="true" style="width: 100%" />
@@ -161,10 +204,17 @@ const handleDeleted = () => {
   width: 100%;
   grid-template-columns: repeat(2, 1fr);
   gap: 10px;
+  align-items: center;
   span {
     flex-shrink: 0;
     font-size: 15px;
     width: 30%;
+  }
+  .ratio-lock {
+    grid-column: 2 / 3;
+    grid-row: 3 / 4;
+    justify-self: center;
+    width: 30px;
   }
   .ctrl {
     display: flex;
