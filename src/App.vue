@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {computed, ref} from 'vue';
+import {computed, onMounted, ref} from 'vue';
 import {ElementTypesEnum, type ICanvasElement, BoxBarTypes} from "./types";
 import BoxBar from "./components/BoxBar.vue";
 import TextPanel from "./components/Panels/TextPanel.vue";
@@ -19,7 +19,7 @@ const editorStore = useEditorStore();
 const editor = ref<InstanceType<typeof EditorView> | null>(null);
 const selected = ref<string>();
 const version = __APP_VERSION__;
-
+const mainContainer = ref<HTMLDivElement|null>(null);
 // State to hold the currently selected element from the canvas
 const selectedElementForPanel = ref<any | null>(null);
 const handleAddElement = (element: any) => {
@@ -69,9 +69,14 @@ const handleFilesDropped = async (files: FileList) => {
 const mainStyle = computed(() => {
   // console.log(window.innerHeight);
   return {
-    // '--panel-max-height': `${window.innerHeight - 80 - 21}px`
+    '--panel-max-height': `${window.innerHeight - 80 - 21}px`
   }
 });
+onMounted(() => {
+  window.addEventListener('resize', () => {
+    mainContainer.value?.style.setProperty('--panel-max-height', `${window.innerHeight - 80 - 21}px`);
+  });
+})
 
 </script>
 
@@ -80,6 +85,7 @@ const mainStyle = computed(() => {
   <DropZone class="drop-zone-wrapper" @files-dropped="handleFilesDropped">
     <div
         class="main-container"
+        ref="mainContainer"
         :style="mainStyle"
     >
       <NNavbar/>
@@ -154,7 +160,7 @@ const mainStyle = computed(() => {
 
 .sidebar {
   width: 420px;
-  height: var(--panel-max-height, 100%);
+  height: 100%;
   position: relative;
   display: flex;
   min-width: 85px;
@@ -177,7 +183,8 @@ const mainStyle = computed(() => {
   grid-template-columns: auto 1fr auto; /* 左側面板 240px，右側佔滿剩餘空間 */
   padding-top: 22px;
   width: 100%;
-  height: 100%;
+  /* height: 100%; */ /* 移除這個，這是導致問題的原因 */
+  flex: 1; /* 讓 content 區塊填滿父容器的剩餘空間 */
   position: relative;
 }
 
