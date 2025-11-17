@@ -44,6 +44,23 @@ export const appearanceDefaults = {
         { name: '水彩畫', value: 5, key: 'watercolor', url: './assets/themes/img_watercolor.jpg' },
         { name: '塗鴉藝術', value: 6, key: 'Graffiti', url: './assets/themes/img_oil_painting.jpg' },
     ],
+    StandardStageSizes: [
+        {
+            title: "標誌",
+            content: "800 x 600 像素",
+            value: { width: 800, height: 600 }
+        },
+        {
+            title: "橫幅A",
+            content: "750 x 750 像素",
+            value: { width: 750, height: 750 }
+        },
+        {
+            title: "橫幅B",
+            content: "750 x 200 像素",
+            value: { width: 750, height: 200 }
+        }
+    ],
     boxBarSelected: BoxBarTypes.sticker,
 }
 

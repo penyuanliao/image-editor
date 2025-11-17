@@ -5,28 +5,13 @@ import {ColorPicker} from "colorpickers";
 import NPanelButton from "@/components/Basic/NPanelButton.vue";
 import Gallery from "@/components/Gallery/Gallery.vue";
 import {ref} from "vue";
+import {appearanceDefaults} from "@/config/settings.ts";
 
 const store = useEditorStore();
 
 const emit = defineEmits(['update-element']);
 
-const stageViews = ref([
-  {
-    title: "標誌",
-    content: "800 x 600 像素",
-    value: { width: 800, height: 600 }
-  },
-  {
-    title: "橫幅A",
-    content: "750 x 750 像素",
-    value: { width: 750, height: 750 }
-  },
-  {
-    title: "橫幅B",
-    content: "750 x 200 像素",
-    value: { width: 750, height: 200 }
-  }
-]);
+const stageViews = ref(appearanceDefaults.StandardStageSizes);
 
 const applyStageHandle = () => {
   emit('update-element', store.stage);
