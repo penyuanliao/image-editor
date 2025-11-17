@@ -12,17 +12,17 @@ const emit = defineEmits(['update-element']);
 
 const stageViews = ref([
   {
-    filename: "標誌",
+    title: "標誌",
     content: "800 x 600 像素",
     value: { width: 800, height: 600 }
   },
   {
-    filename: "橫幅A",
+    title: "橫幅A",
     content: "750 x 750 像素",
     value: { width: 750, height: 750 }
   },
   {
-    filename: "橫幅B",
+    title: "橫幅B",
     content: "750 x 200 像素",
     value: { width: 750, height: 200 }
   }

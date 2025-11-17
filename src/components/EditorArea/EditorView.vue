@@ -462,10 +462,10 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh 
   min-width: 800px;
   display: flex;
   flex-direction: column;
-  padding: 0 10px 10px 10px;
+  padding: 100px 10px 10px 10px;
   gap: 1.5rem;
   box-sizing: border-box;
-  justify-content: center;
+  //justify-content: center;
   align-items: center;
   flex-shrink: 0;
 }
@@ -509,6 +509,13 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh 
 .prompt-content {
   text-align: center;
   color: #666;
+  position: relative;
+  display: flex;
+  height: 100%;
+  width: 100%;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 

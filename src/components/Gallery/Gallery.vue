@@ -22,7 +22,7 @@ const onItemClickHandle = (value: any) => {
           @click="onItemClickHandle(item.value)">
         <img v-if="item.url" :src="item.url" alt=""/>
         <div class="content">
-          <span v-if="item.filename">{{ item.filename }}</span>
+          <span v-if="item.title">{{ item.title }}</span>
           <span v-if="item.content">{{ item.content }}</span>
         </div>
       </div>

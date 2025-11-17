@@ -72,6 +72,7 @@ const handleChange = (key: string, currentValue: number) => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex-shrink: 0;
 }
 .input-group label {
   font-size: 15px;
@@ -103,4 +104,5 @@ const handleChange = (key: string, currentValue: number) => {
 .input-group input[type=number] {
   -moz-appearance: textfield;
 }
+
 </style>

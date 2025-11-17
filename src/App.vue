@@ -116,9 +116,7 @@ const mainStyle = computed(() => {
             <LayersPanel/>
           </div>
         </div>
-        <div class="panel-properties props-panel" :style="{
-        visibility: selectedElement != null ? 'visible' : 'visible'
-      }">
+        <div class="panel-properties props-panel">
           <StagePropsPanel
               v-if="selectedElement?.type === ElementTypesEnum.Stage"
               @update-element="handleUpdateElement"

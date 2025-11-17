@@ -43,10 +43,12 @@ const triggerFileInput = () => {
 
 <template>
   <NPanel :searchEnabled="false" title="上传">
-    <NPanelButton @pointerup="triggerFileInput">
-      <template #default>上傳圖片</template>
-      <template #icon><UploadFilled /></template>
-    </NPanelButton>
+    <div class="categories">
+      <NPanelButton @pointerup="triggerFileInput">
+        <template #default>上傳圖片</template>
+        <template #icon><UploadFilled /></template>
+      </NPanelButton>
+    </div>
     <input
         type="file"
         ref="fileInput"
@@ -74,7 +76,7 @@ const triggerFileInput = () => {
   width: 100%;
   display: flex;
   flex-direction: column;
-  margin-top: 20px;
+  margin-top: 10px;
 }
 .category-items {
   display: flex;
@@ -94,7 +96,8 @@ const triggerFileInput = () => {
   display: flex;
   justify-content: center;
   align-items: center;
-  background-size: cover;
+  background-size: contain;
+  background-repeat: no-repeat;
   background-position: center;
   &:active {
     background-color: rgba(80, 80, 80, 0.6);

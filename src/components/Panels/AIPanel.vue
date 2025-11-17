@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import {computed, ref} from "vue";
 import { useAIGenStore } from "@/store/useAIGenStore.ts";
-import {useEditorStore} from "@/store/editorStore.ts";
-import type {IImageConfig} from "@/types.ts";
+import { useEditorStore } from "@/store/editorStore.ts";
+import type { IImageConfig } from "@/types.ts";
 import { processBase64, processUrlToBase64} from "@/Utilities/FileProcessor.ts";
-import {appearanceDefaults} from "@/config/settings.ts";
-import {AlertMessage, PromptMessage} from "@/Utilities/AlertMessage.ts";
+import { appearanceDefaults } from "@/config/settings.ts";
+import { AlertMessage, PromptMessage } from "@/Utilities/AlertMessage.ts";
 import NPanelButton from "@/components/Basic/NPanelButton.vue";
+import Symbols from "@/components/Basic/Symbols.vue";
 // import {calculateConstrainedSize} from "@/Utilities/useImageEditor.ts";
 
 const aiGenStore = useAIGenStore();
@@ -144,7 +145,18 @@ const onSubmit = async () => {
         </div>
       </div>
     </div>
-    <NPanelButton :loading="aiGenStore.isLoading" @pointerup="onSubmit">{{ selectedStyle === -2 ? '還原' : '生成' }}</NPanelButton>
+    <NPanelButton :loading="aiGenStore.isLoading"
+                  :disabled="selectedStyle === -1"
+                  @click="onSubmit">
+      <template #default>
+        {{ selectedStyle === -2 ? '還原' : '生成' }}
+      </template>
+      <template #icon>
+        <el-icon size="22" :style="{ 'padding-right': '10px' }">
+          <Symbols name="magic"/>
+        </el-icon>
+      </template>
+    </NPanelButton>
   </div>
 </template>
 
@@ -261,17 +273,4 @@ const onSubmit = async () => {
     }
   }
 }
-.submit-btn {
-  width: 100%;
-  color: white;
-  background-color: theme.$button-text-color;
-  border-radius: 30px;
-  border-color: theme.$button-text-color;
-  &:hover {
-    background-color: theme.$primary-color;
-    border-color: theme.$button-text-color;
-    color: theme.$button-text-color;
-  }
-}
-
 </style>
