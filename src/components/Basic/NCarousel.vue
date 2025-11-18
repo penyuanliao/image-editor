@@ -92,7 +92,8 @@ const next = () => {
 .tag-control {
   position: relative;
   display: flex;
-  width: 100%;
+  //width: 100%;
+  max-width: 280px;
   height: 47px;
   padding-top: 23px;
   padding-bottom: 23px;
