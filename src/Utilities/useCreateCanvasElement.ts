@@ -62,6 +62,7 @@ export const createCanvasElement = (element: ICanvasElement, canvas: { width: nu
                     height: (img?.naturalHeight || 1) * scale,
                     rotation: 0,
                     opacity: Math.min(Math.max(config.opacity || 1, 0), 1.0),
+                    categoryId: config.categoryId,
                     draggable: true
                 }
             });

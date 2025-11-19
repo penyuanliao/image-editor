@@ -10,6 +10,7 @@ export interface ResponseResult {
 export interface AIGenRequest {
     originalimage?: string;
     materialid?: number;
+    materialurl?: string; // choice = 0 有 materialid
     originalurl?: string;
     prompt?: string;
     choice: number;
@@ -32,6 +33,7 @@ export const useAIGenStore = defineStore('aiGenStore', () => {
         image: HTMLImageElement,
         id: number,
         materialId?: number,
+        url?: string,
         base64?: string,
         blob?:Blob
     }, args: {
@@ -47,6 +49,7 @@ export const useAIGenStore = defineStore('aiGenStore', () => {
             };
             if (source.materialId && source.materialId > 0) {
                 body.materialid = source.materialId;
+                if (args.choice === 0) body.materialurl = source.url;
             } else if (source.base64) {
                 body.originalimage = source.base64.replace(/^data:image\/[a-z]+;base64,/, '')
             } else {

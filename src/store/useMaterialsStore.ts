@@ -103,11 +103,14 @@ export const useMaterialsStore = defineStore('materialsStore', () => {
     const materials = computed<IGallery[]>(() => {
         return rawData.value.map((categoryData) => {
             // 轉換每個分類下的素材項目
-            const galleryItems: IGalleryItem[] = categoryData.Info.map((materialInfo) => ({
-                id: materialInfo.ID,
-                name: materialInfo.MaterialName,
-                src: materialInfo.Urlpath,
-            }));
+            const galleryItems: IGalleryItem[] = categoryData.Info.map((materialInfo) => {
+                return {
+                    id: materialInfo.ID,
+                    name: materialInfo.MaterialName,
+                    src: materialInfo.Urlpath,
+                    categoryId: categoryData.ID
+                };
+            });
 
             // 組合成 IGallery 格式
             return {

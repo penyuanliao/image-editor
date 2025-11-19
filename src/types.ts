@@ -35,6 +35,7 @@ export interface AbsoluteConfig {
     scaleY?: number;
     draggable?: boolean; // 是否可拖曳
     id?: number; // 產AI圖使用的ID
+    categoryId?: number; // 產圖特例編號
 }
 
 export interface StageConfig extends AbsoluteConfig {

@@ -82,6 +82,7 @@ const onSubmit = async () => {
 
   const config = editorStore.selectedElement?.config as IImageConfig;
   const id = editorStore.selectedElement?.id || 0;
+  const url = config.url;
   if (config) {
     const materialId = config.id || -1;
     let image: HTMLImageElement = config.img as HTMLImageElement;
@@ -102,7 +103,8 @@ const onSubmit = async () => {
       image,
       base64,
       id,
-      materialId
+      materialId,
+      url
     }, {
       choice: selectedStyle.value,
       prompt: prompt.value
