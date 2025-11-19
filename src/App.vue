@@ -160,7 +160,7 @@ onMounted(() => {
 
 .sidebar {
   width: 420px;
-  height: 100%;
+  height: var('--panel-max-height', 300px);
   position: relative;
   display: flex;
   min-width: 85px;
@@ -175,6 +175,7 @@ onMounted(() => {
     width: 100%;
     position: relative;
     display: flex;
+    max-height: var(--panel-max-height, 300px);
   }
 }
 
