@@ -78,6 +78,9 @@ const popOverMenu = reactive({
   },
 });
 
+// 用於平移 uploader-container
+const uploaderTranslate = reactive({ x: 0, y: 0 });
+
 onMounted(() => {
   const { viewport } = generalDefaults;
   const config = editorStore.stage.config as StageConfig;
@@ -359,8 +362,15 @@ const handleTextEditing = (type: string, action: string) => {
     });
     editor.value.render();
   }
-
-
+}
+const handleCtrlEvent = (action: string) => {
+  if (action === 'undo') {
+    editorStore.undo();
+    editor.value.render();
+  } else if (action === 'redo') {
+    editorStore.redo();
+    editor.value.render();
+  }
 }
 
 defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh });
@@ -377,10 +387,11 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh 
         @delete-selected="handleDeleteSelected"
         @move-selected="handleMoveSelected"
         @text-editing="handleTextEditing"
+        @ctrl-event="handleCtrlEvent"
     />
     <div
         class="uploader-container"
-        :style="{ scale: editor.divScale }"
+        :style="{ transform: `scale(${editor.divScale}) translate(${uploaderTranslate.x}px, ${uploaderTranslate.y}px)`}"
         ref="uploaderContainer">
       <div class="control" :style="{
         width: `${ editor.viewport.width * editor.divScale * editor.viewport.scale }px`,

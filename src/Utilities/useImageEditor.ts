@@ -8,6 +8,7 @@ import {
     ElementTypesEnum, type ITextSegment
 } from "../types.ts";
 import stageTheme from "@/styles/stageTheme.ts";
+import {advancedDefaults} from "@/config/settings.ts";
 
 /**
  * 把上傳的圖片繪製到底圖
@@ -466,6 +467,7 @@ export const drawTransformHandles = (
                 ctx.drawImage(editorStore.deleteIcon, -iconSize / 2, -iconSize / 2, iconSize, iconSize);
             }
         } else if (sideHandles.includes(key)) {
+            if (!advancedDefaults.elementSideHandlesEnabled) return ctx.restore();
             // 繪製長方形的側邊控制點
             const rectWidth = 12;
             const rectHeight = 6;

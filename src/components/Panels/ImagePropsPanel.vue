@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useEditorStore } from '@/store/editorStore.ts';
 import AIPanel from "./AIPanel.vue";
 import {type IImageConfig} from "@/types.ts";
@@ -14,22 +14,29 @@ const isRatioLocked = ref(true);
 
 const emit = defineEmits(['alignElement', 'refresh']);
 
-const safeConfigAccess = (prop: keyof IImageConfig, defaultValue: number) => {
-  return computed({
-    get() {
-      return (editorStore.selectedElement?.config as IImageConfig)?.[prop] as number ?? defaultValue;
-    },
-    set(value: number) {
-      if (editorStore.selectedElement?.config) {
-        // @ts-ignore
-        (editorStore.selectedElement.config as IImageConfig)[prop] = value;
-      }
-    }
-  });
-};
+const localX = ref(0);
+const localY = ref(0);
+const localWidth = ref(100);
+const localHeight = ref(100);
 
-const configX = safeConfigAccess('x', 0);
-const configY = safeConfigAccess('y', 0);
+watch(() => editorStore.selectedElement, (newEl) => {
+  if (newEl) {
+    const config = newEl.config as IImageConfig;
+    localX.value = config.x ?? 0;
+    localY.value = config.y ?? 0;
+    localWidth.value = config.width ?? 100;
+    localHeight.value = config.height ?? 100;
+  }
+}, { immediate: true });
+
+watch(() => editorStore.selectedElement?.config, (newConfig) => {
+  if (newConfig) {
+    localX.value = newConfig.x ?? 0;
+    localY.value = newConfig.y ?? 0;
+    localWidth.value = newConfig.width ?? 100;
+    localHeight.value = newConfig.height ?? 100;
+  }
+}, { deep: true });
 
 const configWidth = computed({
   get() {
@@ -39,6 +46,7 @@ const configWidth = computed({
     const el = editorStore.selectedElement;
     if (el?.config) {
       const config = el.config as IImageConfig;
+      if (value <= 0) value = 1;
       // 當比例鎖定，且輸入值大於0，且原始寬度也大於0時，才進行計算
       if (isRatioLocked.value && value > 0 && config.width > 0) {
         const ratio = config.height / config.width;
@@ -92,6 +100,23 @@ const handleLockAndUnlock = () => {
     }
   }
 }
+
+const handleXChange = (value: number) => {
+  if (editorStore.selectedElement?.config) (editorStore.selectedElement.config as IImageConfig).x = value;
+};
+const handleYChange = (value: number) => {
+  if (editorStore.selectedElement?.config) (editorStore.selectedElement.config as IImageConfig).y = value;
+};
+const handleWidthChange = (value: number) => {
+  // 使用現有的 configWidth setter 邏輯
+  configWidth.value = value;
+};
+const handleHeightChange = (value: number) => {
+  // 使用現有的 configHeight setter 邏輯
+  configHeight.value = value;
+};
+
+
 const handlePositionChange = (value: string) => {
 
   if (value === 'flip-horizontal') {
@@ -134,19 +159,19 @@ const handleDeleted = () => {
       </div>
       <div class="ctrl">
         <span>X：</span>
-        <el-input-number class="el-input" v-model="configX" :controls="false" style="width: 100%" />
+        <el-input-number class="el-input" v-model="localX" @change="handleXChange" :controls="false" style="width: 100%" />
       </div>
       <div class="ctrl">
         <span>Y：</span>
-        <el-input-number class="el-input" v-model="configY" :controls="false" style="width: 100%" />
+        <el-input-number class="el-input" v-model="localY" @change="handleYChange" :controls="false" style="width: 100%" />
       </div>
       <div class="ctrl">
         <span>寬：</span>
-        <el-input-number class="el-input" v-model="configWidth" :controls="false" style="width: 100%" />
+        <el-input-number class="el-input" v-model="localWidth" @change="handleWidthChange" :controls="false" style="width: 100%" />
       </div>
       <div class="ctrl">
         <span>高：</span>
-        <el-input-number class="el-input" v-model="configHeight" :controls="false" style="width: 100%" />
+        <el-input-number class="el-input" v-model="localHeight" @change="handleHeightChange" :controls="false" style="width: 100%" />
       </div>
 
 <!--      <div class="ratio-lock">-->

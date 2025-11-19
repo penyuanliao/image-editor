@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted } from 'vue';
 
-const emit = defineEmits(['delete-selected', 'move-selected', 'text-editing']);
+const emit = defineEmits(['delete-selected', 'move-selected', 'text-editing', 'ctrl-event']);
 
 const handleKeyDown = (event: KeyboardEvent) => {
   const target = event.target as HTMLElement;
@@ -17,6 +17,18 @@ const handleKeyDown = (event: KeyboardEvent) => {
       event.preventDefault(); // 防止瀏覽器預設的粗體行為
       emit('text-editing', 'text', 'bold');
     }
+    // Undo: Ctrl+Z or Cmd+Z
+    if (!event.shiftKey && event.key.toLowerCase() === 'z') {
+      event.preventDefault();
+      emit('ctrl-event', 'undo');
+    }
+    // Redo: Ctrl+Y or Cmd+Shift+Z
+    if (event.key.toLowerCase() === 'y' || (event.shiftKey && event.key.toLowerCase() === 'z')) {
+      event.preventDefault();
+      emit('ctrl-event', 'redo');
+    }
+
+    return;
   }
   // 根據按下的按鍵執行不同操作
   switch (event.key) {

@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { computed, reactive, ref } from "vue";
+import {computed, reactive, ref, watch} from "vue";
 import {
   ElementTypesEnum,
   type ICanvasElement,
@@ -9,7 +9,8 @@ import {
 } from "../types.ts";
 import {calculateConstrainedSize} from "@/Utilities/useImageEditor.ts";
 import {degrees, radians} from "@/Utilities/Algorithm.ts";
-import {generalDefaults} from "@/config/settings.ts";
+import {advancedDefaults, generalDefaults} from "@/config/settings.ts";
+import {deepCloneElements} from "@/Utilities/clone.ts";
 
 // 為了讓 CanvasEditor 能夠傳入 store，我們需要匯出 store 的類型
 export type EditorStore = ReturnType<typeof useEditorStore>;
@@ -28,10 +29,17 @@ export const useEditorStore = defineStore('editor', () => {
       color: generalDefaults.viewport.color
     } as StageConfig
   });
+  // 圖片列表
   const imageList = ref<IUploadedImage[]>([]);
+  // 原始圖像
   const originalImage = ref<HTMLImageElement | null | undefined>(null);
   // 畫布上的元素 (文字、圖形等)
   const elements = ref<ICanvasElement[]>([]);
+  // --- 歷史紀錄 (Undo/Redo) ---
+  const historyStack = ref<ICanvasElement[][]>([]); // 儲存 elements 的 JSON 字串快照
+  const redoStack = ref<ICanvasElement[][]>([]);
+  const isRestoring = ref(false); // 用於防止在 undo/redo 時觸發 watch
+
   // --- 互動狀態管理 ---
 
   const selectedElements = ref<ICanvasElement[]>([]);
@@ -199,12 +207,97 @@ export const useEditorStore = defineStore('editor', () => {
       image.width = width;
       image.height = height;
       config.img = image;
-      config.url = image.src;
+      // config.url = image.src;
       config.base64 = base64;
       config.width = width;
       config.height = height;
     }
   }
+
+  // --- 歷史紀錄相關 Actions ---
+  function undo() {
+
+    if (!advancedDefaults.undoRedoEnabled) return;
+
+    if (historyStack.value.length > 0) {
+
+      // 從 history 堆疊中取出上一個狀態並還原
+      const previousState = historyStack.value.pop();
+      if (previousState) {
+        isRestoring.value = true; // 標記正在還原，避免觸發 watch
+        const currentStack: ICanvasElement[] = [];
+        previousState.forEach(el => {
+          const index = elements.value.findIndex(e => e.id === el.id);
+          if (index !== -1) {
+            const newProps = el.config;
+            if (elements.value[index]) {
+              // 將當前狀態推入 redo 堆疊
+              const current = deepCloneElements([elements.value[index]])[0]
+              if (current) currentStack.push(current);
+              Object.assign(elements.value[index].config, newProps);
+            }
+          }
+        });
+        redoStack.value.push(currentStack);
+        clearSelection(); // 還原後清除選取，避免懸空的選取狀態
+        isRestoring.value = false;
+      }
+    }
+  }
+
+  function redo() {
+    if (!advancedDefaults.undoRedoEnabled) return;
+
+    if (redoStack.value.length > 0) {
+
+      // 從 redo 堆疊中取出下一個狀態並還原
+      const nextState = redoStack.value.pop();
+      if (nextState) {
+        isRestoring.value = true; // 標記正在還原，避免觸發 watch
+        const currentStack: ICanvasElement[] = [];
+        nextState.forEach(el => {
+          const index = elements.value.findIndex(e => e.id === el.id);
+          if (index !== -1) {
+            const newProps = el.config;
+            if (elements.value[index]) {
+              const current = deepCloneElements([elements.value[index]])[0];
+              if (current) currentStack.push(current);
+              Object.assign(elements.value[index].config, newProps);
+            }
+          }
+        });
+        // 將當前狀態推入 history 堆疊
+        historyStack.value.push(currentStack);
+        clearSelection(); // 還原後清除選取
+        isRestoring.value = false;
+      }
+    }
+  }
+  function record(oldValue: ICanvasElement[]|ICanvasElement) {
+    if (!advancedDefaults.undoRedoEnabled) return;
+    // 如果是正在執行 undo/redo，則不記錄歷史
+    if (isRestoring.value) {
+      return;
+    }
+    // 將舊狀態（變化前的狀態）的深拷貝存入歷史紀錄
+    // 使用 JSON.stringify 來做深拷貝和序列化
+    const clone = deepCloneElements(Array.isArray(oldValue) ? oldValue : [oldValue]);
+    historyStack.value.push(clone);
+    // 當有新的操作時，清空 redo 堆疊
+    redoStack.value = [];
+
+    // 可以設定歷史紀錄的上限，避免記憶體佔用過多
+    if (historyStack.value.length > generalDefaults.undoRedoStackMax) {
+      historyStack.value.shift(); // 移除最舊的紀錄
+    }
+  }
+
+  // 使用 watch 監聽 elements 的變化，自動儲存歷史紀錄
+  watch(selectedElements, (_, oldValue) => {
+    if (selectedElements.value.length > 0) {
+      record(oldValue);
+    }
+  }, { deep: true });
 
   return {
     // State
@@ -241,5 +334,7 @@ export const useEditorStore = defineStore('editor', () => {
     flipHorizontal,
     flipVertical,
     replaceSelectedElementImage,
+    undo,
+    redo,
   };
 });

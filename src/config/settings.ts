@@ -10,6 +10,8 @@ export interface IGeneralSettings {
     },
     // 支援的圖片格式
     supportedImageFiles: string[];
+    // 還原步驟最大值
+    undoRedoStackMax: number;
 }
 
 export interface IAdvancedSettings {
@@ -21,17 +23,22 @@ export interface IAdvancedSettings {
     alignEnabled: boolean;
     // 啟用: Ctrl + Wheel縮放Canvas
     zoomEnabled: boolean;
+    // 啟用: Ctrl+Z
+    undoRedoEnabled: boolean;
+    // 拖曳單一控制寬或高
+    elementSideHandlesEnabled: boolean;
 }
 
 export const generalDefaults: IGeneralSettings = {
     viewport: {
-        width: 720,
-        height: 480,
+        width: 550,
+        height: 240,
         color: "transparent",
         maxWidth: 800,
         maxHeight: 600
     },
-    supportedImageFiles: ["image/png", "image/jpeg"]
+    supportedImageFiles: ["image/png", "image/jpeg"],
+    undoRedoStackMax: 10
 };
 
 export const appearanceDefaults = {
@@ -69,4 +76,6 @@ export const advancedDefaults:IAdvancedSettings = {
     imageCropEditEnabled: false,
     alignEnabled: false,
     zoomEnabled: false,
+    undoRedoEnabled: false,
+    elementSideHandlesEnabled: false
 }

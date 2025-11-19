@@ -913,7 +913,7 @@ export class CanvasEditor {
         // this.showPopOverMenu(false);
     }
     // 清除狀態
-    private clear() {
+    public clear() {
         this.isDraggingCropBox = false;
         this.isDraggingElement = false;
         this.isResizing = null;
