@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-import { defineProps, defineEmits, ref, onMounted, onUpdated, onUnmounted } from "vue";
+import { ref, onMounted, onUpdated, onUnmounted } from "vue";
 
 const props = defineProps(['options', 'selected', "update:options"]);
 
