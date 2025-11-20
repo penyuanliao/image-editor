@@ -140,12 +140,12 @@ const onSearchIconClick = () => {
   &::-webkit-scrollbar {
     display: none;
   }
-  padding-top: 30px;
   padding-left: 32px;
   padding-right: 35px;
 }
 .heading {
   width: 100%;
+  padding-top: 30px;
 }
 .search-btn {
   position: relative;
