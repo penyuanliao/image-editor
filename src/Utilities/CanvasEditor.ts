@@ -302,7 +302,8 @@ export class CanvasEditor {
 
             // 如果元素正在被編輯，則不在 canvas 上繪製它，由 input 框取代
             // 如果圖片正在剪裁，我們依然要繪製它，但之後會蓋上遮罩
-            if (this.editingElement?.id === element.id && !isCroppingThisElement) return;
+            // 增加條件：如果正在縮放或旋轉，則強制繪製，忽略編輯狀態
+            if (this.editingElement?.id === element.id && !isCroppingThisElement && !this.isResizing && !this.isRotating) return;
 
             if (element.type === ElementTypesEnum.Text) {
                 drawText(ctx, element);
@@ -591,6 +592,13 @@ export class CanvasEditor {
         } else if (element.type === ElementTypesEnum.Text) {
             const text = element.config as ITextConfig;
             this.dragStart.elementSize = text.fontSize || 32;
+            // 為了讓 pivot point 邏輯能運作，我們也需要文字的初始寬高
+            if (this.ctx) {
+                const box = getElementBoundingBox(this.ctx, element);
+                this.dragStart.elementWidth = box?.width || 1;
+                this.dragStart.elementHeight = box?.height || 1;
+                this.dragStart.aspectRatio = box && box.width && box.height ? box.width / box.height : 1;
+            }
         } else if (element.type === ElementTypesEnum.SVG) {
             const icon = element.config as ISVGConfig;
             this.dragStart.elementWidth = icon.width || 50;
@@ -789,7 +797,7 @@ export class CanvasEditor {
                     sticker.y = this.dragStart.elementY - (newWidth / 2 - this.dragStart.elementWidth / 2) * sin * sign;
                 }
             } else {
-                if (this.isPivotPointEnabled && element.type === ElementTypesEnum.Image) {
+                if (this.isPivotPointEnabled && (element.type === ElementTypesEnum.Image || element.type === ElementTypesEnum.Text)) {
                     // Corner handles (proportional scaling for all types)
                     // 1. Determine the pivot point (the opposite corner)
                     const w = this.dragStart.elementWidth;
@@ -824,10 +832,15 @@ export class CanvasEditor {
                     const scaleRatio = Math.max(scaleRatioX, scaleRatioY);
 
                     // 4. Apply the new scaled dimensions
-                    const newWidth = Math.max(10, w * scaleRatio);
-                    const newHeight = newWidth / this.dragStart.aspectRatio;
-                    (element.config as IImageConfig).width = newWidth;
-                    (element.config as IImageConfig).height = newHeight;
+                    if (element.type === ElementTypesEnum.Image) {
+                        const newWidth = Math.max(10, w * scaleRatio);
+                        const newHeight = newWidth / this.dragStart.aspectRatio;
+                        (element.config as IImageConfig).width = newWidth;
+                        (element.config as IImageConfig).height = newHeight;
+                    } else if (element.type === ElementTypesEnum.Text) {
+                        (element.config as ITextConfig).fontSize = Math.max(10, this.dragStart.elementSize * scaleRatio);
+                    }
+
                     // 5. Recalculate the center based on the new dimensions and pivot
                     element.config.x = pivotX - (pivotLocalX * scaleRatio * cos) + (pivotLocalY * scaleRatio * sin);
                     element.config.y = pivotY - (pivotLocalX * scaleRatio * sin) - (pivotLocalY * scaleRatio * cos);

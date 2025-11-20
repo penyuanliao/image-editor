@@ -274,7 +274,6 @@ export const useEditorStore = defineStore('editor', () => {
     }
   }
   function recording(elements: ICanvasElement[]) {
-    console.log('recording', historyStack.value.length);
     if (!advancedDefaults.undoRedoEnabled) return;
     // 如果是正在執行 undo/redo，則不記錄歷史
     if (isRestoring.value) {
