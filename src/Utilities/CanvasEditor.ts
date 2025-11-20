@@ -522,6 +522,7 @@ export class CanvasEditor {
                     this.render();
                     return;
                 }
+                this.store.recording(this.store.elements);
                 this.handleTransformStart(x, y, action, selectedElement);
                 return;
             }
@@ -553,6 +554,7 @@ export class CanvasEditor {
                 this.dragStart.y = y;
                 this.dragStart.elementX = clickedElement.config.x;
                 this.dragStart.elementY = clickedElement.config.y;
+                this.store.recording(this.store.elements);
             } else if (this.editingDropBox && this.isPointInCropBox(x, y)) {
                 // 點擊在裁切框內，開始拖曳裁切框
                 this.isDraggingCropBox = true;

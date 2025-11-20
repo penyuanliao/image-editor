@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import {computed, reactive, ref, watch} from "vue";
+import {computed, reactive, ref } from "vue";
 import {
   ElementTypesEnum,
   type ICanvasElement,
@@ -216,29 +216,28 @@ export const useEditorStore = defineStore('editor', () => {
 
   // --- 歷史紀錄相關 Actions ---
   function undo() {
-
     if (!advancedDefaults.undoRedoEnabled) return;
-
+    console.log('undo');
     if (historyStack.value.length > 0) {
-
       // 從 history 堆疊中取出上一個狀態並還原
       const previousState = historyStack.value.pop();
       if (previousState) {
         isRestoring.value = true; // 標記正在還原，避免觸發 watch
-        const currentStack: ICanvasElement[] = [];
+        // 將當前狀態推入 redo 堆疊
+        const currentStack = deepCloneElements(selectedElements.value);
+        redoStack.value.push(currentStack);
+
         previousState.forEach(el => {
           const index = elements.value.findIndex(e => e.id === el.id);
           if (index !== -1) {
             const newProps = el.config;
             if (elements.value[index]) {
-              // 將當前狀態推入 redo 堆疊
-              const current = deepCloneElements([elements.value[index]])[0]
-              if (current) currentStack.push(current);
               Object.assign(elements.value[index].config, newProps);
             }
+          } else {
+            addElement(el);
           }
         });
-        redoStack.value.push(currentStack);
         clearSelection(); // 還原後清除選取，避免懸空的選取狀態
         isRestoring.value = false;
       }
@@ -246,6 +245,7 @@ export const useEditorStore = defineStore('editor', () => {
   }
 
   function redo() {
+    console.log('redo');
     if (!advancedDefaults.undoRedoEnabled) return;
 
     if (redoStack.value.length > 0) {
@@ -273,7 +273,8 @@ export const useEditorStore = defineStore('editor', () => {
       }
     }
   }
-  function record(oldValue: ICanvasElement[]|ICanvasElement) {
+  function recording(elements: ICanvasElement[]) {
+    console.log('recording', historyStack.value.length);
     if (!advancedDefaults.undoRedoEnabled) return;
     // 如果是正在執行 undo/redo，則不記錄歷史
     if (isRestoring.value) {
@@ -281,7 +282,7 @@ export const useEditorStore = defineStore('editor', () => {
     }
     // 將舊狀態（變化前的狀態）的深拷貝存入歷史紀錄
     // 使用 JSON.stringify 來做深拷貝和序列化
-    const clone = deepCloneElements(Array.isArray(oldValue) ? oldValue : [oldValue]);
+    const clone = deepCloneElements(elements);
     historyStack.value.push(clone);
     // 當有新的操作時，清空 redo 堆疊
     redoStack.value = [];
@@ -291,13 +292,6 @@ export const useEditorStore = defineStore('editor', () => {
       historyStack.value.shift(); // 移除最舊的紀錄
     }
   }
-
-  // 使用 watch 監聽 elements 的變化，自動儲存歷史紀錄
-  watch(selectedElements, (_, oldValue) => {
-    if (selectedElements.value.length > 0) {
-      record(oldValue);
-    }
-  }, { deep: true });
 
   return {
     // State
@@ -336,5 +330,6 @@ export const useEditorStore = defineStore('editor', () => {
     replaceSelectedElementImage,
     undo,
     redo,
+    recording,
   };
 });
