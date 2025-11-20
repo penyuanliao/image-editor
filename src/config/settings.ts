@@ -25,8 +25,10 @@ export interface IAdvancedSettings {
     zoomEnabled: boolean;
     // 啟用: Ctrl+Z
     undoRedoEnabled: boolean;
-    // 拖曳單一控制寬或高
-    elementSideHandlesEnabled: boolean;
+    // 啟用: 側邊長方形控制寬或高
+    eachSideHandlesEnabled: boolean;
+    // 啟用: 對角線拉伸
+    pivotPointEnabled: boolean;
 }
 
 export const generalDefaults: IGeneralSettings = {
@@ -77,5 +79,6 @@ export const advancedDefaults:IAdvancedSettings = {
     alignEnabled: false,
     zoomEnabled: false,
     undoRedoEnabled: false,
-    elementSideHandlesEnabled: false
+    eachSideHandlesEnabled: true,
+    pivotPointEnabled: true,
 }

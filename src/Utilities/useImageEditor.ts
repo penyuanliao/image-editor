@@ -405,6 +405,16 @@ export const getTransformHandles = (ctx: CanvasRenderingContext2D, element: ICan
     path.lineTo(cx + bl_r.x, cy + bl_r.y);
     path.closePath();
 
+    let eachSideHandles = {};
+    if (advancedDefaults.eachSideHandlesEnabled) {
+        eachSideHandles = {
+            tm: { x: cx + tm_r.x, y: cy + tm_r.y },
+            bm: { x: cx + bm_r.x, y: cy + bm_r.y },
+            ml: { x: cx + ml_r.x, y: cy + ml_r.y },
+            mr: { x: cx + mr_r.x, y: cy + mr_r.y },
+        };
+    }
+
     return {
         path,
         points: {
@@ -412,10 +422,7 @@ export const getTransformHandles = (ctx: CanvasRenderingContext2D, element: ICan
             tr: { x: cx + tr_r.x, y: cy + tr_r.y },
             bl: { x: cx + bl_r.x, y: cy + bl_r.y },
             br: { x: cx + br_r.x, y: cy + br_r.y },
-            tm: { x: cx + tm_r.x, y: cy + tm_r.y },
-            bm: { x: cx + bm_r.x, y: cy + bm_r.y },
-            ml: { x: cx + ml_r.x, y: cy + ml_r.y },
-            mr: { x: cx + mr_r.x, y: cy + mr_r.y },
+            ...eachSideHandles,
             rot: { x: cx + rot_r.x, y: cy + rot_r.y },
             del: { x: cx + del_r.x, y: cy + del_r.y },
         }
@@ -467,7 +474,6 @@ export const drawTransformHandles = (
                 ctx.drawImage(editorStore.deleteIcon, -iconSize / 2, -iconSize / 2, iconSize, iconSize);
             }
         } else if (sideHandles.includes(key)) {
-            if (!advancedDefaults.elementSideHandlesEnabled) return ctx.restore();
             // 繪製長方形的側邊控制點
             const rectWidth = 12;
             const rectHeight = 6;

@@ -134,6 +134,8 @@ export class CanvasEditor {
     public editingDropBox: boolean = false;
     // 圖片可以進行剪裁
     public imageCropEditEnabled: boolean = advancedDefaults.imageCropEditEnabled;
+    // 對角線拉伸
+    public isPivotPointEnabled: boolean = advancedDefaults.pivotPointEnabled;
 
     constructor(store: EditorStore) {
         this.store = store;
@@ -750,6 +752,7 @@ export class CanvasEditor {
             if (!element) return;
             // Side handles for non-proportional scaling (stickers only)
             if (element.type === ElementTypesEnum.Image && this.isResizing && ['tm', 'bm', 'ml', 'mr'].includes(this.isResizing)) {
+                // 這邊是計算方向的縮放
                 const sticker = element.config as IImageConfig;
                 const sign = ['tm', 'ml'].includes(this.isResizing) ? -1 : 1;
 
@@ -784,50 +787,49 @@ export class CanvasEditor {
                     sticker.y = this.dragStart.elementY - (newWidth / 2 - this.dragStart.elementWidth / 2) * sin * sign;
                 }
             } else {
-                // Corner handles (proportional scaling for all types)
-                // 1. Determine the pivot point (the opposite corner)
-                const w = this.dragStart.elementWidth;
-                const h = this.dragStart.elementHeight;
-                // 元素拖曳點決定定位點位置
-                let pivotSignX = 0;
-                let pivotSignY = 0;
-                // 上面角落
-                if (this.isResizing.includes('t')) pivotSignY = 1; // top handle -> bottom pivot
-                // 下面角落
-                if (this.isResizing.includes('b')) pivotSignY = -1; // bottom handle -> top pivot
-                // 左邊角落
-                if (this.isResizing.includes('l')) pivotSignX = 1; // left handle -> right pivot
-                // 右邊角落
-                if (this.isResizing.includes('r')) pivotSignX = -1; // right handle -> left pivot
+                if (this.isPivotPointEnabled && element.type === ElementTypesEnum.Image) {
+                    // Corner handles (proportional scaling for all types)
+                    // 1. Determine the pivot point (the opposite corner)
+                    const w = this.dragStart.elementWidth;
+                    const h = this.dragStart.elementHeight;
+                    // 元素拖曳點決定定位點位置
+                    let pivotSignX = 0;
+                    let pivotSignY = 0;
+                    // 上面角落
+                    if (this.isResizing.includes('t')) pivotSignY = 1; // top handle -> bottom pivot
+                    // 下面角落
+                    if (this.isResizing.includes('b')) pivotSignY = -1; // bottom handle -> top pivot
+                    // 左邊角落
+                    if (this.isResizing.includes('l')) pivotSignX = 1; // left handle -> right pivot
+                    // 右邊角落
+                    if (this.isResizing.includes('r')) pivotSignX = -1; // right handle -> left pivot
 
-                // Calculate pivot point in element's local coordinate system and rotate it
-                const pivotLocalX = (w / 2) * pivotSignX;
-                const pivotLocalY = (h / 2) * pivotSignY;
-                const pivotX = this.dragStart.elementX + pivotLocalX * cos - pivotLocalY * sin;
-                const pivotY = this.dragStart.elementY + pivotLocalX * sin + pivotLocalY * cos;
+                    // Calculate pivot point in element's local coordinate system and rotate it
+                    const pivotLocalX = (w / 2) * pivotSignX;
+                    const pivotLocalY = (h / 2) * pivotSignY;
+                    const pivotX = this.dragStart.elementX + pivotLocalX * cos - pivotLocalY * sin;
+                    const pivotY = this.dragStart.elementY + pivotLocalX * sin + pivotLocalY * cos;
 
-                // 2. Project the vector from pivot to mouse onto the element's rotated axes
-                const dx = x - pivotX;
-                const dy = y - pivotY;
-                const projectedWidth = dx * cos + dy * sin;
-                const projectedHeight = -dx * sin + dy * cos;
+                    // 2. Project the vector from pivot to mouse onto the element's rotated axes
+                    const dx = x - pivotX;
+                    const dy = y - pivotY;
+                    const projectedWidth = dx * cos + dy * sin;
+                    const projectedHeight = -dx * sin + dy * cos;
 
-                // 3. Calculate scale ratio based on the larger projection to maintain aspect ratio
-                const scaleRatioX = w ? Math.abs(projectedWidth / w) : 0;
-                const scaleRatioY = h ? Math.abs(projectedHeight / h) : 0;
-                const scaleRatio = Math.max(scaleRatioX, scaleRatioY);
+                    // 3. Calculate scale ratio based on the larger projection to maintain aspect ratio
+                    const scaleRatioX = w ? Math.abs(projectedWidth / w) : 0;
+                    const scaleRatioY = h ? Math.abs(projectedHeight / h) : 0;
+                    const scaleRatio = Math.max(scaleRatioX, scaleRatioY);
 
-                // 4. Apply the new scaled dimensions
-                const newWidth = Math.max(10, w * scaleRatio);
-                const newHeight = newWidth / this.dragStart.aspectRatio;
-
-                if (element.type === ElementTypesEnum.Image) {
+                    // 4. Apply the new scaled dimensions
+                    const newWidth = Math.max(10, w * scaleRatio);
+                    const newHeight = newWidth / this.dragStart.aspectRatio;
                     (element.config as IImageConfig).width = newWidth;
                     (element.config as IImageConfig).height = newHeight;
                     // 5. Recalculate the center based on the new dimensions and pivot
                     element.config.x = pivotX - (pivotLocalX * scaleRatio * cos) + (pivotLocalY * scaleRatio * sin);
                     element.config.y = pivotY - (pivotLocalX * scaleRatio * sin) - (pivotLocalY * scaleRatio * cos);
-                } else if (element.type === ElementTypesEnum.Text) {
+                } else {
                     // 計算滑鼠到元素中心的距離，以確保縮放不受旋轉影響
                     const distFromCenterX = x - element.config.x;
                     const distFromCenterY = y - element.config.y;
@@ -839,7 +841,12 @@ export class CanvasEditor {
 
                     // 計算縮放比例
                     const scaleRatio = currentDistance / startDistance;
-                    (element.config as ITextConfig).fontSize = Math.max(10, this.dragStart.elementSize * scaleRatio);
+                    if (element.type === ElementTypesEnum.Image) {
+                        (element.config as IImageConfig).width = Math.max(10, this.dragStart.elementWidth * scaleRatio);
+                        (element.config as IImageConfig).height = (element.config as IImageConfig).width! / this.dragStart.aspectRatio;
+                    } else if (element.type === ElementTypesEnum.Text) {
+                        (element.config as ITextConfig).fontSize = Math.max(10, this.dragStart.elementSize * scaleRatio);
+                    }
                 }
 
 
