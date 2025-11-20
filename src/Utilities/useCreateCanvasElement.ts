@@ -1,5 +1,6 @@
 import {processUrl} from "./FileProcessor.ts";
 import {ElementTypesEnum, type ICanvasElement, type IImageConfig, type ISVGConfig, type ITextConfig} from "../types.ts";
+import {calculateConstrainedSize} from "@/Utilities/useImageEditor.ts";
 // 產生一個新的 CanvasElement
 export const createCanvasElement = (element: ICanvasElement, canvas: { width: number, height: number }, scale: number = 1) => {
     return new Promise<ICanvasElement>(async (resolve) => {
@@ -46,7 +47,10 @@ export const createCanvasElement = (element: ICanvasElement, canvas: { width: nu
                 img = await processUrl(config.url);
                 // base64 = imageToBase64(img, 'image/png');
             }
-
+            const width: number = (img?.naturalWidth || 1) * scale;
+            const height: number = (img?.naturalHeight || 1) * scale;
+            const info = calculateConstrainedSize(width, height, canvas.width, canvas.height);
+            const shrink: number = 0.9;
             resolve({
                 id: Date.now(),
                 type: ElementTypesEnum.Image,
@@ -58,8 +62,8 @@ export const createCanvasElement = (element: ICanvasElement, canvas: { width: nu
                     id: config.id,
                     x: canvas.width / 2,
                     y: canvas.height / 2,
-                    width: (img?.naturalWidth || 1) * scale,
-                    height: (img?.naturalHeight || 1) * scale,
+                    width: info.width * shrink,
+                    height: info.height * shrink,
                     rotation: 0,
                     opacity: Math.min(Math.max(config.opacity || 1, 0), 1.0),
                     categoryId: config.categoryId,
