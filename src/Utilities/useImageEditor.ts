@@ -406,7 +406,7 @@ export const getTransformHandles = (ctx: CanvasRenderingContext2D, element: ICan
     path.closePath();
 
     let eachSideHandles = {};
-    if (advancedDefaults.eachSideHandlesEnabled) {
+    if (advancedDefaults.eachSideHandlesEnabled && element.type === ElementTypesEnum.Image) {
         eachSideHandles = {
             tm: { x: cx + tm_r.x, y: cy + tm_r.y },
             bm: { x: cx + bm_r.x, y: cy + bm_r.y },
