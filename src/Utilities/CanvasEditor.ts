@@ -824,13 +824,25 @@ export class CanvasEditor {
                 if (element.type === ElementTypesEnum.Image) {
                     (element.config as IImageConfig).width = newWidth;
                     (element.config as IImageConfig).height = newHeight;
+                    // 5. Recalculate the center based on the new dimensions and pivot
+                    element.config.x = pivotX - (pivotLocalX * scaleRatio * cos) + (pivotLocalY * scaleRatio * sin);
+                    element.config.y = pivotY - (pivotLocalX * scaleRatio * sin) - (pivotLocalY * scaleRatio * cos);
                 } else if (element.type === ElementTypesEnum.Text) {
+                    // 計算滑鼠到元素中心的距離，以確保縮放不受旋轉影響
+                    const distFromCenterX = x - element.config.x;
+                    const distFromCenterY = y - element.config.y;
+                    const currentDistance = Math.hypot(distFromCenterX, distFromCenterY);
+
+                    // 獲取拖曳開始時，控制點到中心的距離
+                    const startDistance = this.dragStart.startHandleDistance;
+                    if (!startDistance) return;
+
+                    // 計算縮放比例
+                    const scaleRatio = currentDistance / startDistance;
                     (element.config as ITextConfig).fontSize = Math.max(10, this.dragStart.elementSize * scaleRatio);
                 }
 
-                // 5. Recalculate the center based on the new dimensions and pivot
-                element.config.x = pivotX - (pivotLocalX * scaleRatio * cos) + (pivotLocalY * scaleRatio * sin);
-                element.config.y = pivotY - (pivotLocalX * scaleRatio * sin) - (pivotLocalY * scaleRatio * cos);
+
             }
 
             this.render();
