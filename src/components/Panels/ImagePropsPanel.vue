@@ -19,6 +19,38 @@ const localY = ref(0);
 const localWidth = ref(100);
 const localHeight = ref(100);
 
+const percentWidth = computed({
+  get() {
+    const config = (editorStore.selectedElement?.config as IImageConfig);
+    const naturalWidth = (config.img?.naturalWidth) || 1;
+    return Math.floor(config.width / naturalWidth * 100);
+  },
+  set(value) {
+    const el = editorStore.selectedElement;
+    if (el?.config) {
+      const config = (editorStore.selectedElement?.config as IImageConfig);
+      const naturalWidth = (config.img?.naturalWidth) || 1;
+      el.config.width = naturalWidth * value / 100;
+    }
+  }
+})
+
+const percentHeight = computed({
+  get() {
+    const config = (editorStore.selectedElement?.config as IImageConfig);
+    const naturalHeight = (config.img?.naturalHeight) || 1;
+    return Math.floor(config.height / naturalHeight * 100);
+  },
+  set(value) {
+    const el = editorStore.selectedElement;
+    if (el?.config) {
+      const config = (editorStore.selectedElement?.config as IImageConfig);
+      const naturalHeight = (config.img?.naturalHeight) || 1;
+      el.config.height = naturalHeight * value / 100;
+    }
+  }
+})
+
 watch(() => editorStore.selectedElement, (newEl) => {
   if (newEl) {
     const config = newEl.config as IImageConfig;
@@ -158,20 +190,30 @@ const handleDeleted = () => {
         <img :src="(editorStore.selectedElement?.config as IImageConfig)?.url" alt="">
       </div>
       <div class="ctrl">
-        <span>X：</span>
+        <span>X</span>
         <el-input-number class="el-input" v-model="localX" @change="handleXChange" :controls="false" style="width: 100%" />
       </div>
       <div class="ctrl">
-        <span>Y：</span>
+        <span>Y</span>
         <el-input-number class="el-input" v-model="localY" @change="handleYChange" :controls="false" style="width: 100%" />
       </div>
-      <div class="ctrl">
-        <span>寬：</span>
-        <el-input-number class="el-input" v-model="localWidth" @change="handleWidthChange" :controls="false" style="width: 100%" />
+      <div class="ctrl once-line" style="gap: 10px;">
+        <span style="width: 30px;">寬</span>
+        <el-input-number class="el-input" v-model="localWidth" @change="handleWidthChange" :controls="false" style="width: 100%">
+          <template #suffix>px</template>
+        </el-input-number>
+        <el-input-number class="percent-el-input" v-model="percentWidth" :controls="false" :min="0.01" :max="100" size="small" align="left">
+          <template #suffix>%</template>
+        </el-input-number>
       </div>
-      <div class="ctrl">
-        <span>高：</span>
-        <el-input-number class="el-input" v-model="localHeight" @change="handleHeightChange" :controls="false" style="width: 100%" />
+      <div class="ctrl once-line" style="gap: 10px;">
+        <span style="width: 30px;">高</span>
+        <el-input-number class="el-input" v-model="localHeight" @change="handleHeightChange" :controls="false" style="width: 100%">
+          <template #suffix>px</template>
+        </el-input-number>
+        <el-input-number class="percent-el-input" v-model="percentHeight" :controls="false" :min="0.01" :max="100" size="small" align="left" controls-position="right">
+          <template #suffix>%</template>
+        </el-input-number>
       </div>
 
 <!--      <div class="ratio-lock">-->
@@ -245,6 +287,7 @@ const handleDeleted = () => {
     display: flex;
     align-items: center;
     width: 100%;
+    flex-direction: row;
   }
   .view {
     width: 100%;
@@ -264,6 +307,19 @@ const handleDeleted = () => {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+.percent-el-input {
+  width: 60px;
+  flex-shrink: 0;
+  // 覆寫 Element Plus 的內部樣式，預設移除輸入框的邊框效果
+  &:deep(.el-input__wrapper) {
+    box-shadow: none;
+    // 滑鼠移入時才顯示邊框
+    &:focus,
+    &:hover {
+      box-shadow: 0 0 0 1px var(--el-input-hover-border-color) inset;
+    }
+  }
 }
 
 

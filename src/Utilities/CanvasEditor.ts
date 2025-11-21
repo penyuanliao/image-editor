@@ -842,6 +842,7 @@ export class CanvasEditor {
                     }
 
                     // 5. Recalculate the center based on the new dimensions and pivot
+                    // 二維空間中點的旋轉公式 x = x1 * cos + y1 * sin, y = x1 * sin - y1 * cos
                     element.config.x = pivotX - (pivotLocalX * scaleRatio * cos) + (pivotLocalY * scaleRatio * sin);
                     element.config.y = pivotY - (pivotLocalX * scaleRatio * sin) - (pivotLocalY * scaleRatio * cos);
                 } else {

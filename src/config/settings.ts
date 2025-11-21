@@ -45,7 +45,7 @@ export const generalDefaults: IGeneralSettings = {
 
 export const appearanceDefaults = {
     AIStyles: [
-        { name: '自订', value: 0, key: 'custom', url: './assets/themes/img_custom.png' },
+        // { name: '自订', value: 0, key: 'custom', url: './assets/themes/img_custom.png' },
         { name: '3D插画', value: 1, key: 'Illustration Style', url: './assets/themes/img_3d.jpg' },
         { name: '吉卜力風格', value: 2, key: 'Ghibli Style', url: './assets/themes/img_cartoon.jpg' },
         { name: '动漫', value: 3, key: 'Anime Style', url: './assets/themes/img_anime.jpg' },
