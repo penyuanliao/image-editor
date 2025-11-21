@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import {computed, ref, watch} from "vue";
-import { useAIGenStore } from "@/store/useAIGenStore.ts";
-import { useEditorStore } from "@/store/editorStore.ts";
-import type { IImageConfig } from "@/types.ts";
-import { processBase64, processUrlToBase64} from "@/Utilities/FileProcessor.ts";
-import { appearanceDefaults } from "@/config/settings.ts";
-import { AlertMessage, PromptMessage } from "@/Utilities/AlertMessage.ts";
+import {useAIGenStore} from "@/store/useAIGenStore.ts";
+import {useEditorStore} from "@/store/editorStore.ts";
+import type {IImageConfig} from "@/types.ts";
+import {processBase64, processUrlToBase64} from "@/Utilities/FileProcessor.ts";
+import {appearanceDefaults} from "@/config/settings.ts";
+import { AlertMessage } from "@/Utilities/AlertMessage.ts";
 import NPanelButton from "@/components/Basic/NPanelButton.vue";
 import Symbols from "@/components/Basic/Symbols.vue";
 // import {calculateConstrainedSize} from "@/Utilities/useImageEditor.ts";
@@ -15,10 +15,9 @@ const editorStore = useEditorStore();
 
 const emit = defineEmits(['refresh']);
 
-// const styles = ref([...appearanceDefaults.AIStyles]);
-
-const originalImage = ref<{ image?: HTMLImageElement, base64?: string, id: number, blob?:Blob }|null>(null);
+const originalImage = ref<{ image?: HTMLImageElement, base64?: string, id: number, blob?: Blob } | null>(null);
 const prompt = ref<string>('');
+const activeName = ref('mod1');
 
 const styles = computed(() => {
   const list = [];
@@ -40,6 +39,13 @@ const selectStyle = (style: number) => {
     prompt.value = '';
   }
 };
+
+const tabsChangeHandle = () => {
+  if (activeName.value === 'mod3') {
+    selectedStyle.value = 0;
+  }
+}
+
 const setupOriginalImage = () => {
   if (editorStore.selectedElement) {
     const id = editorStore.selectedElement.id;
@@ -73,11 +79,14 @@ const onSubmit = async () => {
     return;
   }
   if (selectedStyle.value === 0 && !prompt.value) {
-    const message = await PromptMessage("請輸入提示詞").catch(() => {
-      return { action: "cancel", value: '' };
-    });
-    if (message.action === "confirm" && message.value.trim().length > 0) prompt.value = message.value;
-    else await AlertMessage("必須輸入提示詞");
+    // const message = await PromptMessage("請輸入提示詞").catch(() => {
+    //   return {action: "cancel", value: ''};
+    // });
+    // if (message.action === "confirm" && message.value.trim().length > 0) prompt.value = message.value;
+    if (prompt.value.length === 0) {
+      await AlertMessage("必須輸入提示詞");
+      return;
+    }
   }
 
   const config = editorStore.selectedElement?.config as IImageConfig;
@@ -125,7 +134,6 @@ const onSubmit = async () => {
     }
   }
 }
-
 </script>
 
 <template>
@@ -134,33 +142,49 @@ const onSubmit = async () => {
       <h2>AI生成</h2>
       <div class="description">
         <span class="text">您今日AI换图剩余次数: </span>
-        <span class="remaining-tries">{{ aiGenStore.remainingTries}}</span>
+        <span class="remaining-tries">{{ aiGenStore.remainingTries }}</span>
       </div>
     </div>
     <div class="ai-select-stylize">
-      <span class="label">風格轉換</span>
-      
-      <div class="stylize" :style="{
-        'pointer-events': aiGenStore.isLoading ? 'none' : 'auto'
-      }">
-        <div
-          v-for="style in styles"
-          :key="style.key"
-          class="item"
-          @click="selectStyle(style.value)"
-        >
-          <div
-              class="image"
-              :class="{ selected: selectedStyle === style.value }"
-          >
-            <img :src="style.url" alt=""/>
+      <el-tabs v-model="activeName" @tab-change="tabsChangeHandle">
+        <el-tab-pane label="物件转变" name="mod1">
+          <div class="stylize" :style="{ 'pointer-events': aiGenStore.isLoading ? 'none' : 'auto' }">
+            <div
+                v-for="style in styles"
+                :key="style.key"
+                class="item"
+                @click="selectStyle(style.value)"
+            >
+              <div
+                  class="image"
+                  :class="{ selected: selectedStyle === style.value }"
+              >
+                <img :src="style.url" alt=""/>
+              </div>
+              <span>{{ style.name }}</span>
+            </div>
           </div>
-          <span>{{ style.name }}</span>
-        </div>
-      </div>
+        </el-tab-pane>
+        <el-tab-pane label="风格调整" name="mod2">
+          <div class="style-adjustment">
+            <span>即將推出</span>
+          </div>
+        </el-tab-pane>
+        <el-tab-pane label="自订生成" name="mod3">
+          <div class="prompt-content">
+            <textarea
+                class="prompt-textarea"
+                type="textarea"
+                :rows="14"
+                placeholder="请输入您想产生的图片主题或描述(例如: 金色龙、轮盘、3D吉祥物...)"
+                v-model="prompt"
+            />
+          </div>
+        </el-tab-pane>
+      </el-tabs>
     </div>
     <NPanelButton :loading="aiGenStore.isLoading"
-                  :disabled="selectedStyle === -1"
+                  :disabled="selectedStyle === -1 || selectedStyle === 0 && prompt.trim().length === 0"
                   @click="onSubmit">
       <template #default>
         {{ selectedStyle === -2 ? '還原' : '生成' }}
@@ -187,10 +211,12 @@ const onSubmit = async () => {
   align-items: center;
   overflow-y: hidden;
   padding-bottom: 24px;
+
   &::-webkit-scrollbar {
     display: none;
   }
 }
+
 .heading {
   display: flex;
   position: relative;
@@ -199,30 +225,36 @@ const onSubmit = async () => {
   flex-wrap: nowrap;
   align-items: center;
   justify-content: space-between;
+
   h2 {
     font-size: 21px;
     font-weight: 400;
   }
+
   .description {
     min-width: 0;
   }
+
   .text {
     font-size: 15px;
     font-weight: 400;
     color: theme.$text-color;
   }
+
   .remaining-tries {
     font-size: 15px;
     font-weight: 400;
     color: theme.$button-text-color;
   }
 }
+
 .ai-select-stylize {
   width: 100%;
   position: relative;
   display: flex;
   flex-direction: column;
   padding-bottom: 16px;
+  min-height: 302px;
 
   .stylize {
     display: flex;
@@ -230,14 +262,18 @@ const onSubmit = async () => {
     flex-direction: row;
     //justify-content: space-between;
     gap: 10px;
+    width: 100%;
+    position: relative;
+    align-content: flex-start;
   }
 
   .label {
     flex-shrink: 0;
   }
+
   .item {
     width: 80px;
-    height: auto;
+    height: fit-content;
     display: flex;
     position: relative;
     flex-wrap: wrap;
@@ -245,6 +281,7 @@ const onSubmit = async () => {
     justify-content: center;
     cursor: pointer;
   }
+
   .image {
     position: relative;
     display: flex;
@@ -259,18 +296,23 @@ const onSubmit = async () => {
     margin-bottom: 5px;
     box-sizing: border-box;
     overflow: hidden;
+
     &:active {
       background-color: rgba(80, 80, 80, 0.6);
     }
+
     &:hover {
       background-color: rgba(80, 80, 80, 0.6);
+
       &:after {
         border: 2px solid #f15624;
       }
     }
+
     &.selected:after {
       border: 2px solid #f15624;
     }
+
     &:after {
       content: '';
       width: 100%;
@@ -280,11 +322,51 @@ const onSubmit = async () => {
       left: 0;
       box-sizing: border-box;
     }
+
     img {
       width: 100%;
       height: 100%;
       object-fit: cover;
     }
   }
+}
+.style-adjustment {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.prompt-content {
+  position: relative;
+  height: 100%;
+}
+.prompt-textarea {
+  min-height: 200px;
+  width: 100%;
+  position: relative;
+  border: 1px solid theme.$border-color-base;
+  border-radius: 10px;
+  margin: 0;
+  outline: none;
+  box-sizing: border-box;
+  z-index: 10;
+  overflow: hidden;
+  resize: none;
+  padding: 10px 10px;
+  font-size: 16px;
+}
+
+:deep(.el-tabs__item.is-active) {
+  color: #f15624;
+}
+
+:deep(.el-tabs__active-bar) {
+  background-color: #f15624;
+}
+:deep(.el-tabs__item) {
+  font-size: 16px; /* 在這裡調整你想要的字體大小 */
+  font-weight: 500;
 }
 </style>
