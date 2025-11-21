@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {computed, onMounted, ref} from "vue";
+import {computed, onMounted, onUnmounted, ref} from "vue";
 import { Search, Close } from "@element-plus/icons-vue";
 import {useEditorStore} from "@/store/editorStore.ts";
 import {ElementTypesEnum} from "@/types.ts";
@@ -10,7 +10,7 @@ const editorStore = useEditorStore();
 const materialsStore = useMaterialsStore()
 
 const emit = defineEmits<{ (e: 'add-element', action: any): void }>();
-
+const placeholderImage = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 const input = ref<string>('');
 const selectTag = ref('全部');
 // 用來過濾資料的 computed
@@ -54,11 +54,48 @@ const tagOptions = computed(() => {
   return options;
 });
 
-onMounted(async () => {
-  await materialsStore.getMaterials();
 
+const imageRefs = ref<Record<number, any>>([]);
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+
+    if (!entry.isIntersecting) return;
+
+    const el = entry.target as HTMLImageElement;
+    const src = el.dataset.src
+
+    if (src) {
+      // 載入圖片
+      const tempImg = new Image();
+      tempImg.src = src;
+
+      tempImg.onload = () => {
+        el.src = src;
+        el.removeAttribute("data-src");
+        // 圖片載入成功後，移除父元素的 skeleton class
+        el.parentElement?.classList.remove('skeleton');
+        // 不再觀察這個元素
+        observer.unobserve(el);
+      }
+    }
+  }, { threshold: 0.5 });
 })
 
+
+onMounted(async () => {
+  await materialsStore.getMaterials();
+  for (let key in imageRefs.value) {
+    if (imageRefs.value[key]) {
+      observer.observe(imageRefs.value[key]);
+    }
+  }
+});
+onUnmounted(() => {
+  // Disconnect the observer when the component is destroyed to prevent memory leaks
+  if (observer) {
+    observer.disconnect();
+  }
+});
 const onStickerClick = (item: { id: number, src: string, name: string }) => {
   emit('add-element', {
     type: ElementTypesEnum.Image,
@@ -99,8 +136,8 @@ const onSearchIconClick = () => {
       <span class="label">自訂素材</span>
       <div v-if="customizedGallery.length > 0" class="category-items">
         <div
-            v-for="(item, index) in customizedGallery"
-            :key="index"
+            v-for="(item) in customizedGallery"
+            :key="item.id"
             class="image"
             @click="onStickerClick(item)">
           <img :src="item.src" alt=""/>
@@ -112,9 +149,13 @@ const onSearchIconClick = () => {
           <div
               v-for="(item, index) in group.items"
               :key="index"
-              class="image"
+              class="image skeleton"
               @click="onStickerClick(item)">
-            <img :src="item.src" alt=""/>
+            <img
+                :src="placeholderImage"
+                :ref="(el) => imageRefs[item.id] = el"
+                :data-src="item.src" :alt="item.name"
+            />
           </div>
         </div>
       </template>
@@ -207,6 +248,30 @@ const onSearchIconClick = () => {
     flex-shrink: 0;
     display: none;
   }
+    .skeleton {
+      position: relative;
+      overflow: hidden; // 隱藏偽元素超出容器的部分
+      background-color: rgba(80, 80, 80, 0.3); // 骨架屏的底色
+
+      // 使用偽元素創建掃光效果
+      &::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        transform: translateX(-100%);
+        background-image: linear-gradient(
+            90deg,
+            rgba(255, 255, 255, 0) 0,
+            rgba(255, 255, 255, 0.1) 20%,
+            rgba(255, 255, 255, 0.3) 60%,
+            rgba(255, 255, 255, 0)
+        );
+        animation: shimmer 2s infinite;
+      }
+    }
   .image {
     width: 80px;
     height: 80px;
@@ -240,6 +305,12 @@ const onSearchIconClick = () => {
     justify-content: flex-start;
     gap: 12px;
     padding-bottom: 10px;
+  }
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
   }
 }
 
