@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {computed, onMounted, onUnmounted, ref} from "vue";
+import {computed, nextTick, onMounted, onUnmounted, ref, watch} from "vue";
 import { Search, Close } from "@element-plus/icons-vue";
 import {useEditorStore} from "@/store/editorStore.ts";
 import {ElementTypesEnum} from "@/types.ts";
@@ -19,16 +19,26 @@ const filteredGallery = computed<IGallery[]>(() => {
   let result: IGallery[];
   if (selectTag.value === '全部') {
     result = materialsStore.materials;
+    materialsStore.materials.forEach(group => {
+      group.visible = true;
+      group.items.forEach(item => {
+        item.visible = true;
+      });
+    });
   } else {
-    result = materialsStore.materials.filter(group => group.category === selectTag.value)
+    materialsStore.materials.forEach(group => {
+      group.visible = (group.category === selectTag.value) && group.items.length > 0;
+    });
+    result = materialsStore.materials;
   }
-  if (searchValue) {
-    return result
-        .map(group => {
-          const filteredItems = group.items.filter(({ name }) => name.toLowerCase().includes(searchValue.toLowerCase()));
-          return { ...group, items: filteredItems };
-        })
-        .filter(group => group.items.length > 0);
+  if (searchValue !== '') {
+    materialsStore.materials.forEach(group => {
+      group.items.forEach((item) => {
+        item.visible = item.name.toLowerCase().includes(searchValue.toLowerCase());
+      });
+      group.visible = (group.category === selectTag.value) && group.items.length > 0;
+    });
+    result = materialsStore.materials;
   }
   return result;
 });
@@ -81,7 +91,6 @@ const observer = new IntersectionObserver((entries) => {
   }, { threshold: 0.5 });
 })
 
-
 onMounted(async () => {
   await materialsStore.getMaterials();
   for (let key in imageRefs.value) {
@@ -96,6 +105,15 @@ onUnmounted(() => {
     observer.disconnect();
   }
 });
+
+watch(() => filteredGallery, (data) => {
+  nextTick(() => {
+    data.value.forEach((item) => {
+      if (imageRefs.value[item.id]) observer.observe(imageRefs.value[item.id]);
+    })
+  })
+}, { deep: true });
+
 const onStickerClick = (item: { id: number, src: string, name: string }) => {
   emit('add-element', {
     type: ElementTypesEnum.Image,
@@ -145,16 +163,18 @@ const onSearchIconClick = () => {
       </div>
       <template v-for="(group) in filteredGallery">
         <span class="label">{{ group.category }}</span>
-        <div class="category-items">
+        <div class="category-items" :style="{ display: group.visible ? 'flex' : 'none' }">
           <div
               v-for="(item, index) in group.items"
               :key="index"
               class="image skeleton"
+              :style="{ display: item.visible ? 'flex' : 'none' }"
               @click="onStickerClick(item)">
             <img
                 :src="placeholderImage"
                 :ref="(el) => imageRefs[item.id] = el"
                 :data-src="item.src" :alt="item.name"
+                :title="item.name"
             />
           </div>
         </div>

@@ -292,6 +292,28 @@ export const useEditorStore = defineStore('editor', () => {
     }
   }
 
+  /**
+   * 上下撐滿
+   */
+  const elEqualStageHeight = () => {
+    if (selectedElement.value && selectedElement.value.config) {
+      const config = selectedElement.value.config as IImageConfig;
+      config.height = stage.config.height || 1;
+      config.y = config.height / 2;
+    }
+  }
+  /**
+   * 左右撐滿
+   */
+  const elEqualStageWidth = () => {
+    console.log('elEqualStageWidth');
+    if (selectedElement.value && selectedElement.value.config) {
+      const config = selectedElement.value.config as IImageConfig;
+      config.width = stage.config.width || 1;
+      config.x = config.width / 2;
+    }
+  }
+
   return {
     // State
     stage,
@@ -330,5 +352,7 @@ export const useEditorStore = defineStore('editor', () => {
     undo,
     redo,
     recording,
+    elEqualStageWidth,
+    elEqualStageHeight
   };
 });

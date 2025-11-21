@@ -25,6 +25,7 @@ export interface IGalleryItem {
     id: number;
     name: string;
     src: string;
+    visible: boolean;
 }
 
 /**
@@ -33,6 +34,7 @@ export interface IGalleryItem {
 export interface IGallery {
     id: number;
     category: string;
+    visible: boolean;
     items: IGalleryItem[];
 }
 // 取得素材庫的action
@@ -108,7 +110,8 @@ export const useMaterialsStore = defineStore('materialsStore', () => {
                     id: materialInfo.ID,
                     name: materialInfo.MaterialName,
                     src: materialInfo.Urlpath,
-                    categoryId: categoryData.ID
+                    categoryId: categoryData.ID,
+                    visible: true
                 };
             });
 
@@ -117,6 +120,7 @@ export const useMaterialsStore = defineStore('materialsStore', () => {
                 id: categoryData.ID,
                 category: categoryData.CategoryName,
                 items: galleryItems,
+                visible: true,
             };
         });
     });
