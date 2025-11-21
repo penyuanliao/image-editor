@@ -22,8 +22,12 @@ const reversedElements = computed({
     // editorStore.originalImage = firstElement?.img;
   }
 });
-const onClickLayerHandle = (element: ICanvasElement) => {
-  editorStore.setSelectedOnce(element);
+const onClickLayerHandle = (event: MouseEvent, element: ICanvasElement) => {
+  if (event.ctrlKey || event.metaKey) {
+    editorStore.addToSelection(element);
+  } else {
+    editorStore.setSelectedOnce(element);
+  }
 };
 const onClickBGHandle = () => {
   const el = {
@@ -66,7 +70,7 @@ const textElementStyle = (element: ICanvasElement) => {
         ghost-class="ghost"
     >
       <template #item="{ element }">
-        <div class="layer" @click="onClickLayerHandle(element)">
+        <div class="layer" @click="(event) => onClickLayerHandle(event, element)">
           <img v-if="element.type === ElementTypesEnum.Image" :src="element.config.url" alt=""/>
           <div class="text-editor-input" v-else :style="textElementStyle(element)">
             {{ element.config.content }}
