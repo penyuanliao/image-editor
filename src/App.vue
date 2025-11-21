@@ -104,7 +104,7 @@ onMounted(() => {
                 @update-element="handleUpdateElement"
             />
             <StickersPanel
-                v-if="selected === BoxBarTypes.sticker"
+                v-show="selected === BoxBarTypes.sticker"
                 @add-element="handleAddElement"
             />
             <UploadPanel
