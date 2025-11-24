@@ -4,7 +4,7 @@ import type {StageConfig} from "@/types.ts";
 import {ColorPicker} from "colorpickers";
 import NPanelButton from "@/components/Basic/NPanelButton.vue";
 import Gallery from "@/components/Gallery/Gallery.vue";
-import {ref} from "vue";
+import {onMounted, ref} from "vue";
 import {appearanceDefaults} from "@/config/settings.ts";
 
 const store = useEditorStore();
@@ -12,6 +12,8 @@ const store = useEditorStore();
 const emit = defineEmits(['update-element']);
 
 const stageViews = ref(appearanceDefaults.StandardStageSizes);
+
+const selected = ref<number|null>(null);
 
 const applyStageHandle = () => {
   emit('update-element', store.stage);
@@ -22,6 +24,19 @@ const handleStageChange = (value: { width: number; height: number }) => {
   store.stage.config.height = value.height;
   applyStageHandle();
 }
+
+onMounted(() => {
+  for (let i = 0; i <= stageViews.value.length; i++) {
+    const item = stageViews.value[i];
+    if (item?.value) {
+      const { width, height } = item.value;
+      if (store.stage.config.width === width && store.stage.config.height === height) {
+        selected.value = i;
+        break;
+      }
+    }
+  }
+})
 
 </script>
 
@@ -50,7 +65,7 @@ const handleStageChange = (value: { width: number; height: number }) => {
     </div>
     <div class="additional">
       <NPanelButton @pointerup="applyStageHandle">设定</NPanelButton>
-      <Gallery label="預設尺寸" :data="stageViews" @itemClick="handleStageChange"/>
+      <Gallery label="預設尺寸" :data="stageViews" v-model:selected="selected" @itemClick="handleStageChange"/>
     </div>
   </div>
 </template>

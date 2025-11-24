@@ -55,19 +55,79 @@ export const appearanceDefaults = {
     ],
     StandardStageSizes: [
         {
-            title: "標誌",
-            content: "800 x 600 像素",
-            value: { width: 800, height: 600 }
+            title: "指定尺寸",
+            content: "1120 x 1120 像素",
+            value: { width: 1120, height: 1120 }
         },
         {
-            title: "橫幅A",
-            content: "750 x 750 像素",
-            value: { width: 750, height: 750 }
+            title: "指定尺寸",
+            content: "1120 x 180 像素",
+            value: { width: 1120, height: 180 }
         },
         {
-            title: "橫幅B",
-            content: "750 x 200 像素",
-            value: { width: 750, height: 200 }
+            title: "指定尺寸",
+            content: "1120 x 240 像素",
+            value: { width: 1120, height: 240 }
+        },
+        {
+            title: "指定尺寸",
+            content: "1120 x 300 像素",
+            value: { width: 1120, height: 300 }
+        },
+        {
+            title: "指定尺寸",
+            content: "310 x 196 像素",
+            value: { width: 310, height: 196 }
+        },
+        {
+            title: "指定尺寸",
+            content: "310 x 240 像素",
+            value: { width: 310, height: 240 }
+        },
+        {
+            title: "指定尺寸",
+            content: "360 x 240 像素",
+            value: { width: 360, height: 240 }
+        },
+        {
+            title: "指定尺寸",
+            content: "360 x 300 像素",
+            value: { width: 360, height: 300 }
+        },
+        {
+            title: "指定尺寸",
+            content: "550 x 180 像素",
+            value: { width: 550, height: 180 }
+        },
+        {
+            title: "指定尺寸",
+            content: "550 x 240 像素",
+            value: { width: 550, height: 240 }
+        },
+        {
+            title: "指定尺寸",
+            content: "550 x 300 像素",
+            value: { width: 550, height: 300 }
+        },
+        {
+            title: "指定尺寸",
+            content: "550 x 550 像素",
+            value: { width: 550, height: 550 }
+        },
+        {
+            title: "指定尺寸",
+            content: "640 x 196 像素",
+            value: { width: 640, height: 196 }
+        },
+        {
+            title: "指定尺寸",
+            content: "640 x 240 像素",
+            value: { width: 640, height: 240 }
+        },
+        {
+            title: "指定尺寸",
+            content: "640 x 300 像素",
+            value: { width: 640, height: 300 }
         }
     ],
     boxBarSelected: BoxBarTypes.sticker,

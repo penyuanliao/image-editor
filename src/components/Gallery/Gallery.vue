@@ -1,9 +1,10 @@
 <script setup lang="ts">
 
-const props = defineProps([ "label", "data"]);
-const emits = defineEmits(['item-click']);
+const props = defineProps([ "label", "data", "selected"]);
+const emits = defineEmits(['item-click', "update:selected"]);
 
-const onItemClickHandle = (value: any) => {
+const onItemClickHandle = (value: any, index: number) => {
+  emits('update:selected', index);
   emits('item-click', value);
 }
 
@@ -19,9 +20,9 @@ const onItemClickHandle = (value: any) => {
           v-for="(item, index) in props.data"
           :key="index"
           class="image-grid"
-          @click="onItemClickHandle(item.value)">
+          @click="onItemClickHandle(item.value, index)">
         <img v-if="item.url" :src="item.url" alt=""/>
-        <div class="content">
+        <div class="content" :class="{ selected: index === selected }">
           <span v-if="item.title">{{ item.title }}</span>
           <span v-if="item.content">{{ item.content }}</span>
         </div>
@@ -31,6 +32,8 @@ const onItemClickHandle = (value: any) => {
 </template>
 
 <style scoped lang="scss">
+@use "@/styles/theme";
+
 .gallery {
   width: 100%;
   display: flex;
@@ -76,5 +79,9 @@ const onItemClickHandle = (value: any) => {
   flex-direction: column;
   justify-content: center;
   align-items: center;
+}
+.selected {
+  border: 2px solid theme.$secondary-color;
+  border-radius:  5px;
 }
 </style>
