@@ -31,7 +31,7 @@ const props = defineProps({
   min-height: 32px;
   border-radius: 30px;
 
-  font-family: Noto Sans HK, serif;
+  font-family: theme.$font-family;
   font-weight: 700;
   font-size: 15px;
 
