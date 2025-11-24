@@ -79,6 +79,8 @@ const shadow = reactive(getDefaultShadow());
 const stroke = reactive(getDefaultStroke());
 const gradient = reactive(getDefaultGradient());
 
+const fontFamily = ref<string>(textProps.fontFamily);
+
 const selectedElement = computed(() => {
   if (editorStore.selectedElements.length <= 0) return null;
   if (editorStore.selectedElements.length > 1) return null;
@@ -332,10 +334,57 @@ const gradientColorChange = (value: string) => {
   }
 }
 
+/**
+ * 處理 el-select 下拉選單中的鍵盤事件。
+ * 當按下向上或向下箭頭時，更新當前預覽的字體。
+ * @param event - 鍵盤事件對象
+ */
+const handleFontSelectKeyDown = (event: KeyboardEvent) => {
+  if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+    const fontSelect = fontSelectRef.value;
+    if (!fontSelect) return;
+    const font = fontSelect.popperRef.querySelector(".is-hovering > span").textContent;
+    if (font) {
+      textProps.fontFamily = font;
+    }
+  }
+};
+/**
+ * 處理 el-select 下拉選單的開啟和關閉。
+ * @param visible
+ */
+const handleFontSelectVisibleChange = (visible: boolean) => {
+  if (visible) {
+    const inputEl = fontSelectRef.value;
+    if (inputEl) {
+      inputEl.focus();
+      inputEl.$el.querySelector('input')
+        ?.addEventListener('keydown', handleFontSelectKeyDown);
+    }
+  } else {
+    const inputEl = fontSelectRef.value;
+    if (inputEl) {
+      inputEl.$el.querySelector('input')
+        ?.removeEventListener('keydown', handleFontSelectKeyDown);
+    }
+    if (fontFamily.value !== textProps.fontFamily) {
+      textProps.fontFamily = fontFamily.value;
+    }
+  }
+};
+/**
+ * 處理 el-select 下拉選單中的值改變。
+ * @param value
+ */
+const handleFontSelectChange = (value: string) => {
+  fontFamily.value = value;
+};
 
 onMounted(() => {
   updatePanelFromElement(selectedElement.value as ICanvasElement);
 });
+
+const fontSelectRef = ref();
 
 </script>
 
@@ -359,7 +408,13 @@ onMounted(() => {
         </div>
       </div>
       <div class="ctrl color-picker-rectangle">
-        <el-select v-model="textProps.fontFamily" placeholder="Select" style="width: 70%;">
+        <el-select id="font-select"
+                   v-model="fontFamily"
+                   ref="fontSelectRef"
+                   placeholder="Select"
+                   @visible-change="handleFontSelectVisibleChange"
+                   @change="handleFontSelectChange"
+                   style="width: 70%;">
           <el-option
               v-for="font in availableFonts"
               :key="font"
