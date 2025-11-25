@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import {computed, ref} from "vue";
 
 const emit = defineEmits(["change"]);
 const props = defineProps(["cropBox", "viewport", "divScale", "update:cropBox", "update:scale", "update:viewport", "update:divScale"]);
+
+const visible = ref<boolean>(false);
 
 // 建立一個給 UI 使用的 computed 屬性，它包含 getter 和 setter
 const displayCropBox = computed(() => {
@@ -29,22 +31,22 @@ const handleChange = (key: string, currentValue: number) => {
 
 <template>
   <div class="crop-controls">
-    <div class="input-group">
+    <div class="input-group" v-if="visible">
       <label for="crop-x">X:</label>
       <input id="crop-x" type="number" v-model.number="displayCropBox.x"
              @change="(e: Event) => handleChange('x', parseInt((e.target as HTMLInputElement)?.value) || 0)"/>
     </div>
-    <div class="input-group">
+    <div class="input-group" v-if="visible">
       <label for="crop-y">Y:</label>
       <input id="crop-y" type="number" v-model.number="displayCropBox.y"
              @change="(e: Event) => handleChange('y', parseInt((e.target as HTMLInputElement)?.value) || 0)"/>
     </div>
-    <div class="input-group">
+    <div class="input-group" v-if="visible">
       <label for="crop-width">寬:</label>
       <input id="crop-width" type="number" v-model.number="displayCropBox.width"
              @change="(e: Event) => handleChange('width', parseInt((e.target as HTMLInputElement)?.value) || 0)"/>
     </div>
-    <div class="input-group">
+    <div class="input-group" v-if="visible">
       <label for="crop-height">高:</label>
       <input id="crop-height" type="number" v-model.number="displayCropBox.height"
              @change="(e: Event) => handleChange('height', parseInt((e.target as HTMLInputElement)?.value) || 0)"/>
