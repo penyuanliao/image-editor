@@ -76,6 +76,7 @@ onMounted(() => {
   window.addEventListener('resize', () => {
     mainContainer.value?.style.setProperty('--panel-max-height', `${window.innerHeight - 80 - 21}px`);
   });
+  editorStore.defaultPropsPanel();
 })
 const handlePointerUp = (event: PointerEvent) => {
   const el = event.target;

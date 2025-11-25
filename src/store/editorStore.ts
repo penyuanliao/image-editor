@@ -313,6 +313,23 @@ export const useEditorStore = defineStore('editor', () => {
       config.x = config.width / 2;
     }
   }
+  /**
+   * 預設選取屬性面板
+   */
+  const defaultPropsPanel = () => {
+    const el = {
+      id: Date.now(),
+      type: ElementTypesEnum.Stage,
+      name: 'stage',
+      config: {
+        width: stage.config.width,
+        height: stage.config.height,
+        x: 0,
+        y: 0,
+      }
+    } as ICanvasElement;
+    setSelectedOnce(el);
+  }
 
   return {
     // State
@@ -353,6 +370,7 @@ export const useEditorStore = defineStore('editor', () => {
     redo,
     recording,
     elEqualStageWidth,
-    elEqualStageHeight
+    elEqualStageHeight,
+    defaultPropsPanel
   };
 });
