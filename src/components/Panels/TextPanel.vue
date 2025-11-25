@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {computed, onMounted, reactive, ref, watch} from "vue";
 import { useEditorStore } from "../../store/editorStore.ts";
-import { Delete } from "@element-plus/icons-vue";
+import {Delete, Lock, Unlock} from "@element-plus/icons-vue";
 import { ColorPicker } from "colorpickers";
 import {ElementTypesEnum, type ICanvasElement, type ITextConfig} from "../../types.ts";
 import NPanel from "../Basic/NPanel.vue";
@@ -80,6 +80,7 @@ const stroke = reactive(getDefaultStroke());
 const gradient = reactive(getDefaultGradient());
 
 const fontFamily = ref<string>(textProps.fontFamily);
+const fontSelectRef = ref();
 
 const selectedElement = computed(() => {
   if (editorStore.selectedElements.length <= 0) return null;
@@ -384,7 +385,16 @@ onMounted(() => {
   updatePanelFromElement(selectedElement.value as ICanvasElement);
 });
 
-const fontSelectRef = ref();
+const handleLockAndUnlock = () => {
+  if (editorStore.selectedElement?.config) {
+    editorStore.selectedElement.config.draggable = !editorStore.selectedElement.config.draggable;
+    if (!editorStore.selectedElement?.config.draggable) {
+      editorStore.selectedElements = [];
+    } else {
+      editorStore.selectedElements = [editorStore.selectedElement];
+    }
+  }
+}
 
 </script>
 
@@ -575,6 +585,18 @@ const fontSelectRef = ref();
         </div>
       </div>
       <div class="ctrl center">
+        <div class="lockAndUnlock">
+          <el-tooltip :content="`${editorStore.selectedElement?.config.draggable ? '鎖定' : '解鎖'}`" placement="top" :auto-close="500">
+            <el-button text @click="handleLockAndUnlock" style="width: 32px;">
+              <template #icon>
+                <el-icon>
+                  <Unlock v-if="editorStore.selectedElement?.config.draggable"/>
+                  <Lock v-else/>
+                </el-icon>
+              </template>
+            </el-button>
+          </el-tooltip>
+        </div>
         <el-tooltip content="刪除" placement="top" effect="dark">
           <el-button type="danger" :icon="Delete" circle @click="handleRemoveTextElement" />
         </el-tooltip>
