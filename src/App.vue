@@ -77,6 +77,14 @@ onMounted(() => {
     mainContainer.value?.style.setProperty('--panel-max-height', `${window.innerHeight - 80 - 21}px`);
   });
 })
+const handlePointerUp = (event: PointerEvent) => {
+  const el = event.target;
+  if (!(el instanceof HTMLCanvasElement) && !(el instanceof HTMLTextAreaElement)) {
+    if (editorStore.selectedElement?.type !== ElementTypesEnum.Stage) {
+      editorStore.clearSelection();
+    }
+  }
+}
 
 </script>
 
@@ -113,7 +121,7 @@ onMounted(() => {
             />
           </div>
         </div>
-        <div class="editor-area">
+        <div class="editor-area" @pointerup="handlePointerUp">
           <EditorView
               ref="editor"
               @element-selected="handleElementSelected"
