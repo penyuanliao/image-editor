@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { ref } from "vue";
+import {computed, reactive, ref} from "vue";
 
 export interface KonvaShadowProps {
     shadowEnabled?: boolean;
@@ -75,6 +75,21 @@ export interface KElementText {
     id: string;
     config: KonvaTextConfig;
 }
+// 場景大小
+export interface KStageConfig {
+    width: number;
+    height: number;
+}
+export interface KArtboardConfig {
+    width: number;
+    height: number;
+    x: number;
+    y: number;
+    image: HTMLImageElement | null;
+    listening: boolean;
+    fill: string;
+}
+
 
 export const useKImgEditorStore = defineStore('kImgEditorStore', () => {
     // 圖片陣列
@@ -84,6 +99,70 @@ export const useKImgEditorStore = defineStore('kImgEditorStore', () => {
     // 背景圖片
     const backgroundImage = ref<HTMLImageElement | null>(null);
 
+    // 整個場景大小
+    const stageConfig = reactive<KStageConfig>({
+        width: 800,
+        height: 600,
+    });
+    // 定義固定的畫板尺寸
+    const artboardSize = ref<{ width: number; height: number }>({
+        width: 800,
+        height: 600,
+    });
+
+    // 計算畫布在 Stage 中的置中位置
+    const artboardOffset = computed(() => ({
+        x: (stageConfig.width - artboardSize.value.width) / 2,
+        y: (stageConfig.height - artboardSize.value.height) / 2,
+    }));
+
+    const workspaceConfig = ref({});
+
+    const artboardBackgroundConfig = ref({});
+    const artboardConfig = ref({});
+
+    const setup = (width: number, height: number) => {
+
+        // 場景設定
+        stageConfig.width = width;
+        stageConfig.height = height;
+        // 場景工作區大小
+        workspaceConfig.value = {
+            x: 0,
+            y: 0,
+            width: stageConfig.width,
+            height: stageConfig.height,
+            fill: '#f0f0f0', // 在這裡設定你想要的背景顏色
+            listening: false, // 讓背景不回應滑鼠事件，很重要！
+        }
+
+    }
+    // 設定編輯區大小
+    const setArtBoardSize = (width: number, height: number) => {
+        artboardSize.value = { width, height };
+        // 畫板背景設定
+        artboardBackgroundConfig.value = {
+            ...artboardOffset.value,
+            width: artboardSize.value.width,
+            height: artboardSize.value.height,
+            image: backgroundImage.value,
+            listening: false, // 讓背景不回應滑鼠事件，很重要！
+            fill: 'white', // 如果沒有背景圖，顯示為白色
+        }
+        // 畫板設定
+        artboardConfig.value = {
+            ...artboardOffset.value,
+            width: artboardSize.value.width,
+            height: artboardSize.value.height,
+            clearBeforeDraw: true,
+            clip: {
+                x: 0,
+                y: 0,
+                width: artboardSize.value.width,
+                height: artboardSize.value.height,
+            }
+        }
+    }
 
     const addElement = (el: KElementImage | KElementText) => {
         elements.value.push(el);
@@ -93,6 +172,8 @@ export const useKImgEditorStore = defineStore('kImgEditorStore', () => {
     }
 
     return {
+        stageConfig, workspaceConfig, artboardSize, artboardOffset, artboardConfig, artboardBackgroundConfig,
+        setup, setArtBoardSize,
         elements, imageList, backgroundImage, addElement, addImage
     }
 });
