@@ -58,7 +58,7 @@ const textElementStyle = (element: ICanvasElement) => {
   <div class="layers-object-container">
     <div class="layers-wrapper">
       <div class="layer" @click="onClickBGHandle">
-        <div class="mask"><span>場景</span></div>
+        <div class="mask"><span>背景</span></div>
         <img v-if="editorStore.originalImage" :src="editorStore.originalImage?.src" alt=""/>
       </div>
     </div>
@@ -68,6 +68,7 @@ const textElementStyle = (element: ICanvasElement) => {
         item-key="id"
         class="layers-wrapper"
         ghost-class="ghost"
+        :animation="150"
     >
       <template #item="{ element }">
         <div class="layer" @click="(event) => onClickLayerHandle(event, element)">
