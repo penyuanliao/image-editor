@@ -59,10 +59,12 @@ export interface KonvaImageProps extends KonvaShadowProps, KonvaStrokeProps {
 export interface KonvaTextConfig extends KonvaTextProps {
     draggable: boolean; // 是否可以拖拉
     name: string; // 收尋檢查用名稱
+    dragBoundFunc?: Function; // 應用拖曳限制
 }
 export interface KonvaImageConfig extends KonvaImageProps {
     draggable: boolean; // 是否可以拖拉
     name: string; // 收尋檢查用名稱
+    dragBoundFunc?: Function; // 應用拖曳限制
 }
 
 export interface KElementImage {
@@ -105,21 +107,58 @@ export const useKImgEditorStore = defineStore('kImgEditorStore', () => {
         height: 600,
     });
     // 定義固定的畫板尺寸
-    const artboardSize = ref<{ width: number; height: number }>({
+    const artboardSize = reactive<{ width: number; height: number }>({
         width: 800,
         height: 600,
     });
 
     // 計算畫布在 Stage 中的置中位置
     const artboardOffset = computed(() => ({
-        x: (stageConfig.width - artboardSize.value.width) / 2,
-        y: (stageConfig.height - artboardSize.value.height) / 2,
+        x: (stageConfig.width - artboardSize.width) / 2,
+        y: (stageConfig.height - artboardSize.height) / 2,
     }));
 
-    const workspaceConfig = ref({});
+    const workspaceConfig: {
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+        fill: string;
+        listening: boolean;
+    } = reactive({
+        x: 0,
+        y: 0,
+        width: 800,
+        height: 600,
+        fill: 'white',
+        listening: false,
+    });
 
-    const artboardBackgroundConfig = ref({});
-    const artboardConfig = ref({});
+    const artboardBackgroundConfig = computed(() => {
+        return {
+            ...artboardOffset.value,
+            width: artboardSize.width,
+            height: artboardSize.height,
+            image: backgroundImage.value,
+            listening: false, // 讓背景不回應滑鼠事件，很重要！
+            fill: 'white', // 如果沒有背景圖，顯示為白色
+        }
+    });
+    // 畫板裁切群組設定
+    const artboardClipConfig = computed(() => {
+        return {
+            // 這個 group 不需要 x, y，因為它在 layer 內部是相對 (0,0)
+            width: artboardSize.width,
+            height: artboardSize.height,
+            clearBeforeDraw: true,
+            clip: {
+                x: 0,
+                y: 0,
+                width: artboardSize.width,
+                height: artboardSize.height,
+            }
+        }
+    });
 
     const setup = (width: number, height: number) => {
 
@@ -127,41 +166,17 @@ export const useKImgEditorStore = defineStore('kImgEditorStore', () => {
         stageConfig.width = width;
         stageConfig.height = height;
         // 場景工作區大小
-        workspaceConfig.value = {
-            x: 0,
-            y: 0,
-            width: stageConfig.width,
-            height: stageConfig.height,
-            fill: '#f0f0f0', // 在這裡設定你想要的背景顏色
-            listening: false, // 讓背景不回應滑鼠事件，很重要！
-        }
+        workspaceConfig.width = stageConfig.width;
+        workspaceConfig.height = stageConfig.height;
+        workspaceConfig.fill = '#f0f0f0'; // 在這裡設定你想要的背景顏色
+        workspaceConfig.listening = false; // 讓背景不回應滑鼠事件，很重要！
 
     }
     // 設定編輯區大小
     const setArtBoardSize = (width: number, height: number) => {
-        artboardSize.value = { width, height };
-        // 畫板背景設定
-        artboardBackgroundConfig.value = {
-            ...artboardOffset.value,
-            width: artboardSize.value.width,
-            height: artboardSize.value.height,
-            image: backgroundImage.value,
-            listening: false, // 讓背景不回應滑鼠事件，很重要！
-            fill: 'white', // 如果沒有背景圖，顯示為白色
-        }
-        // 畫板設定
-        artboardConfig.value = {
-            ...artboardOffset.value,
-            width: artboardSize.value.width,
-            height: artboardSize.value.height,
-            clearBeforeDraw: true,
-            clip: {
-                x: 0,
-                y: 0,
-                width: artboardSize.value.width,
-                height: artboardSize.value.height,
-            }
-        }
+        artboardSize.width = width;
+        artboardSize.height = height;
+        // 畫板裁切群組設定
     }
 
     const addElement = (el: KElementImage | KElementText) => {
@@ -172,7 +187,7 @@ export const useKImgEditorStore = defineStore('kImgEditorStore', () => {
     }
 
     return {
-        stageConfig, workspaceConfig, artboardSize, artboardOffset, artboardConfig, artboardBackgroundConfig,
+        stageConfig, workspaceConfig, artboardSize, artboardOffset, artboardClipConfig, artboardBackgroundConfig,
         setup, setArtBoardSize,
         elements, imageList, backgroundImage, addElement, addImage
     }

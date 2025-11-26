@@ -26,6 +26,26 @@ const toggleCropMode = () => {
   isCropping.value = !isCropping.value;
 };
 
+// 限制物件拖曳範圍的函式
+// @ts-ignore
+const dragRangeBoundFunc = function (pos: { x: number, y: number }) {
+  // @ts-ignore
+  const node = this as Konva.Node;
+  const box = node.getClientRect({ skipTransform: true }); // 獲取物件原始的邊界框
+  const artboard = store.artboardSize;
+  const offset = store.artboardOffset;
+  const bound: number = 20;
+  // 至少留 20px 在畫板內
+  const minX = -box.width + offset.x + bound;
+  const maxX = artboard.width + offset.x - bound;
+  const minY = -box.height + offset.y + bound;
+  const maxY = artboard.height + offset.y - bound;
+
+  const newX = Math.max(minX, Math.min(pos.x, maxX));
+  const newY = Math.max(minY, Math.min(pos.y, maxY));
+  return { x: newX, y: newY };
+};
+
 // 1. 建立一個 elements 陣列來管理所有物件
 store.addElement({
   id: 'text1',
@@ -58,7 +78,8 @@ store.addElement({
     shadowOpacity: 0.5,
 
     draggable: true,
-    name: 'selectable-object'
+    name: 'selectable-object',
+    dragBoundFunc: dragRangeBoundFunc
   }
 });
 
@@ -220,6 +241,7 @@ onMounted(async () => {
       height: newImage?.height,
       draggable: true,
       name: 'selectable-object',
+      dragBoundFunc: dragRangeBoundFunc, // 應用拖曳限制
     }
   })
 })
@@ -288,65 +310,72 @@ const handleCropDragEnd = (e: Konva.KonvaEventObject<DragEvent>) => {
 </script>
 
 <template>
-  <div class="main-container" ref="container">
-    <div class="controls">
-      <div>
-        畫布寬度:
-        <el-input-number v-model="store.stageConfig.width" :min="100" size="small"></el-input-number>
-        畫布高度:
-        <el-input-number v-model="store.stageConfig.height" :min="100" size="small"></el-input-number>
-      </div>
-      <div class="crop-controls">
-        <el-button @click="toggleCropMode" :type="isCropping ? 'success' : ''">{{
-            isCropping ? '停用裁切' : '啟用裁切'
-          }}
-        </el-button>
-        <span v-if="isCropping">裁切寬度: <el-input-number v-model="cropRect.width" :min="10"
-                                                           size="small"></el-input-number></span>
-        <span v-if="isCropping">裁切高度: <el-input-number v-model="cropRect.height" :min="10"
-                                                           size="small"></el-input-number></span>
-      </div>
-      <FileInputComponent v-model:images="store.imageList" @change="handleFileInputChange"/>
-      <el-button type="primary" @click="handleExport">匯出圖片 (透明背景)</el-button>
-      <el-button type="primary" @click="handleButton">設定大小</el-button>
-      <Popover/>
-    </div>
-    <v-stage
-        class="stage"
-        :config="store.stageConfig"
-        ref="stageRef"
-        @mousedown="handleStageMouseDown">
-      <!-- 背景層 -->
-      <v-layer name="workspace-layer">
-        <!-- 灰色背景，填滿整個 Stage -->
-        <v-rect ref="workspaceRef" :config="store.workspaceConfig"/>
-        <!-- 畫板 -->
-        <v-image
-            :config="store.artboardBackgroundConfig"
-        />
-      </v-layer>
-      <!-- 互動層 -->
-      <v-layer name="interactive-layer" :config="store.artboardConfig">
-        <template v-for="element in store.elements" :key="element.id">
-          <v-image
-              v-if="element.type === 'image'"
-              :config="{ ...element.config }"
-              @transformend="(e: any) => handleTransformEnd(e, element)"
-          />
-          <v-text
-              v-if="element.type === 'text'"
-              :config="element.config"
-              @transformend="(e: any) => handleTransformEnd(e, element)"
-          />
-        </template>
-      </v-layer>
-      <!-- UI 層 (不受裁切影響，覆蓋整個 Stage) -->
-      <v-layer name="gui-layer">
-        <!-- 1. 裁切功能群組 -->
-        <v-group v-if="isCropping">
-          <v-shape
-              :config="{
-                listening: true, // 這個遮罩不回應滑鼠事件
+  <div class="main-container common-layout" ref="container">
+    <el-container>
+      <el-header class="header">
+        <div class="controls">
+          <div>
+            畫布寬度:
+            <el-input-number v-model="store.stageConfig.width" :min="100" size="small"></el-input-number>
+            畫布高度:
+            <el-input-number v-model="store.stageConfig.height" :min="100" size="small"></el-input-number>
+          </div>
+          <div class="crop-controls">
+            <el-button @click="toggleCropMode" :type="isCropping ? 'success' : ''">{{
+                isCropping ? '停用裁切' : '啟用裁切'
+              }}
+            </el-button>
+            <span v-if="isCropping">裁切寬度: <el-input-number v-model="cropRect.width" :min="10"
+                                                               size="small"></el-input-number></span>
+            <span v-if="isCropping">裁切高度: <el-input-number v-model="cropRect.height" :min="10"
+                                                               size="small"></el-input-number></span>
+          </div>
+          <FileInputComponent v-model:images="store.imageList" @change="handleFileInputChange"/>
+          <el-button type="primary" @click="handleExport">匯出圖片 (透明背景)</el-button>
+          <el-button type="primary" @click="handleButton">設定大小</el-button>
+          <Popover/>
+        </div>
+      </el-header>
+      <el-main>
+        <v-stage
+            class="stage"
+            :config="store.stageConfig"
+            ref="stageRef"
+            @mousedown="handleStageMouseDown">
+          <!-- 背景層 -->
+          <v-layer name="workspace-layer">
+            <!-- 灰色背景，填滿整個 Stage -->
+            <v-rect ref="workspaceRef" :config="store.workspaceConfig"/>
+            <!-- 畫板 -->
+            <v-image
+                :config="store.artboardBackgroundConfig"
+            />
+          </v-layer>
+          <!-- 互動層 -->
+          <v-layer name="interactive-layer" :config="store.artboardOffset">
+            <!-- 使用 v-group 作為可裁切的畫板容器 -->
+            <v-group :config="store.artboardClipConfig">
+              <template v-for="element in store.elements" :key="element.id">
+                <v-image
+                    v-if="element.type === 'image'"
+                    :config="{ ...element.config }"
+                    @transformend="(e: any) => handleTransformEnd(e, element)"
+                />
+                <v-text
+                    v-if="element.type === 'text'"
+                    :config="element.config"
+                    @transformend="(e: any) => handleTransformEnd(e, element)"
+                />
+              </template>
+            </v-group>
+          </v-layer>
+          <!-- UI 層 (不受裁切影響，覆蓋整個 Stage) -->
+          <v-layer name="gui-layer">
+            <!-- 1. 裁切功能群組 -->
+            <v-group v-if="isCropping">
+              <v-shape
+                  :config="{
+                listening: false, // 這個遮罩不回應滑鼠事件
                 sceneFunc: (context: CanvasRenderingContext2D) => {
                   // 先畫一個覆蓋整個畫布的半透明灰色矩形
                   context.beginPath();
@@ -360,31 +389,33 @@ const handleCropDragEnd = (e: Konva.KonvaEventObject<DragEvent>) => {
                   context.fill('evenodd');
                 }
               }"
-          />
-          <v-rect
-              ref="cropRectRef"
-              :config="{
+              />
+              <v-rect
+                  ref="cropRectRef"
+                  :config="{
                 ...cropRect,
                 fill: 'transparent', // 中間必須是透明的，才能看到下面的內容
                 stroke: 'white',
                 strokeWidth: 2,
                 draggable: true
               }" @dragend="handleCropDragEnd"/>
-        </v-group>
-        <!-- 2. 用於框選的矩形 -->
-        <v-rect
-            ref="selectionRectRef"
-            :config="selectionRectConfig"/>
-        <!-- 用於編輯框選的 Transformer -->
-        <v-transformer
-            ref="transformerRef"
-            :config="{
+            </v-group>
+            <!-- 2. 用於框選的矩形 -->
+            <v-rect
+                ref="selectionRectRef"
+                :config="selectionRectConfig"/>
+            <!-- 用於編輯框選的 Transformer -->
+            <v-transformer
+                ref="transformerRef"
+                :config="{
               rotateAnchorOffset: 25,
               boundBoxFunc: boundBoxFunc
             }"
-        />
-      </v-layer>
-    </v-stage>
+            />
+          </v-layer>
+        </v-stage>
+      </el-main>
+    </el-container>
   </div>
 </template>
 
@@ -413,4 +444,9 @@ const handleCropDragEnd = (e: Konva.KonvaEventObject<DragEvent>) => {
 .stage {
   /* background-color: white; */ /* 建議移除或註解掉，改用 v-rect 控制 */
 }
+
+.header {
+  --el-header-padding: 0 0;
+}
+
 </style>
