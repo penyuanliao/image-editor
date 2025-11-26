@@ -430,6 +430,7 @@ const handleLockAndUnlock = () => {
               :key="font"
               :label="font"
               :value="font"
+              @mouseenter="() => textProps.fontFamily = font"
           />
         </el-select>
         <ColorPicker use-type="pure" format="hex" v-model:pureColor="textProps.color"/>
