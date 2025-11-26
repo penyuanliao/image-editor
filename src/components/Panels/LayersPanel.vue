@@ -1,25 +1,28 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, type PropType } from "vue";
 import { useEditorStore } from "@/store/editorStore.ts";
 import draggable from 'vuedraggable';
-import {ElementTypesEnum, type ICanvasElement, type ITextConfig} from "@/types.ts";
-import {Lock} from "@element-plus/icons-vue";
+import { ElementTypesEnum, type ICanvasElement, type ITextConfig } from "@/types.ts";
+import { Lock } from "@element-plus/icons-vue";
 
+const props = defineProps({
+  // 排序方式
+  stageSettingPosition: {
+    type: String as PropType<'top' | 'bottom'>,
+    default: "top",
+    validator: (value: string) => {
+      return ['top', 'bottom'].includes(value);
+    }
+  }
+})
 const editorStore = useEditorStore();
 
-// Create a computed property to reverse the elements for display
-// and handle updating the store when the order changes.
 const reversedElements = computed({
   get() {
-    // Reverse the array for display, so the top layer is at the top of the list
     return [...editorStore.elements].reverse();
   },
   set(newValue) {
-    // When vuedraggable updates the model, it's already in the reversed order.
-    // We need to reverse it back before committing to the store.
     editorStore.elements = [...newValue].reverse();
-    // const firstElement = newValue[0];
-    // editorStore.originalImage = firstElement?.img;
   }
 });
 const onClickLayerHandle = (event: MouseEvent, element: ICanvasElement) => {
@@ -43,7 +46,11 @@ const onClickBGHandle = () => {
   } as ICanvasElement;
   editorStore.setSelectedOnce(el);
 };
-
+const layersObjectStyle = () => {
+  return {
+    "--layout-direction": props.stageSettingPosition === "top" ? "column" : "column-reverse",
+  }
+}
 const textElementStyle = (element: ICanvasElement) => {
   const config = element.config as ITextConfig;
   return {
@@ -55,13 +62,14 @@ const textElementStyle = (element: ICanvasElement) => {
 </script>
 
 <template>
-  <div class="layers-object-container">
+  <div class="layers-object-container" :style="layersObjectStyle()">
     <div class="layers-wrapper">
       <div class="layer" @click="onClickBGHandle">
         <div class="mask"><span>背景</span></div>
         <img v-if="editorStore.originalImage" :src="editorStore.originalImage?.src" alt=""/>
       </div>
     </div>
+    <el-divider border-style="dashed" v-if="reversedElements.length > 0"/>
     <draggable
         v-show="reversedElements.length > 0"
         v-model="reversedElements"
@@ -93,7 +101,7 @@ const textElementStyle = (element: ICanvasElement) => {
   width: 100%;
   height: 100%;
   justify-content: flex-start;
-  flex-direction: column;
+  flex-direction: var(--layout-direction, column);
   flex-wrap: nowrap;
   align-items: center;
   overflow: auto;
@@ -109,6 +117,9 @@ const textElementStyle = (element: ICanvasElement) => {
     color: white;
     font-family: theme.$font-family;
   }
+}
+.layers-object-container :deep(.el-divider) {
+  margin: 0 0;
 }
 .layers-wrapper {
   width: 100%;
