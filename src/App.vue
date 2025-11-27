@@ -82,6 +82,7 @@ const handlePointerUp = (event: PointerEvent) => {
   const el = event.target;
   if (!(el instanceof HTMLCanvasElement) && !(el instanceof HTMLTextAreaElement)) {
     if (editorStore.selectedElement?.type !== ElementTypesEnum.Stage) {
+      editorStore.saveHistory();
       editorStore.clearSelection();
     }
   }
