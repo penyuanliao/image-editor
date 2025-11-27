@@ -216,7 +216,7 @@ const handleStageMouseDown = (e: Konva.KonvaEventObject<PointerEvent>) => {
 };
 
 const handleResizer = () => {
-  store.setup(window.innerWidth, window.innerHeight);
+  // store.setup(window.innerWidth, window.innerHeight);
 }
 // 調整大小
 const setupResizer = () => {
@@ -226,7 +226,8 @@ const setupResizer = () => {
 
 onMounted(async () => {
   setupResizer();
-  store.setup(window.innerWidth, window.innerHeight);
+
+  store.setup(container.value?.offsetWidth || 800, container.value?.offsetHeight || 600);
   store.setArtBoardSize(800, 600);
 
   const newImage = await loadImage();
@@ -246,7 +247,7 @@ onMounted(async () => {
   })
 })
 const handleButton = () => {
-  store.setArtBoardSize(550, 240);
+  store.setArtBoardSize(500, 400);
 }
 const handleExport = () => {
   const stage = stageRef.value?.getNode();
@@ -310,7 +311,7 @@ const handleCropDragEnd = (e: Konva.KonvaEventObject<DragEvent>) => {
 </script>
 
 <template>
-  <div class="main-container common-layout" ref="container">
+  <div class="common-layout">
     <el-container>
       <el-header class="header">
         <div class="controls">
@@ -336,45 +337,47 @@ const handleCropDragEnd = (e: Konva.KonvaEventObject<DragEvent>) => {
           <Popover/>
         </div>
       </el-header>
-      <el-main>
-        <v-stage
-            class="stage"
-            :config="store.stageConfig"
-            ref="stageRef"
-            @mousedown="handleStageMouseDown">
-          <!-- 背景層 -->
-          <v-layer name="workspace-layer">
-            <!-- 灰色背景，填滿整個 Stage -->
-            <v-rect ref="workspaceRef" :config="store.workspaceConfig"/>
-            <!-- 畫板 -->
-            <v-image
-                :config="store.artboardBackgroundConfig"
-            />
-          </v-layer>
-          <!-- 互動層 -->
-          <v-layer name="interactive-layer" :config="store.artboardOffset">
-            <!-- 使用 v-group 作為可裁切的畫板容器 -->
-            <v-group :config="store.artboardClipConfig">
-              <template v-for="element in store.elements" :key="element.id">
-                <v-image
-                    v-if="element.type === 'image'"
-                    :config="{ ...element.config }"
-                    @transformend="(e: any) => handleTransformEnd(e, element)"
-                />
-                <v-text
-                    v-if="element.type === 'text'"
-                    :config="element.config"
-                    @transformend="(e: any) => handleTransformEnd(e, element)"
-                />
-              </template>
-            </v-group>
-          </v-layer>
-          <!-- UI 層 (不受裁切影響，覆蓋整個 Stage) -->
-          <v-layer name="gui-layer">
-            <!-- 1. 裁切功能群組 -->
-            <v-group v-if="isCropping">
-              <v-shape
-                  :config="{
+      <el-container>
+        <el-aside class="sidebar-left-container">sidebar-right-container</el-aside>
+        <el-main class="main-container" ref="container">
+          <v-stage
+              class="stage"
+              :config="store.stageConfig"
+              ref="stageRef"
+              @mousedown="handleStageMouseDown">
+            <!-- 背景層 -->
+            <v-layer name="workspace-layer">
+              <!-- 灰色背景，填滿整個 Stage -->
+              <v-rect ref="workspaceRef" :config="store.workspaceConfig"/>
+              <!-- 畫板 -->
+              <v-image
+                  :config="store.artboardBackgroundConfig"
+              />
+            </v-layer>
+            <!-- 互動層 -->
+            <v-layer name="interactive-layer" :config="store.artboardOffset">
+              <!-- 使用 v-group 作為可裁切的畫板容器 -->
+              <v-group :config="store.artboardClipConfig">
+                <template v-for="element in store.elements" :key="element.id">
+                  <v-image
+                      v-if="element.type === 'image'"
+                      :config="{ ...element.config }"
+                      @transformend="(e: any) => handleTransformEnd(e, element)"
+                  />
+                  <v-text
+                      v-if="element.type === 'text'"
+                      :config="element.config"
+                      @transformend="(e: any) => handleTransformEnd(e, element)"
+                  />
+                </template>
+              </v-group>
+            </v-layer>
+            <!-- UI 層 (不受裁切影響，覆蓋整個 Stage) -->
+            <v-layer name="gui-layer">
+              <!-- 1. 裁切功能群組 -->
+              <v-group v-if="isCropping">
+                <v-shape
+                    :config="{
                 listening: false, // 這個遮罩不回應滑鼠事件
                 sceneFunc: (context: CanvasRenderingContext2D) => {
                   // 先畫一個覆蓋整個畫布的半透明灰色矩形
@@ -389,32 +392,35 @@ const handleCropDragEnd = (e: Konva.KonvaEventObject<DragEvent>) => {
                   context.fill('evenodd');
                 }
               }"
-              />
-              <v-rect
-                  ref="cropRectRef"
-                  :config="{
+                />
+                <v-rect
+                    ref="cropRectRef"
+                    :config="{
                 ...cropRect,
                 fill: 'transparent', // 中間必須是透明的，才能看到下面的內容
                 stroke: 'white',
                 strokeWidth: 2,
                 draggable: true
               }" @dragend="handleCropDragEnd"/>
-            </v-group>
-            <!-- 2. 用於框選的矩形 -->
-            <v-rect
-                ref="selectionRectRef"
-                :config="selectionRectConfig"/>
-            <!-- 用於編輯框選的 Transformer -->
-            <v-transformer
-                ref="transformerRef"
-                :config="{
+              </v-group>
+              <!-- 2. 用於框選的矩形 -->
+              <v-rect
+                  ref="selectionRectRef"
+                  :config="selectionRectConfig"/>
+              <!-- 用於編輯框選的 Transformer -->
+              <v-transformer
+                  ref="transformerRef"
+                  :config="{
               rotateAnchorOffset: 25,
               boundBoxFunc: boundBoxFunc
             }"
-            />
-          </v-layer>
-        </v-stage>
-      </el-main>
+              />
+            </v-layer>
+          </v-stage>
+        </el-main>
+        <el-aside class="sidebar-right-container">sidebar-right-container</el-aside>
+      </el-container>
+
     </el-container>
   </div>
 </template>
@@ -435,18 +441,26 @@ const handleCropDragEnd = (e: Konva.KonvaEventObject<DragEvent>) => {
   gap: 10px;
 }
 
-.main-container {
+.common-layout {
   width: 100%;
   height: 100%;
   border: 1px #f15624 dashed;
-}
 
-.stage {
-  /* background-color: white; */ /* 建議移除或註解掉，改用 v-rect 控制 */
+  .header {
+    --el-header-padding: 0 0;
+  }
+  .main-container {
+    --el-main-padding: 0 0;
+    display: flex;
+    justify-content: center;
+  }
 }
-
-.header {
-  --el-header-padding: 0 0;
+.sidebar-left-container {
+  width: 85px;
+  border: 1px #f15624 dashed;
+}
+.sidebar-right-container {
+  border: 1px #f15624 dashed;
 }
 
 </style>

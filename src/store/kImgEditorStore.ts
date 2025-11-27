@@ -60,6 +60,10 @@ export interface KonvaTextConfig extends KonvaTextProps {
     draggable: boolean; // 是否可以拖拉
     name: string; // 收尋檢查用名稱
     dragBoundFunc?: Function; // 應用拖曳限制
+    url?: string; // 圖片連結
+    base64?: string; // 圖片產生的 base64 字串
+    categoryId?: number; // 類別 ID: AI 產圖使用
+    id?: number; // 圖庫來源編號: AI 產圖使用
 }
 export interface KonvaImageConfig extends KonvaImageProps {
     draggable: boolean; // 是否可以拖拉
@@ -159,6 +163,7 @@ export const useKImgEditorStore = defineStore('kImgEditorStore', () => {
             }
         }
     });
+
 
     const setup = (width: number, height: number) => {
 
