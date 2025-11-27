@@ -54,7 +54,7 @@ onMounted(() => {
       </div>
       <div class="ctrl once-line">
         <span>背景顏色：</span>
-        <div class="color-picker">
+        <div class="color-picker-square">
           <ColorPicker use-type="pure" format="hex4" v-model:pureColor="(store.stage.config as StageConfig).color"/>
         </div>
       </div>
@@ -126,11 +126,6 @@ onMounted(() => {
   .once-line {
     grid-column-start: 1;
     grid-column-end: 3;
-  }
-  .color-picker {
-    width: 24px;
-    height: 24px;
-    overflow: hidden;
   }
 }
 .additional {
