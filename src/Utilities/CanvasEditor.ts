@@ -966,7 +966,9 @@ export class CanvasEditor {
                 this.store.setSelectedElements(selectedElementsInRect);
             }
         } else {
-            this.store.saveHistory();
+            if (this.isDraggingElement || this.isResizing || this.isRotating) {
+                this.store.saveHistory();
+            }
         }
         this.clear();
         this.showPopOverMenu(true);

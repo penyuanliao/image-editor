@@ -300,7 +300,7 @@ export const useEditorStore = defineStore('editor', () => {
 
   });
   /**
-   * 儲存
+   * 儲存操作紀錄
    */
   const saveHistory = () => {
 
@@ -333,13 +333,16 @@ export const useEditorStore = defineStore('editor', () => {
     historyStep.value = newHistory.length - 1;
   }
   /**
-   * 還原
+   * 還原操作紀錄
    */
   const undo = () => {
     if (!hasUndo.value) return false;
     // 從 history 堆疊中取出上一個狀態並還原
     historyStep.value--;
     const previousState:ICanvasElement[] = JSON.parse(history.value[historyStep.value] || '[]');
+
+    const selectElementId = selectedElement.value?.id;
+
     if (previousState) {
       isRestoring.value = true; // 標記正在還原，避免觸發 watch
       previousState.forEach(el => {
@@ -351,10 +354,14 @@ export const useEditorStore = defineStore('editor', () => {
       isRestoring.value = false;
     }
     clearSelection();
+    if (selectElementId) {
+      const element = elements.value.find(el => el.id === selectElementId);
+      if (element) setSelectedOnce(element);
+    }
     return true;
   };
   /**
-   * 重做
+   * 重做操作紀錄
    */
   const redo = () => {
     if (!hasRedo.value) return false; // 沒有可重做的動作

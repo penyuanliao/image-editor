@@ -1,11 +1,12 @@
 {
   "name": "asset-editor",
   "private": true,
-  "version": "0.1.5",
+  "version": "0.1.6",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "npm version patch --no-git-tag-version && vue-tsc -b && vite build",
+    "release": "npm version major --no-git-tag-version && vue-tsc -b && vite build",
     "preview": "vite preview"
   },
   "dependencies": {

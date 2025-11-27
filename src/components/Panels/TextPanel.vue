@@ -332,6 +332,7 @@ const gradientColorChange = (value: string) => {
     config.gradientAngle = gradient.angle;
     config.gradientType = parsedResult?.type || 'linear';
     config.gradientStops = gradient.stops;
+    handleSaveHistory();
   }
 }
 
@@ -370,6 +371,7 @@ const handleFontSelectVisibleChange = (visible: boolean) => {
     }
     if (fontFamily.value !== textProps.fontFamily) {
       textProps.fontFamily = fontFamily.value;
+      handleSaveHistory();
     }
   }
 };
@@ -393,9 +395,14 @@ const handleLockAndUnlock = () => {
     } else {
       editorStore.selectedElements = [editorStore.selectedElement];
     }
+    editorStore.saveHistory();
   }
-}
 
+}
+const handleSaveHistory = () => {
+  console.log('handleSaveHistory');
+  editorStore.saveHistory();
+}
 </script>
 
 <template>
@@ -405,16 +412,16 @@ const handleLockAndUnlock = () => {
     </div>
     <div class="categories" v-if="props.controlEnabled">
       <div class="ctrl">
-        <textarea class="text" v-model="textProps.content" :style="`text-align: ${textProps.textAlign}`" />
+        <textarea class="text" v-model="textProps.content" :style="`text-align: ${textProps.textAlign}`" @change="handleSaveHistory" />
       </div>
       <div class="horizontal-line">
         <div class="ctrl">
           <span>X：</span>
-          <el-input-number class="el-input" v-model="textProps.x" :controls="false" style="width: 100%" />
+          <el-input-number class="el-input" v-model="textProps.x" :controls="false" style="width: 100%" @change="handleSaveHistory" />
         </div>
         <div class="ctrl">
           <span>Y：</span>
-          <el-input-number class="el-input" v-model="textProps.y" :controls="false" style="width: 100%" />
+          <el-input-number class="el-input" v-model="textProps.y" :controls="false" style="width: 100%" @change="handleSaveHistory"/>
         </div>
       </div>
       <div class="ctrl color-picker-rectangle">
@@ -433,10 +440,10 @@ const handleLockAndUnlock = () => {
               @mouseenter="() => textProps.fontFamily = font"
           />
         </el-select>
-        <ColorPicker use-type="pure" format="hex" v-model:pureColor="textProps.color"/>
+        <ColorPicker use-type="pure" format="hex" v-model:pureColor="textProps.color" @pureColorChange="handleSaveHistory"/>
       </div>
       <div class="ctrl">
-        <el-select v-model="textProps.fontSize" placeholder="Select" style="width: 30%;">
+        <el-select v-model="textProps.fontSize" placeholder="Select" style="width: 30%;" @change="handleSaveHistory">
           <el-option
               v-for="option in fontSizeOption"
               :key="option.value"
@@ -448,7 +455,7 @@ const handleLockAndUnlock = () => {
           <el-tooltip
               content="粗體"
               placement="top">
-            <el-checkbox-button class="el-checkbox-btn" v-model="textProps.isBold">
+            <el-checkbox-button class="el-checkbox-btn" v-model="textProps.isBold" @change="handleSaveHistory">
               <el-icon size="18">
                 <svg width="24" height="24" viewBox="0 0 7.68 7.68" xmlns="http://www.w3.org/2000/svg"><path d="M5.114 3.471A1.319 1.319 0 0 0 4.2 1.2H1.92a.24.24 0 0 0-.24.24V6a.24.24 0 0 0 .24.24h2.64a1.44 1.44 0 0 0 .554-2.769M2.16 1.68H4.2a.84.84 0 0 1 0 1.68H2.16Zm2.4 4.08h-2.4V3.84h2.4a.96.96 0 0 1 0 1.92"/></svg>
               </el-icon>
@@ -457,14 +464,14 @@ const handleLockAndUnlock = () => {
           <el-tooltip
               content="斜體"
               placement="top">
-            <el-checkbox-button class="el-checkbox-btn" v-model="textProps.isItalic">
+            <el-checkbox-button class="el-checkbox-btn" v-model="textProps.isItalic" @change="handleSaveHistory">
               <el-icon size="18">
                 <svg width="24" height="24" viewBox="0 0 7.68 7.68" xmlns="http://www.w3.org/2000/svg"><path d="M6 1.68a.24.24 0 0 1-.24.24H4.733l-1.28 3.84h.867a.24.24 0 0 1 0 .48h-2.4a.24.24 0 0 1 0-.48h1.027l1.28-3.84H3.36a.24.24 0 0 1 0-.48h2.4a.24.24 0 0 1 .24.24"/></svg>
               </el-icon>
             </el-checkbox-button>
           </el-tooltip>
         </div>
-        <el-radio-group class="el-radio-group" v-model="textProps.textAlign" fill="#F15624">
+        <el-radio-group class="el-radio-group" v-model="textProps.textAlign" fill="#F15624" @change="handleSaveHistory">
           <el-tooltip
               content="靠左對齊"
               placement="top">
@@ -504,11 +511,12 @@ const handleLockAndUnlock = () => {
             size="small"
             :format-tooltip="(value: number) => value + '%'"
             :format-value-text="(value: number) => value + '%'"
+            @change="handleSaveHistory"
         />
       </div>
       <div class="ctrl">
         <span>漸層：</span>
-        <el-switch v-model="gradient.enabled" />
+        <el-switch v-model="gradient.enabled" @change="handleSaveHistory"/>
       </div>
       <div v-if="gradient.enabled" class="sub-controls">
         <div class="color-picker-rectangle">
@@ -530,6 +538,7 @@ const handleLockAndUnlock = () => {
             :max="2.5"
             :step="0.01"
             style="width: 100%;"
+            @change="handleSaveHistory"
         />
       </div>
       <div class="ctrl slider-with-input">
@@ -542,47 +551,48 @@ const handleLockAndUnlock = () => {
             :max="800"
             :step="1"
             style="width: 100%;"
+            @change="handleSaveHistory"
         />
       </div>
       <div class="ctrl">
         <span style="flex-shrink: 0;">旋轉角度：</span>
-        <el-input-number v-model="rotationInDegrees" :controls="true" style="width: 100%;"/>
+        <el-input-number v-model="rotationInDegrees" :controls="true" style="width: 100%;" @change="handleSaveHistory"/>
       </div>
       <div class="ctrl">
         <span>陰影：</span>
-        <el-switch v-model="shadow.enabled" />
+        <el-switch v-model="shadow.enabled" @change="handleSaveHistory"/>
       </div>
       <div v-if="shadow.enabled" class="sub-controls">
         <div class="color-picker-square">
           <span>陰影顏色：</span>
-          <ColorPicker use-type="pure" format="hex" v-model:pureColor="shadow.color"/>
+          <ColorPicker use-type="pure" format="hex" v-model:pureColor="shadow.color" @pureColorChange="handleSaveHistory"/>
         </div>
         <div>
           <span>模糊：</span>
-          <el-slider v-model="shadow.blur" :min="0" :max="50" style="width: 140px;" />
+          <el-slider v-model="shadow.blur" :min="0" :max="50" style="width: 140px;" @change="handleSaveHistory"/>
         </div>
         <div>
           <span>X位移：</span>
-          <el-slider v-model="shadow.offsetX" :min="-50" :max="50" style="width: 140px;" />
+          <el-slider v-model="shadow.offsetX" :min="-50" :max="50" style="width: 140px;" @change="handleSaveHistory"/>
         </div>
         <div>
           <span>Y位移：</span>
-          <el-slider v-model="shadow.offsetY" :min="-50" :max="50" style="width: 140px;" />
+          <el-slider v-model="shadow.offsetY" :min="-50" :max="50" style="width: 140px;" @change="handleSaveHistory"/>
         </div>
       </div>
 
       <div class="ctrl">
         <span>外框：</span>
-        <el-switch v-model="stroke.enabled" />
+        <el-switch v-model="stroke.enabled" @change="handleSaveHistory"/>
       </div>
       <div v-if="stroke.enabled" class="sub-controls">
         <div class="color-picker-square">
           <span>外框顏色：</span>
-          <ColorPicker use-type="pure" format="hex" v-model:pureColor="stroke.color"/>
+          <ColorPicker use-type="pure" format="hex" v-model:pureColor="stroke.color" @pureColorChange="handleSaveHistory"/>
         </div>
         <div>
           <span>粗細：</span>
-          <el-slider v-model="stroke.width" :min="1" :max="20" style="width: 140px;" />
+          <el-slider v-model="stroke.width" :min="1" :max="20" style="width: 140px;" @change="handleSaveHistory"/>
         </div>
       </div>
       <div class="ctrl center">

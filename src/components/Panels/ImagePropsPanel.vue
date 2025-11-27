@@ -130,32 +130,44 @@ const handleLockAndUnlock = () => {
     } else {
       editorStore.selectedElements = [editorStore.selectedElement];
     }
+    handleSaveHistory();
   }
 }
 
 const handleXChange = (value: number) => {
-  if (editorStore.selectedElement?.config) (editorStore.selectedElement.config as IImageConfig).x = value;
+  if (editorStore.selectedElement?.config) {
+    (editorStore.selectedElement.config as IImageConfig).x = value;
+    handleSaveHistory();
+  }
 };
 const handleYChange = (value: number) => {
-  if (editorStore.selectedElement?.config) (editorStore.selectedElement.config as IImageConfig).y = value;
+  if (editorStore.selectedElement?.config) {
+    (editorStore.selectedElement.config as IImageConfig).y = value;
+    handleSaveHistory();
+  }
 };
 const handleWidthChange = (value: number) => {
   // 使用現有的 configWidth setter 邏輯
   configWidth.value = value;
+  handleSaveHistory();
 };
 const handleHeightChange = (value: number) => {
   // 使用現有的 configHeight setter 邏輯
   configHeight.value = value;
+  handleSaveHistory();
 };
 const handleResetSize = () => {
   if (editorStore.selectedElement?.config) {
     const config = editorStore.selectedElement.config as IImageConfig;
     config.width = config.img?.naturalWidth || 1;
     config.height = config.img?.naturalHeight || 1;
+    handleSaveHistory();
   }
 }
-
-
+/**
+ * 改變圖片位置
+ * @param value
+ */
 const handlePositionChange = (value: string) => {
 
   if (value === 'flip-horizontal') {
@@ -177,6 +189,7 @@ const handlePositionChange = (value: string) => {
       emit('alignElement', horizontal, vertical);
     }
   }
+  editorStore.saveHistory();
 }
 const handleDeleted = () => {
   const id = editorStore.selectedElement?.id;
@@ -273,6 +286,7 @@ const handleSaveHistory = () => {
             :min="0.01"
             size="default"
             align="left"
+            @change="handleSaveHistory"
         >
           <template #suffix>%</template>
         </el-input-number>
@@ -284,6 +298,7 @@ const handleSaveHistory = () => {
             :min="0.01"
             size="default"
             align="left"
+            @change="handleSaveHistory"
         >
           <template #suffix>%</template>
         </el-input-number>
