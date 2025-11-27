@@ -523,7 +523,6 @@ export class CanvasEditor {
                     this.render();
                     return;
                 }
-                this.store.recording(this.store.elements);
                 this.handleTransformStart(x, y, action, selectedElement);
                 return;
             }
@@ -555,7 +554,6 @@ export class CanvasEditor {
                 this.dragStart.y = y;
                 this.dragStart.elementX = clickedElement.config.x;
                 this.dragStart.elementY = clickedElement.config.y;
-                this.store.recording(this.store.elements);
             } else if (this.editingDropBox && this.isPointInCropBox(x, y)) {
                 // 點擊在裁切框內，開始拖曳裁切框
                 this.isDraggingCropBox = true;
@@ -961,7 +959,7 @@ export class CanvasEditor {
                 this.store.setSelectedElements(selectedElementsInRect);
             }
         }
-
+        this.store.saveHistory();
         this.clear();
         this.showPopOverMenu(true);
         this.render(); // 新增：重繪畫布以清除選擇框

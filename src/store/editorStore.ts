@@ -10,7 +10,6 @@ import {
 import {calculateConstrainedSize} from "@/Utilities/useImageEditor.ts";
 import {degrees, radians} from "@/Utilities/Algorithm.ts";
 import {advancedDefaults, generalDefaults} from "@/config/settings.ts";
-import {deepCloneElements} from "@/Utilities/clone.ts";
 
 // 為了讓 CanvasEditor 能夠傳入 store，我們需要匯出 store 的類型
 export type EditorStore = ReturnType<typeof useEditorStore>;
@@ -35,9 +34,13 @@ export const useEditorStore = defineStore('editor', () => {
   const originalImage = ref<HTMLImageElement | null | undefined>(null);
   // 畫布上的元素 (文字、圖形等)
   const elements = ref<ICanvasElement[]>([]);
+  // 用於undo/redo 暫存圖片HTMLImageElement
+  const imageCache = new Map<number, HTMLImageElement>();
   // --- 歷史紀錄 (Undo/Redo) ---
-  const historyStack = ref<ICanvasElement[][]>([]); // 儲存 elements 的 JSON 字串快照
-  const redoStack = ref<ICanvasElement[][]>([]);
+  let historyStep = ref<number>(0); // 紀錄目前步驟
+  // 儲存 elements 的 JSON 字串快照
+  const history = ref<string[]>(['[]']); // 每個步驟的資料
+  // 正在還原狀態
   const isRestoring = ref(false); // 用於防止在 undo/redo 時觸發 watch
 
   // --- 互動狀態管理 ---
@@ -88,6 +91,31 @@ export const useEditorStore = defineStore('editor', () => {
   });
 
   // --- Actions ---
+  // Cache: 紀錄圖片
+  function setCache(newElements: ICanvasElement[]) {
+    newElements.forEach((element) => {
+      if (element.type === ElementTypesEnum.Image) {
+        const imageConfig = element.config as IImageConfig;
+        if (imageConfig.img) {
+          imageCache.set(element.id, imageConfig.img);
+        }
+      }
+    })
+  }
+  // Cache: 更新圖片
+  function updateCache(id: number, element: ICanvasElement) {
+    if (imageCache.has(id)) {
+      const imageConfig = element.config as IImageConfig;
+      if (imageConfig.img) {
+        imageCache.set(element.id, imageConfig.img);
+      }
+    }
+  }
+  // Cache: 清除圖片暫存
+  function delCache(elementIds: number[]) {
+    elementIds.forEach((id) => imageCache.delete(id));
+  }
+
   // 取得圖片
   function addImage(image: IUploadedImage) {
     return imageList.value.push(image) - 1;
@@ -102,11 +130,15 @@ export const useEditorStore = defineStore('editor', () => {
   function addElement(element: ICanvasElement) {
     elements.value.push(element);
     selectedElements.value = [element]; // 新增後自動選取
+    setCache([element]);
+    saveHistory();
   }
 
   function addElements(newElements: ICanvasElement[]) {
     elements.value.push(...newElements);
     selectedElements.value = newElements; // 新增後自動選取
+    setCache(newElements);
+    saveHistory();
   }
   // 執行刪除操作
   function removeElements(elementIds: number[]) {
@@ -120,6 +152,7 @@ export const useEditorStore = defineStore('editor', () => {
     const element = elements.value.find(el => el.id === elementId);
     if (element) {
       Object.assign(element, props);
+      updateCache(elementId, element);
     }
   }
   // 往前一層
@@ -214,84 +247,6 @@ export const useEditorStore = defineStore('editor', () => {
     }
   }
 
-  // --- 歷史紀錄相關 Actions ---
-  function undo() {
-    if (!advancedDefaults.undoRedoEnabled) return;
-    console.log('undo');
-    if (historyStack.value.length > 0) {
-      // 從 history 堆疊中取出上一個狀態並還原
-      const previousState = historyStack.value.pop();
-      if (previousState) {
-        isRestoring.value = true; // 標記正在還原，避免觸發 watch
-        // 將當前狀態推入 redo 堆疊
-        const currentStack = deepCloneElements(selectedElements.value);
-        redoStack.value.push(currentStack);
-
-        previousState.forEach(el => {
-          const index = elements.value.findIndex(e => e.id === el.id);
-          if (index !== -1) {
-            const newProps = el.config;
-            if (elements.value[index]) {
-              Object.assign(elements.value[index].config, newProps);
-            }
-          } else {
-            addElement(el);
-          }
-        });
-        clearSelection(); // 還原後清除選取，避免懸空的選取狀態
-        isRestoring.value = false;
-      }
-    }
-  }
-
-  function redo() {
-    console.log('redo');
-    if (!advancedDefaults.undoRedoEnabled) return;
-
-    if (redoStack.value.length > 0) {
-
-      // 從 redo 堆疊中取出下一個狀態並還原
-      const nextState = redoStack.value.pop();
-      if (nextState) {
-        isRestoring.value = true; // 標記正在還原，避免觸發 watch
-        const currentStack: ICanvasElement[] = [];
-        nextState.forEach(el => {
-          const index = elements.value.findIndex(e => e.id === el.id);
-          if (index !== -1) {
-            const newProps = el.config;
-            if (elements.value[index]) {
-              const current = deepCloneElements([elements.value[index]])[0];
-              if (current) currentStack.push(current);
-              Object.assign(elements.value[index].config, newProps);
-            }
-          }
-        });
-        // 將當前狀態推入 history 堆疊
-        historyStack.value.push(currentStack);
-        clearSelection(); // 還原後清除選取
-        isRestoring.value = false;
-      }
-    }
-  }
-  function recording(elements: ICanvasElement[]) {
-    if (!advancedDefaults.undoRedoEnabled) return;
-    // 如果是正在執行 undo/redo，則不記錄歷史
-    if (isRestoring.value) {
-      return;
-    }
-    // 將舊狀態（變化前的狀態）的深拷貝存入歷史紀錄
-    // 使用 JSON.stringify 來做深拷貝和序列化
-    const clone = deepCloneElements(elements);
-    historyStack.value.push(clone);
-    // 當有新的操作時，清空 redo 堆疊
-    redoStack.value = [];
-
-    // 可以設定歷史紀錄的上限，避免記憶體佔用過多
-    if (historyStack.value.length > generalDefaults.undoRedoStackMax) {
-      historyStack.value.shift(); // 移除最舊的紀錄
-    }
-  }
-
   /**
    * 上下撐滿
    */
@@ -330,6 +285,83 @@ export const useEditorStore = defineStore('editor', () => {
     } as ICanvasElement;
     setSelectedOnce(el);
   }
+  /**
+   * 儲存
+   */
+  const saveHistory = () => {
+    const newHistory = history.value.slice(0, historyStep.value + 1);
+    newHistory.push(JSON.stringify(elements.value, (key, value) => {
+      if (key === 'img') return undefined;
+      return value;
+    }));
+    console.log('save', newHistory.length, generalDefaults.undoRedoStackMax);
+    // 限制還原步驟
+    if (newHistory.length > generalDefaults.undoRedoStackMax) {
+      const diff = newHistory.shift();
+      const last = newHistory[0];
+      if (diff) {
+        const list = JSON.parse(diff).map((el: ICanvasElement) => el.id);
+
+        if (last) {
+          JSON.parse(last).forEach((el: ICanvasElement) => {
+            if (list.includes(el.id)) list.splice(list.indexOf(el.id), 1);
+          })
+        }
+        delCache(list);
+      }
+
+
+    }
+    history.value = newHistory;
+    historyStep.value = newHistory.length - 1;
+  }
+  /**
+   * 還原
+   */
+  const undo = () => {
+    if (!advancedDefaults.undoRedoEnabled) return false;
+    console.log('start:undo', historyStep.value);
+    // 到底了
+    if (historyStep.value === 0) return false;
+    if (isRestoring.value) return false;
+    // 從 history 堆疊中取出上一個狀態並還原
+    historyStep.value--;
+    const previousState:ICanvasElement[] = JSON.parse(history.value[historyStep.value] || '[]');
+    if (previousState) {
+      isRestoring.value = true; // 標記正在還原，避免觸發 watch
+      previousState.forEach(el => {
+        if (el.type !== 'image') return;
+        const config = el.config as IImageConfig;
+        config.img = imageCache.get(el.id);
+      });
+      elements.value = previousState;
+      isRestoring.value = false;
+    }
+    clearSelection();
+    console.log(`undo done step:${historyStep.value} total:${history.value.length}`);
+    return true;
+  };
+  /**
+   * 重做
+   */
+  const redo = () => {
+    console.log(`redo step: ${historyStep.value} total: ${history.value.length -1}`);
+    if (!advancedDefaults.undoRedoEnabled) return false;
+    if (isRestoring.value) return false;
+    if (historyStep.value === history.value.length - 1) return false; // 沒有可重做的動作
+    isRestoring.value = true; // 標記正在還原，避免觸發 watch
+    historyStep.value++;
+    const lastState:ICanvasElement[] = JSON.parse(history.value[historyStep.value] || '[]');
+    lastState.forEach(el => {
+      if (el.type !== 'image') return;
+      const config = el.config as IImageConfig;
+      config.img = imageCache.get(el.id);
+    });
+    elements.value = lastState;
+    isRestoring.value = false;
+    clearSelection();
+    return true;
+  };
 
   return {
     // State
@@ -366,11 +398,12 @@ export const useEditorStore = defineStore('editor', () => {
     flipHorizontal,
     flipVertical,
     replaceSelectedElementImage,
-    undo,
-    redo,
-    recording,
+    imageCache,
     elEqualStageWidth,
     elEqualStageHeight,
-    defaultPropsPanel
+    defaultPropsPanel,
+    saveHistory,
+    undo,
+    redo
   };
 });
