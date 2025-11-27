@@ -61,7 +61,7 @@ const handleChange = (key: string, currentValue: number) => {
 <style scoped lang="scss">
 @use "@/styles/theme";
 .crop-controls {
-  display: flex;
+  //display: flex;
   position: relative;
   gap: 1rem;
   align-items: center;
@@ -69,6 +69,7 @@ const handleChange = (key: string, currentValue: number) => {
   padding: 15px 30px;
   border-radius: 15px;
   height: 30px;
+  display: none;
 }
 .input-group {
   display: flex;
