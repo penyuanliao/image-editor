@@ -10,6 +10,7 @@ import {
 import {calculateConstrainedSize} from "@/Utilities/useImageEditor.ts";
 import {degrees, radians} from "@/Utilities/Algorithm.ts";
 import {advancedDefaults, generalDefaults} from "@/config/settings.ts";
+import {nanoid} from "nanoid";
 
 // 為了讓 CanvasEditor 能夠傳入 store，我們需要匯出 store 的類型
 export type EditorStore = ReturnType<typeof useEditorStore>;
@@ -17,7 +18,7 @@ export type EditorStore = ReturnType<typeof useEditorStore>;
 export const useEditorStore = defineStore('editor', () => {
   // --- State ---
   const stage = reactive<ICanvasElement>({
-    id: 0,
+    id: "0",
     name: '畫布',
     type: ElementTypesEnum.Stage,
     config: {
@@ -35,7 +36,7 @@ export const useEditorStore = defineStore('editor', () => {
   // 畫布上的元素 (文字、圖形等)
   const elements = ref<ICanvasElement[]>([]);
   // 用於undo/redo 暫存圖片HTMLImageElement
-  const imageCache = new Map<number, HTMLImageElement>();
+  const imageCache = new Map<string, HTMLImageElement|undefined>();
   // --- 歷史紀錄 (Undo/Redo) ---
   let historyStep = ref<number>(0); // 紀錄目前步驟
   // 儲存 elements 的 JSON 字串快照
@@ -103,16 +104,11 @@ export const useEditorStore = defineStore('editor', () => {
     })
   }
   // Cache: 更新圖片
-  function updateCache(id: number, element: ICanvasElement) {
-    if (imageCache.has(id)) {
-      const imageConfig = element.config as IImageConfig;
-      if (imageConfig.img) {
-        imageCache.set(element.id, imageConfig.img);
-      }
-    }
+  function updateCache(id: string, image: HTMLImageElement | undefined) {
+    imageCache.set(id, image);
   }
   // Cache: 清除圖片暫存
-  function delCache(elementIds: number[]) {
+  function delCache(elementIds: string[]) {
     elementIds.forEach((id) => imageCache.delete(id));
   }
 
@@ -141,22 +137,23 @@ export const useEditorStore = defineStore('editor', () => {
     saveHistory();
   }
   // 執行刪除操作
-  function removeElements(elementIds: number[]) {
+  function removeElements(elementIds: string[]) {
     elements.value = elements.value.filter(el => !elementIds.includes(el.id));
     selectedElements.value = selectedElements.value.filter(
       el => !elementIds.includes(el.id)
     );
+    saveHistory();
   }
 
-  function updateElement(elementId: number, props: Partial<ICanvasElement>) {
+  function updateElement(elementId: string, props: Partial<ICanvasElement>) {
     const element = elements.value.find(el => el.id === elementId);
     if (element) {
       Object.assign(element, props);
-      updateCache(elementId, element);
+      updateCache(elementId, (element.config as IImageConfig).img);
     }
   }
   // 往前一層
-  function moveForwardElement(elementId: number) {
+  function moveForwardElement(elementId: string) {
     const index = elements.value.findIndex(el => el.id === elementId);
     if (index >= 0 && index < elements.value.length - 1) {
       const [moveElement] = elements.value.splice(index, 1);
@@ -164,7 +161,7 @@ export const useEditorStore = defineStore('editor', () => {
     }
   }
   // 往後一層
-  function moveBackwardElement(elementId: number) {
+  function moveBackwardElement(elementId: string) {
     const index = elements.value.findIndex(el => el.id === elementId);
     if (index > 0) {
       const [moveElement] = elements.value.splice(index, 1);
@@ -172,7 +169,7 @@ export const useEditorStore = defineStore('editor', () => {
     }
   }
   // 推到最下層
-  function moveBottomElement(elementId: number) {
+  function moveBottomElement(elementId: string) {
     const index = elements.value.findIndex(el => el.id === elementId);
     if (index > 0) {
       const [moveElement] = elements.value.splice(index, 1);
@@ -180,7 +177,7 @@ export const useEditorStore = defineStore('editor', () => {
     }
   }
   // 推到最上層
-  function moveTopElement(elementId: number) {
+  function moveTopElement(elementId: string) {
     const index = elements.value.findIndex(el => el.id === elementId);
     if (index >= 0 && index < elements.value.length - 1) {
       const [moveElement] = elements.value.splice(index, 1);
@@ -210,7 +207,7 @@ export const useEditorStore = defineStore('editor', () => {
     }
   }
 
-  function removeFromSelection(elementId: number) {
+  function removeFromSelection(elementId: string) {
     selectedElements.value = selectedElements.value.filter(el => el.id !== elementId);
   }
 
@@ -232,7 +229,7 @@ export const useEditorStore = defineStore('editor', () => {
     }
   }
   // 替換圖片
-  function replaceSelectedElementImage(elementId: number, image: HTMLImageElement, base64?: string) {
+  function replaceSelectedElementImage(elementId: string, image: HTMLImageElement, base64?: string) {
     const element = elements.value.find(el => el.id === elementId);
     if (element) {
       const config = element.config as IImageConfig;
@@ -244,6 +241,10 @@ export const useEditorStore = defineStore('editor', () => {
       config.base64 = base64;
       config.width = width;
       config.height = height;
+
+      element.id = nanoid(12);
+      updateCache(element.id, image);
+      saveHistory();
     }
   }
 
@@ -255,17 +256,18 @@ export const useEditorStore = defineStore('editor', () => {
       const config = selectedElement.value.config as IImageConfig;
       config.height = stage.config.height || 1;
       config.y = config.height / 2;
+      saveHistory();
     }
   }
   /**
    * 左右撐滿
    */
   const elEqualStageWidth = () => {
-    console.log('elEqualStageWidth');
     if (selectedElement.value && selectedElement.value.config) {
       const config = selectedElement.value.config as IImageConfig;
       config.width = stage.config.width || 1;
       config.x = config.width / 2;
+      saveHistory();
     }
   }
   /**
@@ -273,7 +275,7 @@ export const useEditorStore = defineStore('editor', () => {
    */
   const defaultPropsPanel = () => {
     const el = {
-      id: Date.now(),
+      id: "0",
       type: ElementTypesEnum.Stage,
       name: 'stage',
       config: {
@@ -285,16 +287,31 @@ export const useEditorStore = defineStore('editor', () => {
     } as ICanvasElement;
     setSelectedOnce(el);
   }
+  const hasUndo = computed(() => {
+    if (!advancedDefaults.undoRedoEnabled) return false;
+    // 到底了
+    if (historyStep.value === 0) return false;
+    return !isRestoring.value;
+  });
+  const hasRedo = computed(() => {
+    if (!advancedDefaults.undoRedoEnabled) return false;
+    if (historyStep.value === history.value.length - 1) return false; // 沒有可重做的動作
+    return !isRestoring.value;
+
+  });
   /**
    * 儲存
    */
   const saveHistory = () => {
+
+    if (!advancedDefaults.undoRedoEnabled) return false;
+    console.log('saveHistory');
+
     const newHistory = history.value.slice(0, historyStep.value + 1);
     newHistory.push(JSON.stringify(elements.value, (key, value) => {
       if (key === 'img') return undefined;
       return value;
     }));
-    console.log('save', newHistory.length, generalDefaults.undoRedoStackMax);
     // 限制還原步驟
     if (newHistory.length > generalDefaults.undoRedoStackMax) {
       const diff = newHistory.shift();
@@ -319,11 +336,7 @@ export const useEditorStore = defineStore('editor', () => {
    * 還原
    */
   const undo = () => {
-    if (!advancedDefaults.undoRedoEnabled) return false;
-    console.log('start:undo', historyStep.value);
-    // 到底了
-    if (historyStep.value === 0) return false;
-    if (isRestoring.value) return false;
+    if (!hasUndo.value) return false;
     // 從 history 堆疊中取出上一個狀態並還原
     historyStep.value--;
     const previousState:ICanvasElement[] = JSON.parse(history.value[historyStep.value] || '[]');
@@ -338,17 +351,13 @@ export const useEditorStore = defineStore('editor', () => {
       isRestoring.value = false;
     }
     clearSelection();
-    console.log(`undo done step:${historyStep.value} total:${history.value.length}`);
     return true;
   };
   /**
    * 重做
    */
   const redo = () => {
-    console.log(`redo step: ${historyStep.value} total: ${history.value.length -1}`);
-    if (!advancedDefaults.undoRedoEnabled) return false;
-    if (isRestoring.value) return false;
-    if (historyStep.value === history.value.length - 1) return false; // 沒有可重做的動作
+    if (!hasRedo.value) return false; // 沒有可重做的動作
     isRestoring.value = true; // 標記正在還原，避免觸發 watch
     historyStep.value++;
     const lastState:ICanvasElement[] = JSON.parse(history.value[historyStep.value] || '[]');
@@ -378,6 +387,8 @@ export const useEditorStore = defineStore('editor', () => {
     selectedElement,
     selectedIndex,
     rotationInDegrees,
+    hasUndo,
+    hasRedo,
     // Actions
     addImage,
     setOriginalImage,

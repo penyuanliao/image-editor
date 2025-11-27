@@ -81,7 +81,8 @@ onMounted(() => {
 const handlePointerUp = (event: PointerEvent) => {
   const el = event.target;
   if (!(el instanceof HTMLCanvasElement) && !(el instanceof HTMLTextAreaElement)) {
-    if (editorStore.selectedElement?.type !== ElementTypesEnum.Stage) {
+    if (editorStore.selectedElement?.type !== ElementTypesEnum.Stage &&
+        editorStore.selectedElements && editorStore.selectedElements.length !== 0) {
       editorStore.saveHistory();
       editorStore.clearSelection();
     }

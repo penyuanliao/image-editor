@@ -20,7 +20,7 @@ export const useAIGenStore = defineStore('aiGenStore', () => {
     // 使用次數
     const remainingTries = ref<number>(50);
     // 存放原始圖片資料
-    const originalImages: Map<number, { image?: HTMLImageElement, base64?: string, id: number, blob?:Blob }> = new Map();
+    const originalImages: Map<number, { image?: HTMLImageElement, base64?: string, id: string, blob?:Blob }> = new Map();
     // 存放處理過後圖片資料
     const rawData = ref<Record<number, any>>({});
     // 記錄讀取狀態
@@ -31,7 +31,7 @@ export const useAIGenStore = defineStore('aiGenStore', () => {
     // 從 API 獲取模板的 action
     const fetchGenerate = async (source: {
         image: HTMLImageElement,
-        id: number,
+        id: string, // elementId
         materialId?: number,
         url?: string,
         base64?: string,
@@ -69,18 +69,20 @@ export const useAIGenStore = defineStore('aiGenStore', () => {
             });
             remainingTries.value--;
             // 記錄原圖
-            if (source.id > 0 && !originalImages.has(source.id)) {
-                originalImages.set(source.id, source);
+            if (source.materialId && !originalImages.has(source.materialId)) {
+                originalImages.set(source.materialId, source);
             }
             if (!response.ok) {
                 throw new Error('Failed to fetch api generated');
             }
             const result: ResponseResult = await response.json();
             if (result.status) {
-                if (rawData.value[source.id]) {
-                    rawData.value[source.id].push(result.image);
-                } else {
-                    rawData.value[source.id] = [result.image];
+                if (source.materialId) {
+                    if (rawData.value[source.materialId]) {
+                        rawData.value[source.materialId].push(result.image);
+                    } else {
+                        rawData.value[source.materialId] = [result.image];
+                    }
                 }
                 return result;
             } else {

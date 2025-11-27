@@ -4,6 +4,7 @@ import { useEditorStore } from "@/store/editorStore.ts";
 import draggable from 'vuedraggable';
 import { ElementTypesEnum, type ICanvasElement, type ITextConfig } from "@/types.ts";
 import { Lock } from "@element-plus/icons-vue";
+import {nanoid} from "nanoid";
 
 const props = defineProps({
   // 排序方式
@@ -34,7 +35,7 @@ const onClickLayerHandle = (event: MouseEvent, element: ICanvasElement) => {
 };
 const onClickBGHandle = () => {
   const el = {
-    id: Date.now(),
+    id: nanoid(12),
     type: ElementTypesEnum.Stage,
     name: 'stage',
     config: {

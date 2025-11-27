@@ -17,7 +17,7 @@ export interface IGRect {
 }
 
 export interface ICanvasElement {
-    id: number;
+    id: string;
     type: ICanvasTypes;
     name?: string;
     config: IImageConfig | ITextConfig | ISVGConfig | StageConfig;
@@ -56,7 +56,6 @@ export interface IImageConfig extends AbsoluteConfig {
     width: number;
     height: number;
     base64?: string;
-    file?: File;
     radius?: number | number[]; // 圓角
     cropConfig?: IImageCropConfig; // 圖片剪裁設定
 }

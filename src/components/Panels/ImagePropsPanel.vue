@@ -184,6 +184,9 @@ const handleDeleted = () => {
     editorStore.removeElements([id]);
   }
 }
+const handleSaveHistory = () => {
+  editorStore.saveHistory();
+}
 
 </script>
 
@@ -288,11 +291,11 @@ const handleDeleted = () => {
 
       <div class="ctrl ">
         <span>旋轉角度：</span>
-        <el-input-number v-model="editorStore.rotationInDegrees" :controls="true" controls-position="right" align="right" style="width: 100%">
+        <el-input-number v-model="editorStore.rotationInDegrees" @change="handleSaveHistory" :controls="true" controls-position="right" align="right" style="width: 100%">
           <template #suffix><div>°</div></template>
         </el-input-number>
       </div>
-      <div class="ctrl  slider-with-input">
+      <div class="ctrl slider-with-input">
         <span>透明度：</span>
         <el-slider
             v-model="opacityInPercentage"
@@ -302,6 +305,7 @@ const handleDeleted = () => {
             size="small"
             :format-tooltip="(value: number) => value + '%'"
             :format-value-text="(value: number) => value + '%'"
+            @change="handleSaveHistory"
         />
       </div>
       <div class="ctrl">

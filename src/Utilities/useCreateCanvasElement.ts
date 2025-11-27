@@ -1,13 +1,14 @@
 import {processUrl} from "./FileProcessor.ts";
 import {ElementTypesEnum, type ICanvasElement, type IImageConfig, type ISVGConfig, type ITextConfig} from "../types.ts";
 import {calculateConstrainedSize} from "@/Utilities/useImageEditor.ts";
+import {nanoid} from "nanoid";
 // 產生一個新的 CanvasElement
 export const createCanvasElement = (element: ICanvasElement, canvas: { width: number, height: number }, scale: number = 1) => {
     return new Promise<ICanvasElement>(async (resolve) => {
         if (element.type === ElementTypesEnum.Text) {
             const config = element.config as ITextConfig;
             resolve({
-                id: Date.now(),
+                id: nanoid(12),
                 type: ElementTypesEnum.Text,
                 name: element.name || '新文字',
                 config: {
@@ -52,7 +53,7 @@ export const createCanvasElement = (element: ICanvasElement, canvas: { width: nu
             const info = calculateConstrainedSize(width, height, canvas.width, canvas.height);
             const shrink: number = 0.9;
             resolve({
-                id: Date.now(),
+                id: nanoid(12),
                 type: ElementTypesEnum.Image,
                 name: element.name || '新貼圖',
                 config: {
@@ -74,7 +75,7 @@ export const createCanvasElement = (element: ICanvasElement, canvas: { width: nu
         else if (element.type === ElementTypesEnum.SVG) {
             const config: ISVGConfig = element.config as ISVGConfig;
             resolve({
-                id: Date.now(),
+                id: nanoid(12),
                 type: element.type,
                 name: element.name || '新貼圖',
                 config: {
@@ -93,7 +94,7 @@ export const createCanvasElement = (element: ICanvasElement, canvas: { width: nu
 };
 export const CreateImageElement = ({ name, image, imageUrl, base64 }: { name: string, image: HTMLImageElement, imageUrl: string, base64?: string }): ICanvasElement => {
     return {
-        id: Date.now(),
+        id: nanoid(12),
         name,
         type: ElementTypesEnum.Image,
         config: {

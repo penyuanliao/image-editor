@@ -25,6 +25,7 @@ import {
 } from "../types.ts";
 import {processUrl} from "./FileProcessor.ts";
 import {advancedDefaults, generalDefaults} from "@/config/settings.ts";
+import {nanoid} from "nanoid";
 
 interface ICanvasViewport {
     width: number;
@@ -200,8 +201,14 @@ export class CanvasEditor {
         // this.store.setOriginalImage(index);
         // this.render();
         if (!this.canvas) return;
-        // 根據當前 viewport 的縮放比例來調整新貼圖的初始尺寸
-        const initialScale = this.viewport.scale || 1;
+        const shrink: number = 0.9;
+
+        const info = calculateConstrainedSize(
+            image.naturalWidth,
+            image.naturalHeight,
+            this.canvas.width,
+            this.canvas.height
+        );
 
         this.store.addImage({
             imageUrl: image.src,
@@ -210,15 +217,15 @@ export class CanvasEditor {
             base64
         });
         this.store.addElement({
-            id: Date.now(),
+            id: nanoid(12),
             type: ElementTypesEnum.Image,
             name:  '新貼圖',
             config: {
                 content: image.src,
                 x: this.canvas.width / 2,
                 y: this.canvas.height / 2,
-                width: image.width * initialScale,
-                height: image.height * initialScale,
+                width: info.width * shrink,
+                height: info.height * shrink,
                 img: image,
                 url: image.src,
                 base64,
@@ -958,8 +965,9 @@ export class CanvasEditor {
             if (selectedElementsInRect.length > 0) {
                 this.store.setSelectedElements(selectedElementsInRect);
             }
+        } else {
+            this.store.saveHistory();
         }
-        this.store.saveHistory();
         this.clear();
         this.showPopOverMenu(true);
         this.render(); // 新增：重繪畫布以清除選擇框
@@ -1063,9 +1071,10 @@ export class CanvasEditor {
             if (valid) {
                 const { texts, images } = await clipboardPaste();
                 for (const {image, base64 } of images) {
+                    // 新增上傳的圖片
                     if (image) this.setImage(image, base64);
                 }
-
+                // 這邊是複製自己的Elements
                 for (const str of texts) {
                     const jsonString:RegExpMatchArray | null = str.toString().match(/({.+?})(?={|$)/g);
                     if (!jsonString) continue;
@@ -1075,9 +1084,10 @@ export class CanvasEditor {
                     if (Array.isArray(jsonData.value)) {
                         for (let i = 0; i < jsonData.value.length; i++) {
                             const el: any = jsonData.value[i];
-                            el.id = Date.now();
+                            const image = await processUrl(el.config.url);
+                            el.id = nanoid(12);
                             if (el.type === ElementTypesEnum.Image) {
-                                el.config.img = await processUrl(el.config.url);
+                                el.config.img = image;
                             }
                             el.config.x += 10;
                             el.config.y += 10;

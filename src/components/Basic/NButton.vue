@@ -2,17 +2,17 @@
 
 import Symbols from "@/components/Basic/Symbols.vue";
 
-const props = defineProps(["tip", "size", "icon", "text", "width", "height"]);
+const props = defineProps(["tip", "size", "icon", "text", "width", "height", "disabled"]);
 
 </script>
 
 <template>
-  <div>
+  <div :class="{ disabled: props.disabled }">
     <el-tooltip
         v-if="props.tip"
         :content="props.tip"
         placement="top">
-      <el-button class="el-btn" :style="{
+      <el-button class="el-btn" :disabled="props.disabled" :style="{
         width: `${props.width ? props.width + 'px' : '100%'} `,
         height: `${props.width ? props.height + 'px' : '100%'} `,
       }">
@@ -24,7 +24,7 @@ const props = defineProps(["tip", "size", "icon", "text", "width", "height"]);
         <slot v-else-if="$slots.default" name="default"/>
       </el-button>
     </el-tooltip>
-    <el-button v-else class="el-btn" :style="{
+    <el-button v-else class="el-btn" :disabled="props.disabled" :style="{
         width: `${props.width ? props.width + 'px' : '100%'} `,
         height: `${props.width ? props.height + 'px' : '100%'} `,
       }">
@@ -60,5 +60,15 @@ const props = defineProps(["tip", "size", "icon", "text", "width", "height"]);
   &:focus {
     outline: none;
   }
+
+  &:disabled {
+    color: #a8abb2; // Element Plus 的禁用文字顏色
+    background-color: transparent; // 保持背景透明
+    cursor: not-allowed; // 明確設定鼠標樣式
+    border-color: transparent;
+  }
+}
+.disabled {
+  pointer-events: none;
 }
 </style>

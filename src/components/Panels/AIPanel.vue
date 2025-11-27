@@ -15,7 +15,7 @@ const editorStore = useEditorStore();
 
 const emit = defineEmits(['refresh']);
 
-const originalImage = ref<{ image?: HTMLImageElement, base64?: string, id: number, blob?: Blob } | null>(null);
+const originalImage = ref<{ image?: HTMLImageElement, base64?: string, id: string, blob?: Blob } | null>(null);
 const prompt = ref<string>('');
 const activeName = ref('mod1');
 
@@ -48,7 +48,7 @@ const tabsChangeHandle = () => {
 
 const setupOriginalImage = () => {
   if (editorStore.selectedElement) {
-    const id = editorStore.selectedElement.id;
+    const id = editorStore.selectedElement.config.id;
     if (id && aiGenStore.hasOriginalImage(id)) {
       originalImage.value = aiGenStore.getOriginalImage(id) || null;
     } else {
@@ -63,14 +63,17 @@ watch(() => editorStore.selectedElement, () => {
 })
 
 const onSubmit = async () => {
-  const selectedId = editorStore.selectedElement?.id || 0;
+
+  if (!editorStore.selectedElement) return;
+
+  const elementId = editorStore.selectedElement?.id;
   if (aiGenStore.remainingTries <= 0) {
     await AlertMessage("已經達到使用次數上限");
     return;
   }
 
   if (selectedStyle.value === -2) {
-    editorStore.replaceSelectedElementImage(selectedId, originalImage.value?.image as HTMLImageElement);
+    editorStore.replaceSelectedElementImage(elementId, originalImage.value?.image as HTMLImageElement);
     emit('refresh');
     return;
   }
@@ -90,7 +93,6 @@ const onSubmit = async () => {
   }
 
   const config = editorStore.selectedElement?.config as IImageConfig;
-  const id = editorStore.selectedElement?.id || 0;
   const url = config.url;
   if (config) {
     const materialId = config.id || -1;
@@ -111,7 +113,7 @@ const onSubmit = async () => {
     result = await aiGenStore.fetchGenerate({
       image,
       base64,
-      id,
+      id: elementId,
       materialId,
       url
     }, {
@@ -126,7 +128,7 @@ const onSubmit = async () => {
         name: 'AI生成圖片',
         base64: result.image
       });
-      editorStore.replaceSelectedElementImage(selectedId, genImage, result.image);
+      editorStore.replaceSelectedElementImage(elementId, genImage, result.image);
       emit('refresh');
       setupOriginalImage();
     } else {

@@ -40,7 +40,7 @@ export const generalDefaults: IGeneralSettings = {
         maxHeight: 600
     },
     supportedImageFiles: ["image/png", "image/jpeg"],
-    undoRedoStackMax: 10
+    undoRedoStackMax: 20
 };
 
 export const appearanceDefaults = {
