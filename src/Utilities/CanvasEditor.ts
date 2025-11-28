@@ -84,6 +84,8 @@ export class CanvasEditor {
     public viewOffsetY: number = 0;
     // 因為canvas scale 實作麻煩只接使用div
     public divScale: number = 1;
+    // 用於平移 uploader-container
+    public uploaderTranslate: { x: number, y: number } = { x: 0, y: 0 }
 
     public viewport: ICanvasViewport = {
         width: 800,
