@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import {computed, reactive, ref} from "vue";
+import {calculateConstrainedSize} from "@/Utilities/Algorithm.ts";
 
 export interface KonvaShadowProps {
     shadowEnabled?: boolean;
@@ -111,9 +112,10 @@ export const useKImgEditorStore = defineStore('kImgEditorStore', () => {
         height: 600,
     });
     // 定義固定的畫板尺寸
-    const artboardSize = reactive<{ width: number; height: number }>({
+    const artboardSize = reactive<{ width: number; height: number; scale: number; }>({
         width: 800,
         height: 600,
+        scale: 1
     });
 
     // 計算畫布在 Stage 中的置中位置
@@ -175,13 +177,18 @@ export const useKImgEditorStore = defineStore('kImgEditorStore', () => {
         workspaceConfig.height = stageConfig.height;
         workspaceConfig.fill = '#f0f0f0'; // 在這裡設定你想要的背景顏色
         workspaceConfig.listening = false; // 讓背景不回應滑鼠事件，很重要！
+        // workspaceConfig.x = artboardOffset.value.x;
+        // workspaceConfig.y = artboardOffset.value.y;
 
     }
     // 設定編輯區大小
     const setArtBoardSize = (width: number, height: number) => {
-        artboardSize.width = width;
-        artboardSize.height = height;
         // 畫板裁切群組設定
+        const { width: scaleW, height: scaleH, scale } = calculateConstrainedSize(width, height, stageConfig.width, stageConfig.height);
+        artboardSize.width = scaleW;
+        artboardSize.height = scaleH;
+        artboardSize.scale = scale;
+        console.log('setArtBoardSize: %s', scale);
     }
 
     const addElement = (el: KElementImage | KElementText) => {

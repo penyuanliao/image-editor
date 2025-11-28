@@ -7,7 +7,7 @@ import Popover from "./components/EditorArea/Popover.vue";
 
 const store = useKImgEditorStore();
 
-const container = ref<HTMLDivElement | null>(null);
+const container = ref<any>(null);
 const stageRef = ref();
 const transformerRef = ref();
 const workspaceRef = ref(); // 1. 為背景矩形新增 ref
@@ -18,6 +18,10 @@ const isCropping = ref(false); // 是否處於裁切模式
 const cropRectRef = ref(); // 裁切框的 ref
 const cropRect = reactive({
   ...store.artboardSize,
+  // 增加 fill, stroke 等視覺屬性，方便管理
+  fill: 'transparent',
+  stroke: 'white',
+  strokeWidth: 2,
   x: store.artboardOffset.x,
   y: store.artboardOffset.y,
 });
@@ -216,7 +220,9 @@ const handleStageMouseDown = (e: Konva.KonvaEventObject<PointerEvent>) => {
 };
 
 const handleResizer = () => {
-  // store.setup(window.innerWidth, window.innerHeight);
+  if (container.value && container.value.$el) {
+    store.setup(container.value.$el.clientWidth, container.value.$el.clientHeight);
+  }
 }
 // 調整大小
 const setupResizer = () => {
@@ -227,8 +233,7 @@ const setupResizer = () => {
 onMounted(async () => {
   setupResizer();
 
-  store.setup(container.value?.offsetWidth || 800, container.value?.offsetHeight || 600);
-  store.setArtBoardSize(800, 600);
+  store.setArtBoardSize(550, 240);
 
   const newImage = await loadImage();
   store.addElement({
@@ -247,7 +252,7 @@ onMounted(async () => {
   })
 })
 const handleButton = () => {
-  store.setArtBoardSize(500, 400);
+  store.setArtBoardSize(1920, 720);
 }
 const handleExport = () => {
   const stage = stageRef.value?.getNode();
@@ -312,7 +317,7 @@ const handleCropDragEnd = (e: Konva.KonvaEventObject<DragEvent>) => {
 
 <template>
   <div class="common-layout">
-    <el-container>
+    <el-container class="box">
       <el-header class="header">
         <div class="controls">
           <div>
@@ -337,7 +342,7 @@ const handleCropDragEnd = (e: Konva.KonvaEventObject<DragEvent>) => {
           <Popover/>
         </div>
       </el-header>
-      <el-container>
+      <el-container class="box">
         <el-aside class="sidebar-left-container">sidebar-right-container</el-aside>
         <el-main class="main-container" ref="container">
           <v-stage
@@ -442,10 +447,15 @@ const handleCropDragEnd = (e: Konva.KonvaEventObject<DragEvent>) => {
 }
 
 .common-layout {
+  position: relative;
   width: 100%;
-  height: 100%;
+  height: 100vh;
   border: 1px #f15624 dashed;
-
+  .box {
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
   .header {
     --el-header-padding: 0 0;
   }
@@ -453,6 +463,8 @@ const handleCropDragEnd = (e: Konva.KonvaEventObject<DragEvent>) => {
     --el-main-padding: 0 0;
     display: flex;
     justify-content: center;
+    min-width: 800px;
+    min-height: 600px;
   }
 }
 .sidebar-left-container {
