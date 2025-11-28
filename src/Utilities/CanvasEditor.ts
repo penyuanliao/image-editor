@@ -76,7 +76,7 @@ export class CanvasEditor {
     // 點擊兩下編輯的輸入框
     public textInput: HTMLInputElement | null = null;
     // 狀態屬性
-    public cropBox: { x: number, y: number, width: number, height: number };
+    public cropBox: { x: number, y: number, width: number, height: number, scale: number; };
 
     // 縮放與平移狀態
     public scale: number = 1; // 這邊是canvas縮放比例
@@ -137,6 +137,14 @@ export class CanvasEditor {
     public imageCropEditEnabled: boolean = advancedDefaults.imageCropEditEnabled;
     // 對角線拉伸
     public isPivotPointEnabled: boolean = advancedDefaults.pivotPointEnabled;
+    //
+    public get artboardSize() {
+        return {
+            width: this.cropBox.width,
+            height: this.cropBox.height,
+            scale: this.cropBox.scale,
+        }
+    }
 
     constructor(store: EditorStore) {
         this.store = store;
@@ -144,8 +152,9 @@ export class CanvasEditor {
         this.cropBox = {
             x: 0,
             y: 0,
-            width: 800,
-            height: 600,
+            width: 550,
+            height: 240,
+            scale: 1,
         }
     }
 
@@ -241,7 +250,7 @@ export class CanvasEditor {
             ErrorMessage('畫布並未被建立!!');
             return false;
         }
-        const el = await createCanvasElement(element, this.canvas, this.viewport.scale);
+        const el = await createCanvasElement(element, this.canvas, this);
         if (el) {
             this.store.addElement(el); // 使用 action 新增
             this.render();
@@ -299,9 +308,6 @@ export class CanvasEditor {
             drawBackground(this.canvas, this.ctx, store.originalImage);
         }
 
-        // 3. 繪製裁切框
-        drawCropMarks(canvas, ctx, cropBox);
-
         // 4. 繪製所有元素
         store.elements.forEach(element => {
 
@@ -326,6 +332,8 @@ export class CanvasEditor {
                 drawSticker(ctx, element);
             }
         });
+        // 3. 繪製裁切框
+        drawCropMarks(canvas, ctx, cropBox);
 
         // 5. 繪製控制項
         if (store.selectedElements.length > 0 && !this.editingElement) {
@@ -1050,7 +1058,6 @@ export class CanvasEditor {
     // 同步更新 canvas 的繪圖表面尺寸
     public updateViewportSize(width: number, height: number, color: string = "transparent") {
         const { canvas, divContainer } = this;
-        this.viewport = calculateConstrainedSize(width, height, generalDefaults.viewport.maxWidth, generalDefaults.viewport.maxHeight);
         if (canvas) {
             canvas.width = this.viewport.width;
             canvas.height = this.viewport.height;
@@ -1061,8 +1068,13 @@ export class CanvasEditor {
         }
         this.viewport.color = color;
 
-        this.cropBox.width = this.viewport.width;
-        this.cropBox.height = this.viewport.height;
+        const constrained = calculateConstrainedSize(width, height, generalDefaults.viewport.maxWidth, generalDefaults.viewport.maxHeight);
+
+        this.cropBox.width = constrained.width;
+        this.cropBox.height = constrained.height;
+        this.cropBox.scale = constrained.scale;
+        this.resetCropMarks();
+
     }
     public enableCopyAndPasteSupport() {
 

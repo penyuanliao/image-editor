@@ -2,8 +2,9 @@ import {processUrl} from "./FileProcessor.ts";
 import {ElementTypesEnum, type ICanvasElement, type IImageConfig, type ISVGConfig, type ITextConfig} from "../types.ts";
 import {calculateConstrainedSize} from "@/Utilities/useImageEditor.ts";
 import {nanoid} from "nanoid";
+import type {CanvasEditor} from "@/Utilities/CanvasEditor.ts";
 // 產生一個新的 CanvasElement
-export const createCanvasElement = (element: ICanvasElement, canvas: { width: number, height: number }, scale: number = 1) => {
+export const createCanvasElement = (element: ICanvasElement, canvas: { width: number, height: number }, editor: CanvasEditor) => {
     return new Promise<ICanvasElement>(async (resolve) => {
         if (element.type === ElementTypesEnum.Text) {
             const config = element.config as ITextConfig;
@@ -48,9 +49,9 @@ export const createCanvasElement = (element: ICanvasElement, canvas: { width: nu
                 img = await processUrl(config.url);
                 // base64 = imageToBase64(img, 'image/png');
             }
-            const width: number = (img?.naturalWidth || 1) * scale;
-            const height: number = (img?.naturalHeight || 1) * scale;
-            const info = calculateConstrainedSize(width, height, canvas.width, canvas.height);
+            const width: number = (img?.naturalWidth || 1);
+            const height: number = (img?.naturalHeight || 1);
+            const info = calculateConstrainedSize(width, height, editor.artboardSize.width, editor.artboardSize.height);
             const shrink: number = 0.9;
             resolve({
                 id: nanoid(12),

@@ -226,7 +226,7 @@ const textAreaSelected = (event: Event) => {
 // 儲存裁切後的圖片
 const saveImage = async () => {
   // 計算比例
-  const scaleFactor = 1 / editor.value.viewport.scale;
+  const scaleFactor = 1 / editor.value.artboardSize.scale;
   // 輸出圖片的 URL
   const href = exportCroppedArea({
     store: editorStore,
