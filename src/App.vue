@@ -79,13 +79,11 @@ onMounted(() => {
   editorStore.defaultPropsPanel();
 })
 const handlePointerUp = (event: PointerEvent) => {
-  const el = event.target;
-  if (!(el instanceof HTMLCanvasElement) && !(el instanceof HTMLTextAreaElement)) {
-    if (editorStore.selectedElement?.type !== ElementTypesEnum.Stage &&
-        editorStore.selectedElements && editorStore.selectedElements.length !== 0) {
-      editorStore.saveHistory();
-      editorStore.clearSelection();
-    }
+  event.preventDefault();
+  if (editorStore.selectedElement?.type !== ElementTypesEnum.Stage &&
+      editorStore.selectedElements && editorStore.selectedElements.length !== 0) {
+    editorStore.saveHistory();
+    editorStore.clearSelection();
   }
 }
 
@@ -124,7 +122,7 @@ const handlePointerUp = (event: PointerEvent) => {
             />
           </div>
         </div>
-        <div class="editor-area" @pointerup="handlePointerUp">
+        <div class="editor-area" @pointerup.self="handlePointerUp">
           <EditorView
               ref="editor"
               @element-selected="handleElementSelected"

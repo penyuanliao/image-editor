@@ -49,7 +49,7 @@ export const drawCropMarks = (canvasEl: HTMLCanvasElement,
                               cropBox: { x: number, y: number, width: number, height: number  }) => {
     ctx.save();
     // 使用 "evenodd" 填充規則來建立一個有孔的矩形（遮罩）
-    ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+    ctx.fillStyle = "#EEEEEE"//"rgba(0, 0, 0, 0.5)";
     ctx.beginPath();
     ctx.rect(0, 0, canvasEl.width, canvasEl.height); // 外矩形
     ctx.rect(cropBox.x, cropBox.y, cropBox.width, cropBox.height); // 內矩形 (孔)
