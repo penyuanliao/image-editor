@@ -1,6 +1,6 @@
 import type { EditorStore } from '../store/editorStore.ts';
 import {
-    drawSticker,
+    drawImage,
     drawSVG,
     drawText,
 } from './useImageEditor';
