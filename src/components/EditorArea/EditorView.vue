@@ -406,12 +406,15 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh,
     />
     <div
         class="uploader-container"
-        :style="{ transform: `scale(${editor.divScale}) translate(${editor.uploaderTranslate.x}px, ${editor.uploaderTranslate.y}px)`}"
+        :style="{
+            transform: `scale(${editor.divScale}) translate(${editor.uploaderTranslate.x}px, ${editor.uploaderTranslate.y}px)`,
+            left: `${editor.uploaderTranslate.x}px`
+          }"
         ref="uploaderContainer">
-      <div class="control" :style="{
-        width: `${ editor.viewport.width * editor.divScale * editor.viewport.scale }px`,
-        height: `${ editor.viewport.height * editor.divScale * editor.viewport.scale }px`
-      }"/>
+<!--      <div class="control" :style="{-->
+<!--        width: `${ editor.viewport.width * editor.divScale * editor.viewport.scale }px`,-->
+<!--        height: `${ editor.viewport.height * editor.divScale * editor.viewport.scale }px`-->
+<!--      }"/>-->
       <canvas
           ref="canvas"
           :style="{ opacity: editorStore.elements.length === 0 ? 0 : 1 }"
@@ -488,6 +491,7 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh,
   width: 100%;
   height: 100%;
   min-width: 800px;
+  min-height: 600px;
   display: flex;
   flex-direction: column;
   padding: 20px 0;
@@ -509,7 +513,7 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh,
   height: 600px;
   //max-height: 600px;
   min-height: 50px; /* 避免過度縮小 */
-  transition: all 0.3s ease;
+  //transition: all 0.3s ease;
   //transform-origin: 0 0;
 }
 

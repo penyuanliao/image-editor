@@ -1038,9 +1038,20 @@ export class CanvasEditor {
         const clampedScale = Math.max(minScale, Math.min(newScale, maxScale));
 
         if (clampedScale === this.divScale) return; // 縮放比例未改變
-
         this.divScale = clampedScale;
-
+        // 一個折衷方案：部分向右平移
+        this.uploaderTranslate.x = (this.canvas.width / 4) * (clampedScale - 1);
+        const div = this.divContainer;
+        if (div) {
+            setTimeout(() => {
+                const scrollContainer = div.parentElement?.parentElement;
+                if (scrollContainer) {
+                    // 計算畫布中心點需要滾動到的位置
+                    const scrollLeft = (scrollContainer.scrollWidth / 2) - (scrollContainer.clientWidth / 2);
+                    scrollContainer.scrollTo({ left: scrollLeft, behavior: 'smooth' });
+                }
+            }, 0);
+        }
         this.render();
     }
 
