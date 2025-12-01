@@ -5,7 +5,7 @@ import {
     drawCropControls,
     getActionForCropHandle,
     drawCropMarks,
-    drawSticker,
+    drawImage,
     drawSVG,
     drawText,
     getElementBoundingBox,
@@ -321,11 +321,11 @@ export class CanvasEditor {
             } else if (element.type === ElementTypesEnum.Image) {
                 // 如果正在剪裁，則繪製完整的圖片，並在上面蓋上剪裁UI
                 if (isCroppingThisElement) {
-                    drawSticker(ctx, element, true); // forceDrawFullImage = true
+                    drawImage(ctx, element, true); // forceDrawFullImage = true
                     drawCropControls(ctx, element);
                     return; // 避免下面再繪製一次控制項
                 }
-                drawSticker(ctx, element);
+                drawImage(ctx, element);
             }
         });
 
@@ -804,7 +804,7 @@ export class CanvasEditor {
                     sticker.y = this.dragStart.elementY - (newWidth / 2 - this.dragStart.elementWidth / 2) * sin * sign;
                 }
             } else {
-                if (this.isPivotPointEnabled && (element.type === ElementTypesEnum.Image || element.type === ElementTypesEnum.Text)) {
+                if (this.isPivotPointEnabled && (element.type === ElementTypesEnum.Image || element.type === ElementTypesEnum.Text || element.type === ElementTypesEnum.SVG)) {
                     // Corner handles (proportional scaling for all types)
                     // 1. Determine the pivot point (the opposite corner)
                     const w = this.dragStart.elementWidth;

@@ -111,6 +111,8 @@ export interface ISVGConfig extends AbsoluteConfig {
     color: string;
     width: number;
     height: number;
+    offsetX: number;
+    offsetY: number;
 }
 
 export interface IUploadedImage {

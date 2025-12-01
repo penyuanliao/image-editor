@@ -2,6 +2,7 @@ import {processUrl} from "./FileProcessor.ts";
 import {ElementTypesEnum, type ICanvasElement, type IImageConfig, type ISVGConfig, type ITextConfig} from "../types.ts";
 import {calculateConstrainedSize} from "@/Utilities/useImageEditor.ts";
 import {nanoid} from "nanoid";
+import {svgPathBbox} from "svg-path-bbox";
 // 產生一個新的 CanvasElement
 export const createCanvasElement = (element: ICanvasElement, canvas: { width: number, height: number }, scale: number = 1) => {
     return new Promise<ICanvasElement>(async (resolve) => {
@@ -74,17 +75,27 @@ export const createCanvasElement = (element: ICanvasElement, canvas: { width: nu
         }
         else if (element.type === ElementTypesEnum.SVG) {
             const config: ISVGConfig = element.config as ISVGConfig;
+            // 使用 svg-path-bbox 計算路徑的實際邊界
+            const bbox = svgPathBbox(config.content); // 回傳 [x1, y1, x2, y2]
+            const pathWidth = bbox[2] - bbox[0];
+            const pathHeight = bbox[3] - bbox[1];
+            // const info = calculateConstrainedSize(pathWidth, pathHeight, canvas.width, canvas.height);
+            // const shrink: number = 0.9;
+            console.log(`pathWidth: ${pathWidth} pathHeight: ${pathHeight}`);
+
             resolve({
-                id: nanoid(12),
+                id: element.id || nanoid(12),
                 type: element.type,
                 name: element.name || '新貼圖',
                 config: {
+                    offsetX: bbox[0], // 儲存路徑的 X 偏移
+                    offsetY: bbox[1], // 儲存路徑的 Y 偏移
                     content: config.content || '',
+                    color: config.color,
                     x: canvas.width / 2,
                     y: canvas.height / 2,
-                    width: 50,
-                    height: 50,
-                    color: 'black',
+                    width: pathWidth,
+                    height: pathHeight,
                     opacity: Math.min(Math.max(config.opacity || 1, 0), 1.0),
                     draggable: true
                 }

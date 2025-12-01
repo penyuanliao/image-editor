@@ -80,7 +80,7 @@ export function exportCroppedArea(options: CroppedExportOptions): string | null 
             imageConfig.height *= scaleFactor;
             // 確保 img 物件被正確傳遞
             imageConfig.img = (element.config as IImageConfig).img;
-            drawSticker(exportCtx, elementForExport);
+            drawImage(exportCtx, elementForExport);
         } else if (element.type === ElementTypesEnum.Text) {
             const fontSize: number = (elementForExport.config as ITextConfig).fontSize || 1;
             (elementForExport.config as ITextConfig).fontSize = fontSize * scaleFactor;
