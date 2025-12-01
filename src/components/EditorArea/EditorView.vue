@@ -510,7 +510,7 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh,
   //max-height: 600px;
   min-height: 50px; /* 避免過度縮小 */
   transition: all 0.3s ease;
-  transform-origin: 0 0;
+  //transform-origin: 0 0;
 }
 
 .editor-canvas {
