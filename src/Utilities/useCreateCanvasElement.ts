@@ -77,11 +77,11 @@ export const createCanvasElement = (element: ICanvasElement, canvas: { width: nu
             const config: ISVGConfig = element.config as ISVGConfig;
             // 使用 svg-path-bbox 計算路徑的實際邊界
             const bbox = svgPathBbox(config.content); // 回傳 [x1, y1, x2, y2]
-            const pathWidth = bbox[2] - bbox[0];
-            const pathHeight = bbox[3] - bbox[1];
+            const baseWidth = bbox[2] - bbox[0];
+            const baseHeight = bbox[3] - bbox[1];
             // const info = calculateConstrainedSize(pathWidth, pathHeight, canvas.width, canvas.height);
             // const shrink: number = 0.9;
-            console.log(`pathWidth: ${pathWidth} pathHeight: ${pathHeight}`);
+            console.log(`pathWidth: ${baseWidth} pathHeight: ${baseHeight}`);
 
             resolve({
                 id: element.id || nanoid(12),
@@ -94,9 +94,12 @@ export const createCanvasElement = (element: ICanvasElement, canvas: { width: nu
                     color: config.color,
                     x: canvas.width / 2,
                     y: canvas.height / 2,
-                    width: pathWidth,
-                    height: pathHeight,
+                    baseWidth: baseWidth,
+                    baseHeight: baseHeight,
+                    width: baseWidth,
+                    height: baseHeight,
                     opacity: Math.min(Math.max(config.opacity || 1, 0), 1.0),
+                    aspectRatio: 1,
                     draggable: true
                 }
             });

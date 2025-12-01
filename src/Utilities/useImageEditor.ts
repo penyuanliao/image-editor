@@ -265,8 +265,22 @@ export const drawSVG = (ctx: CanvasRenderingContext2D, element: ICanvasElement) 
     ctx.save();
     // 1. 移動到元素的中心點
     ctx.translate(config.x, config.y);
-    // 2. 從中心點移動到元素的左上角，再減去路徑本身的偏移
-    ctx.translate(-config.width / 2 - (config.offsetX || 0), -config.height / 2 - (config.offsetY || 0));
+
+    // 2. 計算縮放比例
+    const scaleX = config.width / config.baseWidth;
+    const scaleY = config.height / config.baseHeight;
+
+    const offsetX = (config.offsetX || 0);
+    const offsetY = (config.offsetY || 0);
+
+    ctx.scale(scaleX, scaleY);
+
+    ctx.rotate(config.rotation || 0);
+
+    // 3. 從中心點移動到左上角 (在縮放後的座標系中) ，再減去路徑本身的偏移
+    ctx.translate(-config.baseWidth / 2 - offsetX, -config.baseHeight / 2 - offsetY);
+
+
     ctx.fillStyle = config.color;
     ctx.fill(path);
     ctx.restore();

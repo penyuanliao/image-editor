@@ -610,6 +610,7 @@ export class CanvasEditor {
             const icon = element.config as ISVGConfig;
             this.dragStart.elementWidth = icon.width || 50;
             this.dragStart.elementHeight = icon.height || 50;
+            this.dragStart.aspectRatio = icon.width && icon.height ? icon.width / icon.height : 1;
         }
 
         if (action === 'rot') {
@@ -846,6 +847,11 @@ export class CanvasEditor {
                         (element.config as IImageConfig).height = newHeight;
                     } else if (element.type === ElementTypesEnum.Text) {
                         (element.config as ITextConfig).fontSize = Math.max(10, this.dragStart.elementSize * scaleRatio);
+                    } else if (element.type === ElementTypesEnum.SVG) {
+                        const newWidth = Math.max(10, w * scaleRatio);
+                        const newHeight = newWidth / this.dragStart.aspectRatio;
+                        (element.config as ISVGConfig).width = newWidth;
+                        (element.config as ISVGConfig).height = newHeight;
                     }
 
                     // 5. Recalculate the center based on the new dimensions and pivot
@@ -869,6 +875,10 @@ export class CanvasEditor {
                         (element.config as IImageConfig).height = (element.config as IImageConfig).width! / this.dragStart.aspectRatio;
                     } else if (element.type === ElementTypesEnum.Text) {
                         (element.config as ITextConfig).fontSize = Math.max(10, this.dragStart.elementSize * scaleRatio);
+                    } else if (element.type === ElementTypesEnum.SVG) {
+                        const newWidth = Math.max(10, this.dragStart.elementWidth * scaleRatio);
+                        (element.config as ISVGConfig).width = newWidth;
+                        (element.config as ISVGConfig).height = newWidth / this.dragStart.aspectRatio;
                     }
                 }
 
