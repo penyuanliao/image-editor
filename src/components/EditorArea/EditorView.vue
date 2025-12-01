@@ -89,6 +89,12 @@ onMounted(() => {
   const color: string = config.color || viewport.color;
 
   if (canvas.value) {
+    const windowSize: { width: number, height: number } = {
+      width: uploaderContainer.value?.parentElement?.clientWidth || 800,
+      height: uploaderContainer.value?.parentElement?.clientHeight || 600,
+    }
+    editor.value.viewport.width = windowSize.width - 40;
+    editor.value.viewport.height = windowSize.height - 40;
     editor.value.setup(canvas.value, uploaderContainer.value);
     if (wheelerRef.value && advancedDefaults.zoomEnabled) editor.value.setupZoomView(wheelerRef.value);
     editor.value.textInput = textInput.value;
@@ -123,9 +129,12 @@ onMounted(() => {
     };
     window.addEventListener('click', closeContextMenu);
   }
+  window.addEventListener('resize', updateCanvasScale);
 });
 onUnmounted(() => {
   editor.value.destroy();
+  window.removeEventListener('click', closeContextMenu);
+  window.removeEventListener('resize', updateCanvasScale);
 })
 
 // --- Event Emitters and Watchers ---
@@ -140,6 +149,7 @@ watch(() => editorStore.selectedElements, (newSelection) => {
 // 這邊檢查物件有異動就刷新畫面
 watch(() => editorStore.elements, () => {
   editor.value.render();
+  updateCanvasScale();
 }, { deep: true });
 
 watch(() => editorStore.originalImage, () => {
@@ -159,6 +169,7 @@ watch(editor.value.cropBox, () => {
   // 如果值被約束了，此函式會被再次觸發，屆時 wasConstrained 會是 false，然後再重繪
   if (!wasConstrained) {
     editor.value.render();
+    updateCanvasScale();
   }
 }, { deep: true });
 
@@ -330,6 +341,14 @@ const alignSelectedElement = (horizontal: string, vertical: string) => {
 const refresh = () => {
   editor.value.render();
 }
+const updateCanvasScale = () => {
+  if (wheelerRef.value && wheelerRef.value.parentElement) {
+    const { clientWidth, clientHeight } = wheelerRef.value.parentElement;
+    const scaleX = Math.min(1, clientWidth / editor.value.artboardSize.width);
+    const scaleY = Math.min(1, clientHeight / editor.value.artboardSize.height);
+    editor.value.divScale = Math.min(scaleX, scaleY);
+  }
+};
 
 // --- 鍵盤事件處理 ---
 const handleDeleteSelected = () => {
@@ -373,7 +392,7 @@ const handleCtrlEvent = (action: string) => {
   }
 }
 
-defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh });
+defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh, updateCanvasScale });
 
 </script>
 
@@ -451,7 +470,7 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh 
       </div>
     </div>
     <div class="actions-bar">
-      <el-button class="save-button" @click="saveImage">
+      <el-button v-if="editorStore.elements.length !== 0" class="save-button" @click="saveImage">
         <el-icon size="20"><Symbols name="download"/></el-icon>
         <span>储存图片</span>
       </el-button>
@@ -475,8 +494,7 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh 
   min-width: 800px;
   display: flex;
   flex-direction: column;
-  padding: 100px 10px 10px 10px;
-  gap: 1.5rem;
+  padding: 20px 0;
   box-sizing: border-box;
   //justify-content: center;
   align-items: center;
@@ -493,8 +511,9 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh 
   border-radius: 20px;
   width: 800px;
   height: 600px;
-  max-height: 600px;
+  //max-height: 600px;
   min-height: 50px; /* 避免過度縮小 */
+  transition: all 0.3s ease;
 }
 
 .editor-canvas {

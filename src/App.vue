@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {computed, onMounted, ref} from 'vue';
+import {computed, onMounted, ref, watch, nextTick} from 'vue';
 import {ElementTypesEnum, type ICanvasElement, BoxBarTypes} from "./types";
 import BoxBar from "./components/BoxBar.vue";
 import TextPanel from "./components/Panels/TextPanel.vue";
@@ -86,7 +86,18 @@ const handlePointerUp = (event: PointerEvent) => {
     editorStore.clearSelection();
   }
 }
+const styleSidebar = computed(() => {
+  return {
+    width: selected.value !== '' ? '420px' : '85px'
+  }
+});
 
+watch(selected, async () => {
+  // 等待 DOM 更新 (sidebar 寬度變化) 完成
+  await nextTick();
+  // 然後再呼叫 updateCanvasScale，此時它會讀取到正確的 editor-area 寬度
+  setTimeout(() => editor.value?.updateCanvasScale(), 200); //
+});
 </script>
 
 <template>
@@ -101,9 +112,7 @@ const handlePointerUp = (event: PointerEvent) => {
       <div class="content">
         <div
             class="sidebar"
-            :style="{
-            width: selected !== '' ? '420px' : '85px'
-          }">
+            :style="styleSidebar">
           <BoxBar @boxItemClick="boxItemClickHandle"/>
           <div class="sidebar-content">
             <TextPanel
