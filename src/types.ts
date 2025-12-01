@@ -109,8 +109,13 @@ export interface ITextConfig extends AbsoluteConfig {
 export interface ISVGConfig extends AbsoluteConfig {
     content: string;
     color: string;
+    baseWidth: number;
+    baseHeight: number;
     width: number;
     height: number;
+    offsetX: number;
+    offsetY: number;
+    aspectRatio: number;
 }
 
 export interface IUploadedImage {

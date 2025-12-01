@@ -2,6 +2,7 @@ import {processUrl} from "./FileProcessor.ts";
 import {ElementTypesEnum, type ICanvasElement, type IImageConfig, type ISVGConfig, type ITextConfig} from "../types.ts";
 import {calculateConstrainedSize} from "@/Utilities/useImageEditor.ts";
 import {nanoid} from "nanoid";
+import {svgPathBbox} from "svg-path-bbox";
 import type {CanvasEditor} from "@/Utilities/CanvasEditor.ts";
 // 產生一個新的 CanvasElement
 export const createCanvasElement = (element: ICanvasElement, canvas: { width: number, height: number }, editor: CanvasEditor) => {
@@ -75,18 +76,31 @@ export const createCanvasElement = (element: ICanvasElement, canvas: { width: nu
         }
         else if (element.type === ElementTypesEnum.SVG) {
             const config: ISVGConfig = element.config as ISVGConfig;
+            // 使用 svg-path-bbox 計算路徑的實際邊界
+            const bbox = svgPathBbox(config.content); // 回傳 [x1, y1, x2, y2]
+            const baseWidth = bbox[2] - bbox[0];
+            const baseHeight = bbox[3] - bbox[1];
+            // const info = calculateConstrainedSize(pathWidth, pathHeight, canvas.width, canvas.height);
+            // const shrink: number = 0.9;
+            console.log(`pathWidth: ${baseWidth} pathHeight: ${baseHeight}`);
+
             resolve({
-                id: nanoid(12),
+                id: element.id || nanoid(12),
                 type: element.type,
                 name: element.name || '新貼圖',
                 config: {
+                    offsetX: bbox[0], // 儲存路徑的 X 偏移
+                    offsetY: bbox[1], // 儲存路徑的 Y 偏移
                     content: config.content || '',
+                    color: config.color,
                     x: canvas.width / 2,
                     y: canvas.height / 2,
-                    width: 50,
-                    height: 50,
-                    color: 'black',
+                    baseWidth: baseWidth,
+                    baseHeight: baseHeight,
+                    width: baseWidth,
+                    height: baseHeight,
                     opacity: Math.min(Math.max(config.opacity || 1, 0), 1.0),
+                    aspectRatio: 1,
                     draggable: true
                 }
             });

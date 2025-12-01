@@ -258,13 +258,30 @@ export const drawMultiText = (ctx: CanvasRenderingContext2D, element: ICanvasEle
 export const drawSVG = (ctx: CanvasRenderingContext2D, element: ICanvasElement) => {
     if (!element) return;
     const config: ISVGConfig = element.config as ISVGConfig;
+    if (!config.content) return;
 
     const path = new Path2D(config.content);
-    ctx.fillStyle = config.color;
 
     ctx.save();
+    // 1. 移動到元素的中心點
     ctx.translate(config.x, config.y);
-    ctx.translate(0, 0);
+
+    // 2. 計算縮放比例
+    const scaleX = config.width / config.baseWidth;
+    const scaleY = config.height / config.baseHeight;
+
+    const offsetX = (config.offsetX || 0);
+    const offsetY = (config.offsetY || 0);
+
+    ctx.scale(scaleX, scaleY);
+
+    ctx.rotate(config.rotation || 0);
+
+    // 3. 從中心點移動到左上角 (在縮放後的座標系中) ，再減去路徑本身的偏移
+    ctx.translate(-config.baseWidth / 2 - offsetX, -config.baseHeight / 2 - offsetY);
+
+
+    ctx.fillStyle = config.color;
     ctx.fill(path);
     ctx.restore();
 }
@@ -274,7 +291,7 @@ export const drawSVG = (ctx: CanvasRenderingContext2D, element: ICanvasElement) 
  * @param element
  * @param forceDrawFullImage - 如果為 true，則強制繪製完整圖片，忽略剪裁設定。用於剪裁模式。
  */
-export const drawSticker = (
+export const drawImage = (
     ctx: CanvasRenderingContext2D,
     element: ICanvasElement,
     forceDrawFullImage: boolean = false
@@ -526,7 +543,7 @@ export const drawControls = (ctx: CanvasRenderingContext2D,
             drawTransformHandles(ctx, element, multiple, isResizing);
         } else { // Draw simple dashed box for other types like 'icon'
             ctx.setLineDash([6, 3]);
-            ctx.strokeRect(box.x - 5, box.y - 5, box.width + 10, box.height + 10);
+            ctx.strokeRect(box.x, box.y, box.width, box.height);
             ctx.setLineDash([]);
         }
     }

@@ -5,7 +5,7 @@ import {
     drawCropControls,
     getActionForCropHandle,
     drawCropMarks,
-    drawSticker,
+    drawImage,
     drawSVG,
     drawText,
     getElementBoundingBox,
@@ -84,6 +84,8 @@ export class CanvasEditor {
     public viewOffsetY: number = 0;
     // 因為canvas scale 實作麻煩只接使用div
     public divScale: number = 1;
+    // 用於平移 uploader-container
+    public uploaderTranslate: { x: number, y: number } = { x: 0, y: 0 }
 
     public viewport: ICanvasViewport = {
         width: 800,
@@ -325,11 +327,11 @@ export class CanvasEditor {
             } else if (element.type === ElementTypesEnum.Image) {
                 // 如果正在剪裁，則繪製完整的圖片，並在上面蓋上剪裁UI
                 if (isCroppingThisElement) {
-                    drawSticker(ctx, element, true); // forceDrawFullImage = true
+                    drawImage(ctx, element, true); // forceDrawFullImage = true
                     drawCropControls(ctx, element);
                     return; // 避免下面再繪製一次控制項
                 }
-                drawSticker(ctx, element);
+                drawImage(ctx, element);
             }
         });
         // 3. 繪製裁切框
@@ -616,6 +618,7 @@ export class CanvasEditor {
             const icon = element.config as ISVGConfig;
             this.dragStart.elementWidth = icon.width || 50;
             this.dragStart.elementHeight = icon.height || 50;
+            this.dragStart.aspectRatio = icon.width && icon.height ? icon.width / icon.height : 1;
         }
 
         if (action === 'rot') {
@@ -810,7 +813,7 @@ export class CanvasEditor {
                     sticker.y = this.dragStart.elementY - (newWidth / 2 - this.dragStart.elementWidth / 2) * sin * sign;
                 }
             } else {
-                if (this.isPivotPointEnabled && (element.type === ElementTypesEnum.Image || element.type === ElementTypesEnum.Text)) {
+                if (this.isPivotPointEnabled && (element.type === ElementTypesEnum.Image || element.type === ElementTypesEnum.Text || element.type === ElementTypesEnum.SVG)) {
                     // Corner handles (proportional scaling for all types)
                     // 1. Determine the pivot point (the opposite corner)
                     const w = this.dragStart.elementWidth;
@@ -852,6 +855,11 @@ export class CanvasEditor {
                         (element.config as IImageConfig).height = newHeight;
                     } else if (element.type === ElementTypesEnum.Text) {
                         (element.config as ITextConfig).fontSize = Math.max(10, this.dragStart.elementSize * scaleRatio);
+                    } else if (element.type === ElementTypesEnum.SVG) {
+                        const newWidth = Math.max(10, w * scaleRatio);
+                        const newHeight = newWidth / this.dragStart.aspectRatio;
+                        (element.config as ISVGConfig).width = newWidth;
+                        (element.config as ISVGConfig).height = newHeight;
                     }
 
                     // 5. Recalculate the center based on the new dimensions and pivot
@@ -875,6 +883,10 @@ export class CanvasEditor {
                         (element.config as IImageConfig).height = (element.config as IImageConfig).width! / this.dragStart.aspectRatio;
                     } else if (element.type === ElementTypesEnum.Text) {
                         (element.config as ITextConfig).fontSize = Math.max(10, this.dragStart.elementSize * scaleRatio);
+                    } else if (element.type === ElementTypesEnum.SVG) {
+                        const newWidth = Math.max(10, this.dragStart.elementWidth * scaleRatio);
+                        (element.config as ISVGConfig).width = newWidth;
+                        (element.config as ISVGConfig).height = newWidth / this.dragStart.aspectRatio;
                     }
                 }
 
