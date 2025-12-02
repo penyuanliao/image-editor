@@ -237,7 +237,7 @@ export const useEditorStore = defineStore('editor', () => {
       image.width = width;
       image.height = height;
       config.img = image;
-      // config.url = image.src;
+      config.url = image.src;
       config.base64 = base64;
       config.width = width;
       config.height = height;
@@ -245,7 +245,9 @@ export const useEditorStore = defineStore('editor', () => {
       element.id = nanoid(12);
       updateCache(element.id, image);
       saveHistory();
+      return element.id;
     }
+    return ''
   }
 
   /**

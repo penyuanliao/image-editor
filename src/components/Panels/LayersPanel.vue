@@ -5,6 +5,7 @@ import draggable from 'vuedraggable';
 import { ElementTypesEnum, type ICanvasElement, type ITextConfig } from "@/types.ts";
 import { Lock } from "@element-plus/icons-vue";
 import {nanoid} from "nanoid";
+import {storeToRefs} from "pinia";
 
 const props = defineProps({
   // 排序方式
@@ -18,12 +19,14 @@ const props = defineProps({
 })
 const editorStore = useEditorStore();
 
+const { elements } = storeToRefs(editorStore);
+
 const reversedElements = computed({
   get() {
-    return [...editorStore.elements].reverse();
+    return [...elements.value].reverse();
   },
   set(newValue) {
-    editorStore.elements = [...newValue].reverse();
+  elements.value = [...newValue].reverse();
   }
 });
 const onClickLayerHandle = (event: MouseEvent, element: ICanvasElement) => {

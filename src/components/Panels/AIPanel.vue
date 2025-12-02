@@ -48,7 +48,7 @@ const tabsChangeHandle = () => {
 
 const setupOriginalImage = () => {
   if (editorStore.selectedElement) {
-    const id = editorStore.selectedElement.config.id;
+    const id = editorStore.selectedElement.id;
     if (id && aiGenStore.hasOriginalImage(id)) {
       originalImage.value = aiGenStore.getOriginalImage(id) || null;
     } else {
@@ -109,14 +109,14 @@ const onSubmit = async () => {
         base64 = config.base64;
       }
     }
-
-    result = await aiGenStore.fetchGenerate({
+    const source = {
       image,
       base64,
       id: elementId,
       materialId,
       url
-    }, {
+    };
+    result = await aiGenStore.fetchGenerate(source, {
       choice: selectedStyle.value,
       prompt: prompt.value
     });
@@ -128,7 +128,9 @@ const onSubmit = async () => {
         name: 'AI生成圖片',
         base64: result.image
       });
-      editorStore.replaceSelectedElementImage(elementId, genImage, result.image);
+      const newId = editorStore.replaceSelectedElementImage(elementId, genImage, result.image);
+      if (newId) aiGenStore.setOriginalImage(newId, source);
+      console.log(newId);
       emit('refresh');
       setupOriginalImage();
     } else {

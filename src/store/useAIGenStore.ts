@@ -20,7 +20,7 @@ export const useAIGenStore = defineStore('aiGenStore', () => {
     // 使用次數
     const remainingTries = ref<number>(50);
     // 存放原始圖片資料
-    const originalImages: Map<number, { image?: HTMLImageElement, base64?: string, id: string, blob?:Blob }> = new Map();
+    const originalImages: Map<string, { image?: HTMLImageElement, base64?: string, id: string, blob?:Blob }> = new Map();
     // 存放處理過後圖片資料
     const rawData = ref<Record<number, any>>({});
     // 記錄讀取狀態
@@ -68,10 +68,6 @@ export const useAIGenStore = defineStore('aiGenStore', () => {
                 body: JSON.stringify(body)
             });
             remainingTries.value--;
-            // 記錄原圖
-            if (source.materialId && !originalImages.has(source.materialId)) {
-                originalImages.set(source.materialId, source);
-            }
             if (!response.ok) {
                 throw new Error('Failed to fetch api generated');
             }
@@ -96,11 +92,14 @@ export const useAIGenStore = defineStore('aiGenStore', () => {
         }
     };
 
-    const hasOriginalImage = (id: number) => {
+    const hasOriginalImage = (id: string) => {
         return originalImages.has(id);
     }
-    const getOriginalImage = (id: number) => {
+    const getOriginalImage = (id: string) => {
         return originalImages.get(id);
+    }
+    const setOriginalImage = (id: string, source: { image?: HTMLImageElement, base64?: string, id: string, blob?:Blob }) => {
+        return originalImages.set(id, source);
     }
 
     return {
@@ -109,6 +108,7 @@ export const useAIGenStore = defineStore('aiGenStore', () => {
         error,
         fetchGenerate,
         hasOriginalImage,
-        getOriginalImage
+        getOriginalImage,
+        setOriginalImage,
     };
 });
