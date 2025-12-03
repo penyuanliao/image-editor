@@ -12,6 +12,11 @@ export interface IGeneralSettings {
     supportedImageFiles: string[];
     // 還原步驟最大值
     undoRedoStackMax: number;
+    // 縮放範圍
+    zoomLimits: {
+        max: number;
+        min: number;
+    }
 }
 
 export interface IAdvancedSettings {
@@ -40,7 +45,11 @@ export const generalDefaults: IGeneralSettings = {
         maxHeight: 600
     },
     supportedImageFiles: ["image/png", "image/jpeg"],
-    undoRedoStackMax: 20
+    undoRedoStackMax: 20,
+    zoomLimits: {
+        max: 2,
+        min: 0.2
+    }
 };
 
 export const appearanceDefaults = {
@@ -52,6 +61,22 @@ export const appearanceDefaults = {
         { name: '赛博庞克', value: 4, key: 'cyberpunk', class: 'cyberpunk', url: './assets/themes/img_cyberpunk.jpg' },
         { name: '水彩畫', value: 5, key: 'watercolor', url: './assets/themes/img_watercolor.jpg' },
         { name: '塗鴉藝術', value: 6, key: 'Graffiti', url: './assets/themes/img_oil_painting.jpg' },
+    ],
+    colorMask: [
+        { name: '藍色', value: 1, key: 'blue' },
+        { name: '綠色', value: 2, key: 'green' },
+        { name: '紅色', value: 3, key: 'red' },
+        { name: '土色', value: 4, key: 'khaki' },
+        { name: '黑色', value: 5, key: 'black' },
+        { name: '紫色', value: 6, key: 'purple' },
+    ],
+    imagine: [
+        { name: '3D插画', value: 21, key: 'Illustration Style', url: './assets/themes/img_3d.jpg' },
+        { name: '吉卜力風格', value: 22, key: 'Ghibli Style', url: './assets/themes/img_cartoon.jpg' },
+        { name: '动漫', value: 23, key: 'Anime Style', url: './assets/themes/img_anime.jpg' },
+        { name: '赛博庞克', value: 24, key: 'cyberpunk', class: 'cyberpunk', url: './assets/themes/img_cyberpunk.jpg' },
+        { name: '水彩畫', value: 25, key: 'watercolor', url: './assets/themes/img_watercolor.jpg' },
+        { name: '塗鴉藝術', value: 26, key: 'Graffiti', url: './assets/themes/img_oil_painting.jpg' },
     ],
     StandardStageSizes: [
         {
@@ -137,7 +162,7 @@ export const advancedDefaults:IAdvancedSettings = {
     popupMenu: true,
     imageCropEditEnabled: false,
     alignEnabled: false,
-    zoomEnabled: false,
+    zoomEnabled: true,
     undoRedoEnabled: false,
     eachSideHandlesEnabled: true,
     pivotPointEnabled: true,

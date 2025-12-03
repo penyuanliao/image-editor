@@ -9,6 +9,7 @@ import KeyboardController from "../Basic/KeyboardController.vue";
 import Symbols from "@/components/Basic/Symbols.vue";
 import {advancedDefaults, generalDefaults} from "@/config/settings.ts";
 import NCropControls from "@/components/EditorArea/NCropControls.vue";
+import NBaseScrollbar from "@/components/Basic/NBaseScrollbar.vue";
 
 const editorStore = useEditorStore();
 const emit = defineEmits(['element-selected']);
@@ -92,7 +93,7 @@ onMounted(() => {
     editor.value.viewport.width = windowSize.width - 40;
     editor.value.viewport.height = windowSize.height - 40;
     editor.value.setup(canvas.value, uploaderContainer.value);
-    if (wheelerRef.value && advancedDefaults.zoomEnabled) editor.value.setupZoomView(wheelerRef.value);
+    if (wheelerRef.value?.parentElement && advancedDefaults.zoomEnabled) editor.value.setupZoomView(wheelerRef.value.parentElement as HTMLDivElement);
     editor.value.textInput = textInput.value;
     // 預設畫布大小
     editor.value.updateViewportSize(width, height, color);
@@ -338,11 +339,12 @@ const refresh = () => {
   editor.value.render();
 }
 const updateCanvasScale = () => {
-  if (wheelerRef.value && wheelerRef.value.parentElement) {
+  if (wheelerRef.value && wheelerRef.value.parentElement && editor.value.autoDivScale) {
     const { clientWidth, clientHeight } = wheelerRef.value.parentElement;
     const scaleX = Math.min(1, clientWidth / editor.value.artboardSize.width);
     const scaleY = Math.min(1, clientHeight / editor.value.artboardSize.height);
-    editor.value.divScale = Math.min(scaleX, scaleY);
+    const scale = Math.min(scaleX, scaleY);
+    if (scale < 1) editor.value.divScale = scale;
   }
 };
 
@@ -393,94 +395,95 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh,
 </script>
 
 <template>
-  <div class="editor-wrapper" ref="wheelerRef" :style="{
-    minHeight: editor.viewport.height,
-    minWidth: editor.viewport.width,
+  <NBaseScrollbar ref="wheelerRef"
+                  v-bind:minX="editor.uploaderTranslate.minX"
+                  v-bind:maxX="editor.uploaderTranslate.maxX"
+                  v-bind:minY="editor.uploaderTranslate.minY"
+                  v-bind:maxY="editor.uploaderTranslate.maxY">
+    <div class="editor-wrapper" :style="{
+    height: editor.viewport.height,
+    width: editor.viewport.width,
   }">
-    <!-- 鍵盤控制器，用於處理快捷鍵 -->
-    <KeyboardController
-        @delete-selected="handleDeleteSelected"
-        @move-selected="handleMoveSelected"
-        @text-editing="handleTextEditing"
-        @ctrl-event="handleCtrlEvent"
-    />
-    <div
-        class="uploader-container"
-        :style="{
-            transform: `scale(${editor.divScale}) translate(${editor.uploaderTranslate.x}px, ${editor.uploaderTranslate.y}px)`,
-            left: `${editor.uploaderTranslate.x}px`
-          }"
-        ref="uploaderContainer">
-<!--      <div class="control" :style="{-->
-<!--        width: `${ editor.viewport.width * editor.divScale * editor.viewport.scale }px`,-->
-<!--        height: `${ editor.viewport.height * editor.divScale * editor.viewport.scale }px`-->
-<!--      }"/>-->
-      <canvas
-          ref="canvas"
-          :style="{ opacity: editorStore.elements.length === 0 ? 0 : 1 }"
-          class="editor-canvas"
-      ></canvas>
-      <textarea
-          v-if="editor.editingElement"
-          ref="textInput"
-          v-model="(editor.editingElement.config as ITextConfig).content"
-          :style="textInputStyle"
-          class="text-editor-input"
-          wrap="off"
-          @compositionend="compositionEnd"
-          @compositionstart="compositionStart"
-          @focusout="finishEditing"
-          @input="handleTextInput"
-          @select="textAreaSelected"
-          @keydown.enter.shift.prevent="finishEditing"
+      <!-- 鍵盤控制器，用於處理快捷鍵 -->
+      <KeyboardController
+          @delete-selected="handleDeleteSelected"
+          @move-selected="handleMoveSelected"
+          @text-editing="handleTextEditing"
+          @ctrl-event="handleCtrlEvent"
       />
-      <!-- 快速選單 -->
       <div
-          :style="{ transform: `translate(${popOverMenu.x}px, ${popOverMenu.y}px)`}"
-          class="pop-over-menu"
-          ref="popOverRef">
-        <Popover
-            v-show="popOverMenu.visible && (selectedElement?.type === ElementTypesEnum.Image || editorStore.selectedElements.length > 1)"
-            @change="handlePopOverMenuChange"
-            @alignElement="alignSelectedElement"/>
-      </div>
-      <!-- 自訂右鍵選單 -->
-      <div
-          v-if="contextMenu.visible && contextMenu.element"
-          class="context-menu"
-          :style="{ top: `${contextMenu.y}px`, left: `${contextMenu.x}px` }"
-          @click.stop
-      >
-        <div class="context-menu-item" @click="deleteSelectedElement">
-          刪除
+          class="uploader-container"
+          :style="{
+            transform: `scale(${editor.divScale}) translate(${editor.uploaderTranslate.x}px, ${editor.uploaderTranslate.y}px)`,
+          }"
+          ref="uploaderContainer">
+        <canvas
+            ref="canvas"
+            :style="{ opacity: editorStore.elements.length === 0 ? 0 : 1 }"
+            class="editor-canvas"
+        ></canvas>
+        <textarea
+            v-if="editor.editingElement"
+            ref="textInput"
+            v-model="(editor.editingElement.config as ITextConfig).content"
+            :style="textInputStyle"
+            class="text-editor-input"
+            wrap="off"
+            @compositionend="compositionEnd"
+            @compositionstart="compositionStart"
+            @focusout="finishEditing"
+            @input="handleTextInput"
+            @select="textAreaSelected"
+            @keydown.enter.shift.prevent="finishEditing"
+        />
+        <!-- 快速選單 -->
+        <div
+            :style="{ transform: `translate(${popOverMenu.x}px, ${popOverMenu.y}px)`}"
+            class="pop-over-menu"
+            ref="popOverRef">
+          <Popover
+              v-show="popOverMenu.visible && (selectedElement?.type === ElementTypesEnum.Image || editorStore.selectedElements.length > 1)"
+              @change="handlePopOverMenuChange"
+              @alignElement="alignSelectedElement"/>
         </div>
-        <!-- 在這裡可以新增更多選項，例如： -->
-        <!-- <div class="context-menu-item">上移一層</div> -->
-        <!-- <div class="context-menu-item">下移一層</div> -->
-      </div>
-      <div class="upload-prompt-overlay" :style="{
+        <!-- 自訂右鍵選單 -->
+        <div
+            v-if="contextMenu.visible && contextMenu.element"
+            class="context-menu"
+            :style="{ top: `${contextMenu.y}px`, left: `${contextMenu.x}px` }"
+            @click.stop
+        >
+          <div class="context-menu-item" @click="deleteSelectedElement">
+            刪除
+          </div>
+          <!-- 在這裡可以新增更多選項，例如： -->
+          <!-- <div class="context-menu-item">上移一層</div> -->
+          <!-- <div class="context-menu-item">下移一層</div> -->
+        </div>
+        <div class="upload-prompt-overlay" :style="{
         opacity: editorStore.elements.length === 0 ? 1 : 0
       }">
-        <div class="prompt-content">
-          <Symbols name="picture"/>
-          <h1>开始产生影像</h1>
-          <p>选择素材添加文字、效果和AI，线上编辑您的图片。</p>
+          <div class="prompt-content">
+            <Symbols name="picture"/>
+            <h1>开始产生影像</h1>
+            <p>选择素材添加文字、效果和AI，线上编辑您的图片。</p>
+          </div>
         </div>
       </div>
+      <div class="actions-bar">
+        <el-button v-if="editorStore.elements.length !== 0" class="save-button" @click="saveImage">
+          <el-icon size="20"><Symbols name="download"/></el-icon>
+          <span>储存图片</span>
+        </el-button>
+        <NCropControls
+            :crop-box="editor.cropBox"
+            :viewport="editor.viewport"
+            :div-scale="editor.divScale"
+            @change="handleChange"
+        />
+      </div>
     </div>
-    <div class="actions-bar">
-      <el-button v-if="editorStore.elements.length !== 0" class="save-button" @click="saveImage">
-        <el-icon size="20"><Symbols name="download"/></el-icon>
-        <span>储存图片</span>
-      </el-button>
-      <NCropControls
-          :crop-box="editor.cropBox"
-          :viewport="editor.viewport"
-          :div-scale="editor.divScale"
-          @change="handleChange"
-      />
-    </div>
-  </div>
+  </NBaseScrollbar>
 </template>
 
 <style scoped lang="scss">
@@ -499,6 +502,7 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh,
   //justify-content: center;
   align-items: center;
   flex-shrink: 0;
+  position: relative;
 }
 .control {
   position: absolute;
@@ -553,7 +557,7 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh,
 
 
 .actions-bar {
-  position: absolute;
+  position: relative;
   display: flex;
   justify-content: center;
   align-items: center;

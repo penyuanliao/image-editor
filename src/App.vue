@@ -131,13 +131,11 @@ watch(selected, async () => {
             />
           </div>
         </div>
-        <div class="editor-area">
-          <div class="editor-area" @pointerup.self="handlePointerUp">
-            <EditorView
-                ref="editor"
-                @element-selected="handleElementSelected"
-            />
-          </div>
+        <div class="editor-area" @pointerup.self="handlePointerUp">
+          <EditorView
+              ref="editor"
+              @element-selected="handleElementSelected"
+          />
           <div class="layers">
             <LayersPanel/>
           </div>

@@ -26,6 +26,7 @@ import {
 import {processUrl} from "./FileProcessor.ts";
 import {advancedDefaults, generalDefaults} from "@/config/settings.ts";
 import {nanoid} from "nanoid";
+import {nextTick} from "vue";
 
 interface ICanvasViewport {
     width: number;
@@ -84,8 +85,10 @@ export class CanvasEditor {
     public viewOffsetY: number = 0;
     // 因為canvas scale 實作麻煩只接使用div
     public divScale: number = 1;
+    public autoDivScale: boolean = true;
+
     // 用於平移 uploader-container
-    public uploaderTranslate: { x: number, y: number } = { x: 0, y: 0 }
+    public uploaderTranslate: { x: number, y: number, minX: number, minY: number, maxX: number, maxY: number } = { x: 0, y: 0, minX: 0, minY: 0, maxX: 0, maxY: 0 }
 
     public viewport: ICanvasViewport = {
         width: 800,
@@ -1021,7 +1024,9 @@ export class CanvasEditor {
         }
     }
 
-    public handleWheel(event: WheelEvent) {
+    public async handleWheel(event: WheelEvent) {
+        // 檢查要有物件
+        if (this.store.elements.length === 0) return;
         // 檢查 Ctrl 鍵 (或 Mac 上的 Command 鍵) 是否被按下
         if (!event.ctrlKey && !event.metaKey) {
             return; // 如果沒有按下，則不執行縮放
@@ -1033,25 +1038,34 @@ export class CanvasEditor {
         const newScale = this.divScale + delta;
 
         // 限制縮放範圍
-        const minScale = 0.2;
-        const maxScale = 5;
-        const clampedScale = Math.max(minScale, Math.min(newScale, maxScale));
+        const { min, max } = generalDefaults.zoomLimits;
+        const clampedScale = Math.max(min, Math.min(newScale, max));
 
         if (clampedScale === this.divScale) return; // 縮放比例未改變
         this.divScale = clampedScale;
-        // 一個折衷方案：部分向右平移
-        this.uploaderTranslate.x = (this.canvas.width / 4) * (clampedScale - 1);
-        const div = this.divContainer;
-        if (div) {
-            setTimeout(() => {
-                const scrollContainer = div.parentElement?.parentElement;
-                if (scrollContainer) {
-                    // 計算畫布中心點需要滾動到的位置
-                    const scrollLeft = (scrollContainer.scrollWidth / 2) - (scrollContainer.clientWidth / 2);
-                    scrollContainer.scrollTo({ left: scrollLeft, behavior: 'smooth' });
-                }
-            }, 0);
+        this.autoDivScale = false;
+        await nextTick();
+
+        // clientWidth/Height 不會包含 transform: scale 的效果。
+        // 我們需要手動計算縮放後的可滾動範圍。
+        if (this.canvas && this.wheelElement) {
+            const viewportWidth = this.wheelElement.clientWidth;
+            const viewportHeight = this.wheelElement.clientHeight;
+
+            const scaledContentWidth = this.canvas.width * clampedScale;
+            const scaledContentHeight = this.canvas.height * clampedScale;
+
+            // 計算內容超出視窗的部分
+            const overflowX = Math.max(0, scaledContentWidth - viewportWidth);
+            const overflowY = Math.max(0, scaledContentHeight - viewportHeight);
+
+            // NBaseScrollbar 的滾動範圍是基於中心點的偏移量
+            this.uploaderTranslate.minX = -overflowX / 2;
+            this.uploaderTranslate.maxX = overflowX / 2;
+            this.uploaderTranslate.minY = -overflowY / 2;
+            this.uploaderTranslate.maxY = overflowY / 2;
         }
+
         this.render();
     }
 
