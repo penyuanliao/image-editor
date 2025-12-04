@@ -461,7 +461,11 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh,
           <!-- <div class="context-menu-item">下移一層</div> -->
         </div>
         <div class="upload-prompt-overlay" :style="{
-        opacity: editorStore.elements.length === 0 ? 1 : 0
+        opacity: editorStore.elements.length === 0 ? 1 : 0,
+        width: `${ editor.artboardSize.width }px`,
+        height: `${ editor.artboardSize.height }px`,
+        top: `${(editor.viewport.height - editor.artboardSize.height) / 2}px`, // 計算垂直置中位置
+        left: `${(editor.viewport.width - editor.artboardSize.width) / 2}px`, // 計算水平置中位置
       }">
           <div class="prompt-content">
             <Symbols name="picture"/>
