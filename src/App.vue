@@ -136,8 +136,10 @@ watch(selected, async () => {
               ref="editor"
               @element-selected="handleElementSelected"
           />
-          <div class="layers">
-            <LayersPanel/>
+          <div class="layers-scroll scroll-bar-hidden">
+            <div class="layers">
+              <LayersPanel/>
+            </div>
           </div>
         </div>
 
@@ -217,7 +219,7 @@ watch(selected, async () => {
   display: flex;
   justify-content: center;
   align-items: center;
-  overflow: auto; /* 如果編輯器太大，允許滾動 */
+  overflow: hidden; /* 如果編輯器太大，允許滾動 */
   flex-shrink: 0;
 
 }
@@ -230,20 +232,25 @@ watch(selected, async () => {
   align-items: center;
   position: relative; /* 確保內部元素定位正確 */
 }
-
-.layers {
+.layers-scroll {
   position: absolute;
   display: flex;
   top: 0;
   right: 14px;
-  width: 112px;
-  min-height: 0;
+  width: 122px;
+  max-height: calc(var(--panel-max-height, 100%) - 20px);
+  overflow: auto;
+  justify-content: center;
+  padding: 5px 5px;
+}
+.layers {
+  position: relative;
+  display: flex;
+  width: 122px;
+  height: 100%;
   border-radius: 20px;
   background-color: theme.$panel-background-color;
   box-shadow: 0 3px 3px 0 theme.$shadow-color;
-  justify-content: center;
-  align-items: center;
-  overflow: hidden;
 }
 
 .panel-properties {

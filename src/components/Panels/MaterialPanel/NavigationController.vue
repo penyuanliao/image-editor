@@ -22,7 +22,7 @@ watch(selectedIndex, (newIndex) => {
 </script>
 
 <template>
-  <div class="viewport">
+  <div class="view-container">
     <div class="content-wrapper" ref="contentWrapper">
       <div class="view view-a" @click="handleViewClick(1)">
         <div class="header">
@@ -38,7 +38,7 @@ watch(selectedIndex, (newIndex) => {
 </template>
 
 <style scoped lang="scss">
-.viewport {
+.view-container {
   width: 280px;
   height: 100%;
   position: relative;

@@ -468,14 +468,14 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh,
         left: `${(editor.viewport.width - editor.artboardSize.width) / 2}px`, // 計算水平置中位置
       }">
           <div class="prompt-content">
-            <Symbols name="picture"/>
+            <div class="prompt-icon"><Symbols name="picture"/></div>
             <h1>开始产生影像</h1>
             <p>选择素材添加文字、效果和AI，线上编辑您的图片。</p>
           </div>
         </div>
       </div>
-      <div class="actions-bar">
-        <el-button v-if="editorStore.elements.length !== 0" class="save-button" @click="saveImage">
+      <div class="actions-bar" :style="{ opacity: editorStore.elements.length === 0 ? 0 : 1 }">
+        <el-button class="save-button" @click="saveImage">
           <el-icon size="20"><Symbols name="download"/></el-icon>
           <span>储存图片</span>
         </el-button>
@@ -545,6 +545,9 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh,
   background-color: #D9D9D9;
   transition: opacity 0.3s;
   border-radius: 20px;
+  /* 1. 將此元素定義為一個尺寸查詢容器，'size' 允許查詢寬度和高度 */
+  container-type: size;
+  container-name: prompt-overlay;
 }
 
 .prompt-content {
@@ -557,8 +560,35 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh,
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  p {
+    word-wrap: break-word;
+    white-space: break-spaces;
+  }
+  .prompt-icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 80px;
+    height: 80px;
+    flex-shrink: 1;
+    min-height: 20px;
+    padding-top: 10px;
+  }
 }
 
+/* 2. 當名為 'prompt-overlay' 的容器高度小於 165px 時，套用此樣式 */
+@container prompt-overlay (max-height: 171px) {
+  .prompt-content {
+    flex-direction: row;
+    gap: 20px;
+    p {
+      white-space: nowrap;
+    }
+    .prompt-icon {
+      padding-top: 0;
+    }
+  }
+}
 
 .actions-bar {
   position: relative;
