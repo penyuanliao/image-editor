@@ -560,9 +560,15 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh,
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  gap: 10px;
   p {
     word-wrap: break-word;
     white-space: break-spaces;
+    margin-top: 0;
+  }
+  h1 {
+    margin-top: 0;
+    margin-bottom: 0;
   }
   .prompt-icon {
     display: flex;
@@ -583,6 +589,7 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh,
     gap: 20px;
     p {
       white-space: nowrap;
+      margin-bottom: 0;
     }
     .prompt-icon {
       padding-top: 0;

@@ -148,6 +148,8 @@ export class CanvasEditor {
             width: this.cropBox.width,
             height: this.cropBox.height,
             scale: this.cropBox.scale,
+            x: this.cropBox.x,
+            y: this.cropBox.y,
         }
     }
 
@@ -1058,12 +1060,12 @@ export class CanvasEditor {
             // 計算內容超出視窗的部分
             const overflowX = Math.max(0, scaledContentWidth - viewportWidth);
             const overflowY = Math.max(0, scaledContentHeight - viewportHeight);
-
+            const edgeDistance: number = 20;
             // NBaseScrollbar 的滾動範圍是基於中心點的偏移量
-            this.uploaderTranslate.minX = -overflowX / 2;
-            this.uploaderTranslate.maxX = overflowX / 2;
-            this.uploaderTranslate.minY = -overflowY / 2;
-            this.uploaderTranslate.maxY = overflowY / 2;
+            this.uploaderTranslate.minX = -overflowX / 2 - edgeDistance;
+            this.uploaderTranslate.maxX = overflowX / 2 + edgeDistance;
+            this.uploaderTranslate.minY = -overflowY / 2 - edgeDistance;
+            this.uploaderTranslate.maxY = overflowY / 2 + edgeDistance;
         }
 
         this.render();
@@ -1111,7 +1113,11 @@ export class CanvasEditor {
         this.cropBox.height = constrained.height;
         this.cropBox.scale = constrained.scale;
         this.resetCropMarks();
-
+        // 重新取得位置
+        this.store.stage.config.x = this.artboardSize.x;
+        this.store.stage.config.y = this.artboardSize.y;
+        this.store.stage.config.scaleY = constrained.scale;
+        this.store.stage.config.scaleX = constrained.scale;
     }
     public enableCopyAndPasteSupport() {
 

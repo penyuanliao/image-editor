@@ -1,5 +1,10 @@
 <script setup lang="ts">
 import {ref, watch, onMounted, computed, nextTick} from "vue";
+import {ElementTypesEnum} from "@/types.ts";
+import {useEditorStore} from "@/store/editorStore.ts";
+
+const editorStore = useEditorStore();
+
 // 延伸寬度不包含本體
 const props = defineProps({
   minX: { type: Number, default: 0 },
@@ -178,6 +183,15 @@ const scrollTo = (x: number, y: number) => {
   updateThumbs();
 };
 
+const handlePointerUp = (event: PointerEvent) => {
+  event.preventDefault();
+  if (editorStore.selectedElement?.type !== ElementTypesEnum.Stage &&
+      editorStore.selectedElements && editorStore.selectedElements.length !== 0) {
+    editorStore.saveHistory();
+    editorStore.clearSelection();
+  }
+}
+
 onMounted(() => {
   if (viewport.value) {
     viewport.value.addEventListener('wheel', onWheel, { passive: false });
@@ -211,7 +225,7 @@ defineExpose({
 <template>
   <div class="container" ref="container">
     <div class="main-area">
-      <div class="viewport" ref="viewport">
+      <div class="viewport" ref="viewport" @pointerup.self="handlePointerUp">
         <div
             class="content"
             :style="{ transform: `translateX(${-translateX}px) translateY(${-translateY}px)` }"

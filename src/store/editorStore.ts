@@ -26,7 +26,9 @@ export const useEditorStore = defineStore('editor', () => {
       height: generalDefaults.viewport.height,
       x: 0,
       y: 0,
-      color: generalDefaults.viewport.color
+      color: generalDefaults.viewport.color,
+      scaleX: 1,
+      scaleY: 1
     } as StageConfig
   });
   // 圖片列表
@@ -256,8 +258,8 @@ export const useEditorStore = defineStore('editor', () => {
   const elEqualStageHeight = () => {
     if (selectedElement.value && selectedElement.value.config) {
       const config = selectedElement.value.config as IImageConfig;
-      config.height = stage.config.height || 1;
-      config.y = config.height / 2;
+      config.height = (stage.config.height || 1) * (stage.config.scaleY || 1);
+      config.y = config.height / 2 + stage.config.y;
       saveHistory();
     }
   }
@@ -267,8 +269,8 @@ export const useEditorStore = defineStore('editor', () => {
   const elEqualStageWidth = () => {
     if (selectedElement.value && selectedElement.value.config) {
       const config = selectedElement.value.config as IImageConfig;
-      config.width = stage.config.width || 1;
-      config.x = config.width / 2;
+      config.width = (stage.config.width || 1) * (stage.config.scaleX || 1);
+      config.x = config.width / 2 + stage.config.x;
       saveHistory();
     }
   }

@@ -15,8 +15,9 @@ export interface MaterialInfo {
 export interface MaterialsData {
     ID: number;
     CategoryName: string;
-    Info: MaterialInfo[];
+    Info: MaterialGroup[];
 }
+
 
 /**
  * 單一素材項目的格式
@@ -80,6 +81,10 @@ export const useMaterialsStore = defineStore('materialsStore', () => {
     const isLoading = ref(false);
     // 記錄錯誤訊息
     const error = ref<string | null>(null);
+    // 選擇的群組group
+    const selectedGroup = ref<number>(0);
+    // 群組裡面的material
+    const selectedCategoryId = ref<number>(0);
 
     // 從 API 獲取模板的 action
     const getMaterials = async () => {
@@ -101,9 +106,29 @@ export const useMaterialsStore = defineStore('materialsStore', () => {
         }
     };
 
+    const selectedMaterialGroup = computed({
+        get: () => selectedGroup,
+        set: (value: number) => {
+            selectedGroup.value = value;
+        }
+    })
+    // 第一層資料
+    const groupList = computed(() => {
+       if (!rawData.value) return null;
+       return rawData.value.map((group, index) => {
+           return {
+               id: group.ID,
+               index,
+               name: group.CategoryName
+           }
+       });
+    });
     // 將 rawData 轉換為 IGallery 格式的 computed 屬性
     const materials = computed<IGallery[]>(() => {
-        return rawData.value.map((categoryData) => {
+        if (selectedGroup.value == -1) return [];
+        const categories = rawData.value[selectedGroup.value];
+        if (!categories || !Array.isArray(categories.Info)) return [];
+        return categories.Info.map((categoryData) => {
             // 轉換每個分類下的素材項目
             const galleryItems: IGalleryItem[] = categoryData.Info.map((materialInfo) => {
                 return {
@@ -124,11 +149,22 @@ export const useMaterialsStore = defineStore('materialsStore', () => {
             };
         });
     });
+    const categoryImages = computed(() => {
+        if (selectedCategoryId.value == -1) return [];
+        const categoryItems = materials.value[selectedCategoryId.value];
+        if (categoryItems) {
+            return categoryItems.items;
+        }
+    })
 
     return {
         isLoading,
         error,
         getMaterials,
+        groupList,
         materials,
+        categoryImages,
+        selectedMaterialGroup,
+        selectedCategoryId,
     };
 });

@@ -1,17 +1,59 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
 import gsap from "gsap";
+import CategoriesGroupView from "@/components/Panels/MaterialPanel/CategoriesGroupView.vue";
+import CategoriesView from "@/components/Panels/MaterialPanel/CategoriesView.vue";
+import CategoryGalleryView from "@/components/Panels/MaterialPanel/CategoryGalleryView.vue";
+import {Close, Search} from "@element-plus/icons-vue";
+import {useMaterialsStore} from "@/store/useMaterialsStore.ts";
+import {ElementTypesEnum} from "@/types.ts";
+const materialsStore = useMaterialsStore();
 
+const emit = defineEmits<{ (e: 'add-element', action: any): void }>();
 const selectedIndex = ref(0);
-const viewWidth = 280; // 每個 view 的寬度
 const contentWrapper = ref<HTMLDivElement | null>(null);
+const title = ref<string>('');
+const subTitle = ref<string>('');
+const input = ref<string>('');
 
 const handleViewClick = (index: number) => {
+  // 當返回時，清空對應層級的標題
+  if (index < 2) {
+    subTitle.value = '';
+  }
+  if (index < 1) {
+    title.value = '';
+  }
   selectedIndex.value = index;
 };
 
+const handleMoreClick = (name: string) => {
+  selectedIndex.value = 2;
+  subTitle.value = name;
+}
+
+const handleCategoriesGroupChange = (value: { id: number, name: string, index: number }) => {
+  console.log('handleCategoriesGroupChange', value);
+  title.value = value.name;
+  selectedIndex.value = 1;
+  materialsStore.selectedMaterialGroup.value = value.index;
+};
+
+const handleImageChange = (value: { id: number, src: string, name: string }) => {
+  emit('add-element', {
+    type: ElementTypesEnum.Image,
+    config: {
+      url: value.src,
+      id: value.id,
+      x: 0,
+      y: 0,
+    }, name: value.name
+  });
+}
+
 watch(selectedIndex, (newIndex) => {
   if (contentWrapper.value) {
+    const viewWidth = contentWrapper.value.children[0]?.clientWidth || 0;
     gsap.to(contentWrapper.value, {
       x: -newIndex * viewWidth,
       duration: 0.4,
@@ -24,57 +66,150 @@ watch(selectedIndex, (newIndex) => {
 <template>
   <div class="view-container">
     <div class="content-wrapper" ref="contentWrapper">
-      <div class="view view-a" @click="handleViewClick(1)">
-        <div class="header">
-          <el-icon size="20">
-            <svg width="24" height="24" viewBox="0 0 0.51 0.51" xmlns="http://www.w3.org/2000/svg"><path d="M.45.225A.165.165 0 0 1 .285.39H.198l.079.079L.256.49.14.375.256.259.277.28.198.36h.087C.359.36.42.299.42.225S.359.09.285.09H.073V.06h.212C.376.06.45.134.45.225"/></svg>
-          </el-icon>
+      <div class="view scroll-bar-hidden">
+        <div class="content">
+          <div style="width: 100%; height: fit-content; padding: 20px 0; display: flex; justify-content: center; align-items: center; flex-direction: column;">
+            <el-input
+                v-model="input"
+                class="source-search-input"
+                placeholder="搜尋素材"
+                :clear-icon="Close"
+                clearable
+            >
+              <template v-slot:suffix>
+                <div class="submit-btn">
+                  <el-icon size="20">
+                    <Search />
+                  </el-icon>
+                </div>
+              </template>
+            </el-input>
+          </div>
+          <p>請選擇分類</p>
+          <CategoriesGroupView @change="handleCategoriesGroupChange"/>
         </div>
       </div>
-      <div class="view-b" @click="handleViewClick(2)">View B</div>
-      <div class="view-c" @click="handleViewClick(0)">View C</div>
+      <div class="view scroll-bar-hidden">
+        <div class="header">
+          <el-button class="back" @click="handleViewClick(0)">
+            <template #icon>
+              <el-icon size="20">
+                <svg width="32" height="32" viewBox="0 0 40.96 40.96" xmlns="http://www.w3.org/2000/svg"><path d="M8.96 19.2h25.6a1.28 1.28 0 1 1 0 2.56H8.96a1.28 1.28 0 0 1 0-2.56"/><path d="m9.49 20.48 10.616 10.614a1.28 1.28 0 0 1-1.812 1.812l-11.52-11.52a1.28 1.28 0 0 1 0-1.812l11.52-11.52a1.28 1.28 0 1 1 1.812 1.812z"/></svg>
+              </el-icon>
+            </template>
+          </el-button>
+          <h2>{{ title }}</h2>
+        </div>
+        <div class="content">
+
+          <div style="width: 100%; height: fit-content; padding: 20px 0; display: flex; justify-content: center; align-items: center; flex-direction: column;">
+            <el-input
+                v-model="input"
+                class="source-search-input"
+                placeholder="搜尋素材"
+                :clear-icon="Close"
+                clearable
+            >
+              <template v-slot:suffix>
+                <div class="submit-btn">
+                  <el-icon size="20">
+                    <Search />
+                  </el-icon>
+                </div>
+              </template>
+            </el-input>
+          </div>
+
+          <CategoriesView
+              @change="handleImageChange"
+              @more="handleMoreClick" />
+        </div>
+      </div>
+      <div class="view scroll-bar-hidden">
+        <div class="header">
+          <el-button class="back" @click="handleViewClick(1)">
+            <template #icon>
+              <el-icon size="20">
+                <svg width="32" height="32" viewBox="0 0 40.96 40.96" xmlns="http://www.w3.org/2000/svg"><path d="M8.96 19.2h25.6a1.28 1.28 0 1 1 0 2.56H8.96a1.28 1.28 0 0 1 0-2.56"/><path d="m9.49 20.48 10.616 10.614a1.28 1.28 0 0 1-1.812 1.812l-11.52-11.52a1.28 1.28 0 0 1 0-1.812l11.52-11.52a1.28 1.28 0 1 1 1.812 1.812z"/></svg>
+              </el-icon>
+            </template>
+          </el-button>
+          <h2>{{ subTitle }}</h2>
+        </div>
+        <div class="content">
+
+          <div style="width: 100%; height: fit-content; padding: 20px 0; display: flex; justify-content: center; align-items: center; flex-direction: column;">
+            <el-input
+                v-model="input"
+                class="source-search-input"
+                placeholder="搜尋素材"
+                :clear-icon="Close"
+                clearable
+            >
+              <template v-slot:suffix>
+                <div class="submit-btn">
+                  <el-icon size="20">
+                    <Search />
+                  </el-icon>
+                </div>
+              </template>
+            </el-input>
+          </div>
+
+          <CategoryGalleryView @change="handleImageChange"/>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <style scoped lang="scss">
+@use "@/styles/theme";
+
 .view-container {
-  width: 280px;
+  width: 100%;
   height: 100%;
   position: relative;
   overflow: hidden;
+  color: theme.$text-color;
 }
 
 .content-wrapper {
   display: flex;
+  position: relative;
   height: 100%;
-
-  .view-a {
-    min-width: 280px;
-    min-height: 400px;
-    background-color: #cccccc;
-
-  }
-  .view-b {
-    min-width: 280px;
-    min-height: 400px;
-    background-color: #D9D9D9;
-
-  }
-  .view-c {
-    min-width: 280px;
-    min-height: 400px;
-    background-color: #cccccc;
-
-  }
 }
-
-.header {
+.view {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 30px;
-  border: #f15624 solid 1px;
+  flex-direction: column;
+  width: 100%; /* 寬度由父層 sidebar-content 決定 */
+  flex-shrink: 0; /* 防止 flex item 被壓縮 */
+  padding: 0 22px 120px 20px;
+  box-sizing: border-box;
+  min-height: 400px; /* 保持最小高度 */
+  overflow: auto;
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    height: 30px;
+    padding: 40px 0 5px 0;
+    gap: 5px;
+  }
+  .content {
+    flex: 1;
+    //display: flex;
+  }
+  .back {
+    border: none;
+    background-color: transparent;
+    &:hover {
+      border-color: theme.$border-color-base;
+      background-color: theme.$border-color-base;
+      color: theme.$button-text-color;
+    }
+  }
 }
+
 
 </style>
