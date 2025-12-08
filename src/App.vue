@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import {computed, onMounted, ref, watch, nextTick} from 'vue';
+import {computed, onMounted, onUnmounted, ref, watch, nextTick} from 'vue';
 import {ElementTypesEnum, type ICanvasElement, BoxBarTypes} from "./types";
 import BoxBar from "./components/BoxBar.vue";
 import TextPanel from "./components/Panels/TextPanel.vue";
-import StickersPanel from "./components/Panels/StickersPanel.vue";
 import UploadPanel from "./components/Panels/UploadPanel.vue";
 import LayersPanel from "./components/Panels/LayersPanel.vue";
 import DropZone from "./components/Basic/DropZone.vue"; // 引入新的 DropZone 元件
@@ -14,12 +13,12 @@ import {processFile} from "./Utilities/FileProcessor.ts";
 import {CreateImageElement} from "./Utilities/useCreateCanvasElement.ts";
 import StagePropsPanel from "./components/Panels/StagePropsPanel.vue";
 import NNavbar from "@/components/Basic/NNavbar.vue";
+import NavigationController from "@/components/Panels/MaterialPanel/NavigationController.vue";
 
 const editorStore = useEditorStore();
 const editor = ref<InstanceType<typeof EditorView> | null>(null);
 const selected = ref<string>();
 const version = __APP_VERSION__;
-const mainContainer = ref<HTMLDivElement|null>(null);
 // State to hold the currently selected element from the canvas
 const selectedElementForPanel = ref<any | null>(null);
 const handleAddElement = (element: any) => {
@@ -66,18 +65,28 @@ const handleFilesDropped = async (files: FileList) => {
     }
   }
 };
-const mainStyle = computed(() => {
-  // console.log(window.innerHeight);
+
+const panelMaxHeight = ref(window.innerHeight - 80 - 22);
+
+const updatePanelHeight = () => {
+  panelMaxHeight.value = window.innerHeight - 80 - 22; // 80 for navbar, 22 for content padding-top
+};
+
+const contentStyle = computed(() => {
   return {
-    '--panel-max-height': `${window.innerHeight - 80 - 21}px`
+    '--panel-max-height': `${panelMaxHeight.value}px`
   }
 });
+
 onMounted(() => {
-  window.addEventListener('resize', () => {
-    mainContainer.value?.style.setProperty('--panel-max-height', `${window.innerHeight - 80 - 21}px`);
-  });
+  window.addEventListener('resize', updatePanelHeight);
   editorStore.defaultPropsPanel();
-})
+});
+
+onUnmounted(() => {
+  window.removeEventListener('resize', updatePanelHeight);
+});
+
 const handlePointerUp = (event: PointerEvent) => {
   event.preventDefault();
   if (editorStore.selectedElement?.type !== ElementTypesEnum.Stage &&
@@ -88,7 +97,7 @@ const handlePointerUp = (event: PointerEvent) => {
 }
 const styleSidebar = computed(() => {
   return {
-    width: selected.value !== '' ? '420px' : '85px'
+    width: selected.value !== '' ? '420px' : '85px',
   }
 });
 
@@ -105,11 +114,9 @@ watch(selected, async () => {
   <DropZone class="drop-zone-wrapper" @files-dropped="handleFilesDropped">
     <div
         class="main-container"
-        ref="mainContainer"
-        :style="mainStyle"
     >
       <NNavbar/>
-      <div class="content">
+      <div class="content" :style="contentStyle">
         <div
             class="sidebar"
             :style="styleSidebar">
@@ -121,7 +128,7 @@ watch(selected, async () => {
                 @add-element="handleAddElement"
                 @update-element="handleUpdateElement"
             />
-            <StickersPanel
+            <NavigationController
                 v-show="selected === BoxBarTypes.sticker"
                 @add-element="handleAddElement"
             />
@@ -181,8 +188,6 @@ watch(selected, async () => {
 
 .sidebar {
   width: 420px;
-  height: var('--panel-max-height', 300px);
-  max-height: var(--panel-max-height, 300px);
   position: relative;
   display: flex;
   min-width: 85px;
@@ -194,10 +199,9 @@ watch(selected, async () => {
   transition: width 0.2s ease;
 
   .sidebar-content {
-    width: 100%;
+    width: calc(100% - 85px);
     position: relative;
     display: flex;
-    max-height: var(--panel-max-height, 300px);
   }
 }
 
