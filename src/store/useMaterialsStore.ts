@@ -11,6 +11,11 @@ export interface MaterialInfo {
     MaterialName: string;
     Urlpath: string;
 }
+export interface MaterialGroup {
+    ID: number;
+    CategoryName: string;
+    Info: MaterialInfo[];
+}
 
 export interface MaterialsData {
     ID: number;

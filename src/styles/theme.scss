@@ -184,6 +184,9 @@ h2 {
     border-radius: 999px;
     color: white;
     transform: translateX(5px);
+    &:active {
+      scale: 0.95;
+    }
   }
 }
 
