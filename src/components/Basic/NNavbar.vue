@@ -4,6 +4,7 @@ import { ref } from "vue";
 import {htmlTheme} from "@/styles/stageTheme.ts";
 import UndoRedo from "@/components/EditorArea/UndoRedo.vue";
 import {advancedDefaults} from "@/config/settings.ts";
+import NZoomControl from "@/components/Basic/NZoomControl.vue";
 
 const props = defineProps(['progressValue']);
 const emit = defineEmits(['update:progressValue']);
@@ -33,6 +34,7 @@ const progressValue = ref(props.progressValue || 0);
         <span class="text">图层</span>
       </div>
       <UndoRedo v-if="advancedDefaults.undoRedoEnabled"/>
+      <NZoomControl/>
     </div>
   </div>
 </template>

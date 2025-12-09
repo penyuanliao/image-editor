@@ -78,7 +78,7 @@ const popOverMenu = reactive({
     y: -40
   },
 });
-onMounted(() => {
+onMounted(async () => {
   const { viewport } = generalDefaults;
   const config = editorStore.stage.config as StageConfig;
   const width: number = config.width || viewport.width;
@@ -87,11 +87,11 @@ onMounted(() => {
 
   if (canvas.value) {
     const windowSize: { width: number, height: number } = {
-      width: uploaderContainer.value?.parentElement?.clientWidth || 800,
-      height: uploaderContainer.value?.parentElement?.clientHeight || 600,
+      width: (uploaderContainer.value?.parentElement?.clientWidth || 800) - 40,
+      height: (uploaderContainer.value?.parentElement?.clientHeight || 600) - 40,
     }
-    editor.value.viewport.width = windowSize.width - 40;
-    editor.value.viewport.height = windowSize.height - 40;
+    editor.value.viewport.width = windowSize.width;
+    editor.value.viewport.height = windowSize.height;
     editor.value.setup(canvas.value, uploaderContainer.value);
     if (wheelerRef.value?.parentElement && advancedDefaults.zoomEnabled) editor.value.setupZoomView(wheelerRef.value.parentElement as HTMLDivElement);
     editor.value.textInput = textInput.value;
@@ -338,13 +338,31 @@ const alignSelectedElement = (horizontal: string, vertical: string) => {
 const refresh = () => {
   editor.value.render();
 }
+// 更新畫布比例
 const updateCanvasScale = () => {
   if (wheelerRef.value && wheelerRef.value.parentElement && editor.value.autoDivScale) {
     const { clientWidth, clientHeight } = wheelerRef.value.parentElement;
     const scaleX = Math.min(1, clientWidth / editor.value.artboardSize.width);
     const scaleY = Math.min(1, clientHeight / editor.value.artboardSize.height);
     const scale = Math.min(scaleX, scaleY);
-    if (scale < 1) editor.value.divScale = scale;
+    if (scale < 1)
+      editorStore.setDivScale(scale);
+    else
+      editorStore.setDivScale(1);
+  }
+  // 計算視窗大小
+  const windowSize: { width: number, height: number } = {
+    width: (uploaderContainer.value?.parentElement?.clientWidth || 800) - 40,
+    height: (uploaderContainer.value?.parentElement?.clientHeight || 600) - 40,
+  }
+  const { width, height } = editorStore.stage.config as StageConfig;
+  // 由小至大時候需要拉大canvas
+  if (windowSize.width > editor.value.viewport.width || windowSize.height > editor.value.viewport.height) {
+    editor.value.viewport.width = windowSize.width;
+    editor.value.viewport.height = windowSize.height;
+    editor.value.updateViewportSize(width, height);
+    // !Issue: 需要處理Elements的物件相對定增加x, y
+    editor.value.render();
   }
 };
 
@@ -396,14 +414,11 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh,
 
 <template>
   <NBaseScrollbar ref="wheelerRef"
-                  v-bind:minX="editor.uploaderTranslate.minX"
-                  v-bind:maxX="editor.uploaderTranslate.maxX"
-                  v-bind:minY="editor.uploaderTranslate.minY"
-                  v-bind:maxY="editor.uploaderTranslate.maxY">
-    <div class="editor-wrapper" :style="{
-    height: editor.viewport.height,
-    width: editor.viewport.width,
-  }">
+                  v-bind:minX="editorStore.uploaderTranslate.minX"
+                  v-bind:maxX="editorStore.uploaderTranslate.maxX"
+                  v-bind:minY="editorStore.uploaderTranslate.minY"
+                  v-bind:maxY="editorStore.uploaderTranslate.maxY">
+    <div class="editor-wrapper">
       <!-- 鍵盤控制器，用於處理快捷鍵 -->
       <KeyboardController
           @delete-selected="handleDeleteSelected"
@@ -414,7 +429,7 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh,
       <div
           class="uploader-container"
           :style="{
-            transform: `scale(${editor.divScale}) translate(${editor.uploaderTranslate.x}px, ${editor.uploaderTranslate.y}px)`,
+            transform: `scale(${editorStore.divScale})`,
           }"
           ref="uploaderContainer">
         <canvas
@@ -446,20 +461,6 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh,
               @change="handlePopOverMenuChange"
               @alignElement="alignSelectedElement"/>
         </div>
-        <!-- 自訂右鍵選單 -->
-        <div
-            v-if="contextMenu.visible && contextMenu.element"
-            class="context-menu"
-            :style="{ top: `${contextMenu.y}px`, left: `${contextMenu.x}px` }"
-            @click.stop
-        >
-          <div class="context-menu-item" @click="deleteSelectedElement">
-            刪除
-          </div>
-          <!-- 在這裡可以新增更多選項，例如： -->
-          <!-- <div class="context-menu-item">上移一層</div> -->
-          <!-- <div class="context-menu-item">下移一層</div> -->
-        </div>
         <div class="upload-prompt-overlay" :style="{
         opacity: editorStore.elements.length === 0 ? 1 : 0,
         width: `${ editor.artboardSize.width }px`,
@@ -474,6 +475,20 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh,
           </div>
         </div>
       </div>
+      <!-- 自訂右鍵選單 -->
+      <div
+          v-if="contextMenu.visible && contextMenu.element"
+          class="context-menu"
+          :style="{ top: `${contextMenu.y}px`, left: `${contextMenu.x}px` }"
+          @click.stop
+      >
+        <div class="context-menu-item" @click="deleteSelectedElement">
+          刪除
+        </div>
+        <!-- 在這裡可以新增更多選項，例如： -->
+        <!-- <div class="context-menu-item">上移一層</div> -->
+        <!-- <div class="context-menu-item">下移一層</div> -->
+      </div>
       <div class="actions-bar" :style="{ opacity: editorStore.elements.length === 0 ? 0 : 1 }">
         <el-button class="save-button" @click="saveImage">
           <el-icon size="20"><Symbols name="download"/></el-icon>
@@ -482,7 +497,7 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh,
         <NCropControls
             :crop-box="editor.cropBox"
             :viewport="editor.viewport"
-            :div-scale="editor.divScale"
+            :div-scale="editorStore.divScale"
             @change="handleChange"
         />
       </div>
@@ -501,7 +516,6 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh,
   min-height: 600px;
   display: flex;
   flex-direction: column;
-  padding: 20px 0;
   box-sizing: border-box;
   //justify-content: center;
   align-items: center;

@@ -83,8 +83,6 @@ export class CanvasEditor {
     public scale: number = 1; // 這邊是canvas縮放比例
     public viewOffsetX: number = 0;
     public viewOffsetY: number = 0;
-    // 因為canvas scale 實作麻煩只接使用div
-    public divScale: number = 1;
     public autoDivScale: boolean = true;
 
     // 用於平移 uploader-container
@@ -177,6 +175,8 @@ export class CanvasEditor {
     public setupZoomView(wheelElement: HTMLDivElement) {
         if (wheelElement) {
             this.wheelElement = wheelElement;
+            this.store.setViewport(wheelElement);
+            this.store.updateUploaderTranslate();
             // 因為滑鼠滾輪放大無法觸發scrollbar顯示事件這邊透過:key改變強制 Vue 重掛載該 DOM
             this.wheelElement?.addEventListener('wheel', this.handleWheel.bind(this));
         }
@@ -185,7 +185,10 @@ export class CanvasEditor {
     public setup(canvas: HTMLCanvasElement, div: HTMLDivElement | null, store?: EditorStore) {
         this.canvas = canvas;
         this.divContainer = div;
-        if (store) this.store = store;
+        if (store) {
+            this.store = store;
+        }
+        this.store?.setCanvas(canvas);
         const context:CanvasRenderingContext2D | null = canvas.getContext('2d');
         if (!context) {
             throw new Error('Failed to get 2D context');
@@ -465,7 +468,7 @@ export class CanvasEditor {
         }
 
         // 觸發回呼，將事件資訊傳遞給 Vue 元件來顯示 UI
-        this.onContextMenu?.({ x: event.clientX, y: event.clientY, element: clickedElement as ICanvasElement });
+        this.onContextMenu?.({ x: event.offsetX, y: event.offsetY, element: clickedElement as ICanvasElement });
     }
     public showPopOverMenu(visible: boolean) {
         if (!this.canvas || !this.ctx) return;
@@ -1037,35 +1040,16 @@ export class CanvasEditor {
         if (!this.canvas) return;
         const zoomIntensity = 0.05;
         const delta = -event.deltaY * zoomIntensity;
-        const newScale = this.divScale + delta;
+        const newScale = this.store.divScale + delta;
 
-        // 限制縮放範圍
-        const { min, max } = generalDefaults.zoomLimits;
-        const clampedScale = Math.max(min, Math.min(newScale, max));
-
-        if (clampedScale === this.divScale) return; // 縮放比例未改變
-        this.divScale = clampedScale;
+        this.store.setDivScale(newScale);
         this.autoDivScale = false;
         await nextTick();
 
         // clientWidth/Height 不會包含 transform: scale 的效果。
         // 我們需要手動計算縮放後的可滾動範圍。
         if (this.canvas && this.wheelElement) {
-            const viewportWidth = this.wheelElement.clientWidth;
-            const viewportHeight = this.wheelElement.clientHeight;
-
-            const scaledContentWidth = this.canvas.width * clampedScale;
-            const scaledContentHeight = this.canvas.height * clampedScale;
-
-            // 計算內容超出視窗的部分
-            const overflowX = Math.max(0, scaledContentWidth - viewportWidth);
-            const overflowY = Math.max(0, scaledContentHeight - viewportHeight);
-            const edgeDistance: number = 20;
-            // NBaseScrollbar 的滾動範圍是基於中心點的偏移量
-            this.uploaderTranslate.minX = -overflowX / 2 - edgeDistance;
-            this.uploaderTranslate.maxX = overflowX / 2 + edgeDistance;
-            this.uploaderTranslate.minY = -overflowY / 2 - edgeDistance;
-            this.uploaderTranslate.maxY = overflowY / 2 + edgeDistance;
+            this.store.updateUploaderTranslate();
         }
 
         this.render();

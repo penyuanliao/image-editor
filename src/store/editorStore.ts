@@ -57,6 +57,14 @@ export const useEditorStore = defineStore('editor', () => {
   const deleteIcon = ref(new Image());
   //狀態控制: 儲存中
   const savingImage = ref(false);
+  // Div 縮放比例
+  const divScale = ref<number>(1);
+  // Scrollbar 邊緣值
+  const uploaderTranslate = ref<{ x: number, y: number, minX: number, minY: number, maxX: number, maxY: number }>({ x: 0, y: 0, minX: 0, minY: 0, maxX: 0, maxY: 0});
+
+  const canvas = ref<HTMLCanvasElement>();
+
+  const viewportEl = ref<HTMLDivElement>();
 
   // --- Getters ---
   // 取得單一選擇物件
@@ -383,8 +391,43 @@ export const useEditorStore = defineStore('editor', () => {
     return true;
   };
 
+  function setDivScale(scale: number) {
+    const { min, max } = generalDefaults.zoomLimits;
+    divScale.value = Math.max(min, Math.min(scale, max));
+  }
+  function updateUploaderTranslate() {
+    if (!viewportEl.value || !canvas.value) return;
+
+    const viewportWidth = viewportEl.value.clientWidth;
+    const viewportHeight = viewportEl.value.clientHeight;
+    const canvasWidth = canvas.value.width;
+    const canvasHeight = canvas.value.height;
+    const scaledContentWidth = canvasWidth * divScale.value;
+    const scaledContentHeight = canvasHeight * divScale.value;
+
+    // 計算內容超出視窗的部分
+    const overflowX = Math.max(0, scaledContentWidth - viewportWidth);
+    const overflowY = Math.max(0, scaledContentHeight - viewportHeight);
+    const edgeDistanceX: number = overflowX === 0 ? 0 : 20;
+    const edgeDistanceY: number = overflowY === 0 ? 0 : 20;
+    // NBaseScrollbar 的滾動範圍是基於中心點的偏移量
+
+    uploaderTranslate.value.minX = -overflowX / 2 - edgeDistanceX;
+    uploaderTranslate.value.maxX = overflowX / 2 + edgeDistanceX;
+    uploaderTranslate.value.minY = -overflowY / 2 - edgeDistanceY;
+    uploaderTranslate.value.maxY = overflowY / 2 + edgeDistanceY;
+  }
+  function setCanvas(value: HTMLCanvasElement) {
+    canvas.value = value;
+  }
+  function setViewport(value: HTMLDivElement) {
+    viewportEl.value = value;
+  }
+
   return {
     // State
+    canvas,
+    viewportEl,
     stage,
     imageList,
     originalImage,
@@ -394,6 +437,8 @@ export const useEditorStore = defineStore('editor', () => {
     pageName,
     deleteIcon,
     savingImage,
+    divScale,
+    uploaderTranslate,
     // Getters
     selectedElement,
     selectedIndex,
@@ -426,6 +471,10 @@ export const useEditorStore = defineStore('editor', () => {
     defaultPropsPanel,
     saveHistory,
     undo,
-    redo
+    redo,
+    setDivScale,
+    updateUploaderTranslate,
+    setCanvas,
+    setViewport
   };
 });

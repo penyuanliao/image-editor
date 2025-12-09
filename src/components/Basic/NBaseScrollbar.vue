@@ -201,7 +201,7 @@ onMounted(() => {
 });
 
 watch(() => [props.minX, props.maxX, props.minY, props.maxY], async () => {
-  console.log(`minX=%s, maxX=%s, minY=%s, maxY=%s`, props.minX, props.maxX, props.minY, props.maxY);
+  // console.log(`minX=%s, maxX=%s, minY=%s, maxY=%s`, props.minX, props.maxX, props.minY, props.maxY);
   // 當滾動範圍變化時，確保目前的 translate 值仍在新的範圍內
   translateX.value = Math.min(Math.max(translateX.value, props.minX), props.maxX);
   translateY.value = Math.min(Math.max(translateY.value, props.minY), props.maxY);
@@ -269,15 +269,15 @@ defineExpose({
 .viewport {
   flex-grow: 1;
   overflow: hidden;
-  display: flex;
-  justify-content: center;
-  align-items: center;
 }
 
 .content {
-  display: inline-block;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   transition: transform 0s;
-  white-space: nowrap;
 }
 
 .track-x {
