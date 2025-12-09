@@ -26,9 +26,9 @@ watch(() => materialsStore.materials, () => {
 </script>
 
 <template>
-<div class="categories-view">
+<section class="categories-view">
   <template v-for="(row, rowIndex) in materialCategories" :key="`${row.id}`">
-    <el-row class="group" :gutter="10">
+    <el-row class="label" :gutter="10">
       <el-col :span="16"><div class="title">{{ row.category }}</div></el-col>
       <el-col :span="8"><div class="more" @click="handleMoreButton(rowIndex, row.category)">more</div></el-col>
     </el-row>
@@ -41,7 +41,7 @@ watch(() => materialsStore.materials, () => {
       </el-col>
     </el-row>
   </template>
-</div>
+</section>
 </template>
 
 <style scoped lang="scss">
@@ -89,7 +89,15 @@ watch(() => materialsStore.materials, () => {
 }
 .title {
   border-radius: 4px;
-  min-height: 36px;
+  min-height: 16px;
+}
+.label {
+  height: 16px;
+  .el-col,
+  .el-row {
+    margin-bottom: 0;
+  }
+
 }
 .more {
   display: flex;

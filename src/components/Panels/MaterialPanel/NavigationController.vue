@@ -4,9 +4,10 @@ import gsap from "gsap";
 import CategoriesGroupView from "@/components/Panels/MaterialPanel/CategoriesGroupView.vue";
 import CategoriesView from "@/components/Panels/MaterialPanel/CategoriesView.vue";
 import CategoryGalleryView from "@/components/Panels/MaterialPanel/CategoryGalleryView.vue";
-import {Close, Search} from "@element-plus/icons-vue";
+import {Back, Close, Search} from "@element-plus/icons-vue";
 import {useMaterialsStore} from "@/store/useMaterialsStore.ts";
 import {ElementTypesEnum} from "@/types.ts";
+import NSearchButton from "@/components/Basic/NSearchButton.vue";
 const materialsStore = useMaterialsStore();
 
 const emit = defineEmits<{ (e: 'add-element', action: any): void }>();
@@ -68,23 +69,7 @@ watch(selectedIndex, (newIndex) => {
     <div class="content-wrapper" ref="contentWrapper">
       <div class="view scroll-bar-hidden">
         <div class="content">
-          <div style="width: 100%; height: fit-content; padding: 20px 0; display: flex; justify-content: center; align-items: center; flex-direction: column;">
-            <el-input
-                v-model="input"
-                class="source-search-input"
-                placeholder="搜尋素材"
-                :clear-icon="Close"
-                clearable
-            >
-              <template v-slot:suffix>
-                <div class="submit-btn">
-                  <el-icon size="20">
-                    <Search />
-                  </el-icon>
-                </div>
-              </template>
-            </el-input>
-          </div>
+          <NSearchButton v-bind:input="input"/>
           <p>請選擇分類</p>
           <CategoriesGroupView @change="handleCategoriesGroupChange"/>
         </div>
@@ -93,33 +78,13 @@ watch(selectedIndex, (newIndex) => {
         <div class="header">
           <el-button class="back" @click="handleViewClick(0)">
             <template #icon>
-              <el-icon size="20">
-                <svg width="32" height="32" viewBox="0 0 40.96 40.96" xmlns="http://www.w3.org/2000/svg"><path d="M8.96 19.2h25.6a1.28 1.28 0 1 1 0 2.56H8.96a1.28 1.28 0 0 1 0-2.56"/><path d="m9.49 20.48 10.616 10.614a1.28 1.28 0 0 1-1.812 1.812l-11.52-11.52a1.28 1.28 0 0 1 0-1.812l11.52-11.52a1.28 1.28 0 1 1 1.812 1.812z"/></svg>
-              </el-icon>
+              <el-icon size="24"><Back /></el-icon>
             </template>
           </el-button>
           <h2>{{ title }}</h2>
         </div>
         <div class="content">
-
-          <div style="width: 100%; height: fit-content; padding: 20px 0; display: flex; justify-content: center; align-items: center; flex-direction: column;">
-            <el-input
-                v-model="input"
-                class="source-search-input"
-                placeholder="搜尋素材"
-                :clear-icon="Close"
-                clearable
-            >
-              <template v-slot:suffix>
-                <div class="submit-btn">
-                  <el-icon size="20">
-                    <Search />
-                  </el-icon>
-                </div>
-              </template>
-            </el-input>
-          </div>
-
+          <NSearchButton v-bind:input="input"/>
           <CategoriesView
               @change="handleImageChange"
               @more="handleMoreClick" />
@@ -129,33 +94,13 @@ watch(selectedIndex, (newIndex) => {
         <div class="header">
           <el-button class="back" @click="handleViewClick(1)">
             <template #icon>
-              <el-icon size="20">
-                <svg width="32" height="32" viewBox="0 0 40.96 40.96" xmlns="http://www.w3.org/2000/svg"><path d="M8.96 19.2h25.6a1.28 1.28 0 1 1 0 2.56H8.96a1.28 1.28 0 0 1 0-2.56"/><path d="m9.49 20.48 10.616 10.614a1.28 1.28 0 0 1-1.812 1.812l-11.52-11.52a1.28 1.28 0 0 1 0-1.812l11.52-11.52a1.28 1.28 0 1 1 1.812 1.812z"/></svg>
-              </el-icon>
+              <el-icon size="24"><Back /></el-icon>
             </template>
           </el-button>
           <h2>{{ subTitle }}</h2>
         </div>
         <div class="content">
-
-          <div style="width: 100%; height: fit-content; padding: 20px 0; display: flex; justify-content: center; align-items: center; flex-direction: column;">
-            <el-input
-                v-model="input"
-                class="source-search-input"
-                placeholder="搜尋素材"
-                :clear-icon="Close"
-                clearable
-            >
-              <template v-slot:suffix>
-                <div class="submit-btn">
-                  <el-icon size="20">
-                    <Search />
-                  </el-icon>
-                </div>
-              </template>
-            </el-input>
-          </div>
-
+          <NSearchButton v-bind:input="input"/>
           <CategoryGalleryView @change="handleImageChange"/>
         </div>
       </div>
