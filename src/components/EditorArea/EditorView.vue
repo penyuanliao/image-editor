@@ -78,6 +78,21 @@ const popOverMenu = reactive({
     y: -40
   },
 });
+// 將世界座標轉換為螢幕座標
+const worldToScreen = (worldX: number, worldY: number) => {
+  if (!canvas.value) return { x: worldX, y: worldY };
+
+  const scale = editor.value.scale;
+  const panX = editor.value.viewOffsetX;
+  const panY = editor.value.viewOffsetY;
+  const cx = canvas.value.width / 2;
+  const cy = canvas.value.height / 2;
+
+  const screenX = (worldX - cx) * scale + cx + panX;
+  const screenY = (worldY - cy) * scale + cy - panY;
+
+  return { x: screenX, y: screenY };
+};
 onMounted(async () => {
   const { viewport } = generalDefaults;
   const config = editorStore.stage.config as StageConfig;
@@ -112,8 +127,11 @@ onMounted(async () => {
     // 設定PopOver選單的回呼函式
     editor.value.onPopOverMenu = (event) => {
       popOverMenu.visible = advancedDefaults.popupMenu && (event.visible || false);
-      popOverMenu.x = Math.max(Math.min(event.x + popOverMenu.offset.x, 900), -100);
-      popOverMenu.y = Math.max(event.y + popOverMenu.offset.y, -50);
+      if (popOverMenu.visible) {
+        const screenCoords = worldToScreen(event.x, event.y);
+        popOverMenu.x = screenCoords.x + popOverMenu.offset.x;
+        popOverMenu.y = screenCoords.y + popOverMenu.offset.y;
+      }
     };
     // 設定文字編輯的回呼函式
     editor.value.onStartEditText = (element) => {
@@ -176,13 +194,14 @@ let minWidth = ref(0);
 // --- 文字編輯方法 ---
 const updateTextareaSize = () => {
   const textarea = textInput.value;
-  if (!textarea) return;
+  if (!textarea || !editor.value.editingElement) return;
 
   // 為了準確計算，先重設高度
   textarea.style.height = 'auto';
   // 寬度設為 auto 以便計算 scrollWidth，但要確保它不小於初始寬度
   textarea.style.width = `${minWidth.value}px`;
   const config = selectedElement.value?.config as ITextConfig;
+  const scale = editorStore.viewTranslate.scale;
 
   // 根據內容捲動寬高來設定新的寬高
   // const scrollHeight = textarea.scrollHeight;
@@ -190,7 +209,7 @@ const updateTextareaSize = () => {
   const w = Math.max(scrollWidth, minWidth.value);
   const countLines: number = config.content.split('\n').length;
   // console.log('countLines', countLines * (config._lineSpacing || 0), scrollHeight);
-  textarea.style.height = `${countLines * (config._lineSpacing || 0)}px`;
+  textarea.style.height = `${countLines * (config._lineSpacing || 0) * scale}px`;
   textarea.style.width = `${w}px`;
   if (countLines > (config._countLines || 1)) {
     const top: number = Number.parseFloat(textarea.style.top.replace('px', ''));
@@ -230,13 +249,12 @@ const textAreaSelected = (event: Event) => {
   const selectedText: string = target.value.substring(target.selectionStart, target.selectionEnd);
   console.log('Text selected:', selectedText);
 }
-
-// 儲存裁切後的圖片
-const saveImage = async () => {
+//
+const preview = () => {
   // 計算比例
   const scaleFactor = 1 / editor.value.artboardSize.scale;
   // 輸出圖片的 URL
-  const href = exportCroppedArea({
+  return exportCroppedArea({
     store: editorStore,
     editorCanvas: canvas.value,
     cropBox: {
@@ -249,7 +267,13 @@ const saveImage = async () => {
     type: 'image/png',
     color: editor.value.viewport.color
   } as CroppedExportOptions);
+}
+// 儲存裁切後的圖片
+const saveImage = async () => {
+  const href = preview();
+  // editorStore.saveConfirm = true;
   if (href) {
+    editorStore.setPreviewImage(href);
     // 4. 將暫時畫布的內容轉換為圖片的 data URL 並觸發下載
     const link = document.createElement('a');
     link.href = href;
@@ -411,12 +435,15 @@ const handleCtrlEvent = (action: string) => {
 }
 watch(() => editorStore.viewTranslate.x, () => {
   editor.value.render();
-})
+});
 watch(() => editorStore.viewTranslate.y, () => {
   editor.value.render();
-})
+});
+watch(() => editorStore.viewTranslate.scale, () => {
+  editor.value.render();
+});
 
-defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh, updateCanvasScale });
+defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh, updateCanvasScale, preview });
 
 </script>
 

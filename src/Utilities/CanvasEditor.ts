@@ -80,12 +80,9 @@ export class CanvasEditor {
     public cropBox: { x: number, y: number, width: number, height: number, scale: number; };
 
     // 縮放與平移狀態
-    // public scale: number = 1; // 這邊是canvas縮放比例
-
     get scale(): number {
         return this.store?.viewTranslate.scale || 1;
     }
-
     get viewOffsetX(): number {
         return this.store?.viewTranslate.x || 0;
     }
@@ -133,8 +130,11 @@ export class CanvasEditor {
     // 拖曳裁切框相關的狀態
     public isDraggingCropBox: boolean = false;
     public isDraggingElement: boolean = false;
+    // 縮放
     public isResizing: string|null = null;
+    // 剪裁事件
     public isCroppingAction: string|null = null; // 新增：用於標記正在進行的剪裁操作
+    // 旋轉
     public isRotating: boolean = false;
 
     // 拖曳選擇相關狀態
@@ -168,7 +168,10 @@ export class CanvasEditor {
             scale: 1,
         }
     }
-
+    /**
+     * 初始化滑鼠事件
+     * @private
+     */
     private setupEventListeners() {
         this.canvas?.addEventListener('mousedown', this.handleMouseDown.bind(this));
         this.canvas?.addEventListener('mousemove', this.handleMouseMove.bind(this));
@@ -324,7 +327,7 @@ export class CanvasEditor {
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         // 2. 儲存 context 狀態並套用視圖變換 (縮放/平移)
         ctx.save();
-        ctx.translate(this.store.viewTranslate.x, this.store.viewTranslate.y * -1);
+        ctx.translate(this.viewOffsetX * -1, this.viewOffsetY * -1);
         // 中心點縮放
         const cx = canvas?.width / 2;
         const cy = canvas?.height / 2;
@@ -1077,24 +1080,36 @@ export class CanvasEditor {
     }
 
     public updateTextInputStyle(element: ICanvasElement, box: { x: number, y: number, width: number, height: number }) {
+        if (!this.canvas) return;
+
+        const scale = this.scale;
+        const panX = this.viewOffsetX;
+        const panY = this.viewOffsetY;
+        const cx = this.canvas.width / 2;
+        const cy = this.canvas.height / 2;
+
         // 將世界座標轉換回螢幕座標來定位 HTML input
-        const viewX = box.x * this.scale + this.viewOffsetX;
-        const viewY = box.y * this.scale + this.viewOffsetY;
+        const screenX = (box.x - cx) * scale + cx + panX;
+        const screenY = (box.y - cy) * scale + cy - panY;
+
         const config = element.config as ITextConfig;
 
         // 設定 input 的樣式和位置
-        this.textInputStyle.left = `${viewX}px`;
-        this.textInputStyle.top = `${viewY - 3}px`;
-        this.textInputStyle.width = `${box.width * this.scale}px`;
-        this.textInputStyle.height = `${box.height * this.scale}px`;
-        this.textInputStyle.fontSize = `${config.fontSize}px`;
+        this.textInputStyle.left = `${screenX}px`;
+        this.textInputStyle.top = `${screenY - 3}px`; // 微調
+        this.textInputStyle.width = `${box.width * scale}px`;
+        this.textInputStyle.height = `${box.height * scale}px`;
+        this.textInputStyle.fontSize = `${(config.fontSize || 12 ) * scale}px`; // 字體大小也需要縮放
         this.textInputStyle.fontFamily = config.fontFamily || '';
-        this.textInputStyle.letterSpacing = `${config.letterSpacing}px`;
-        this.textInputStyle.lineHeight = config.lineHeight || 1.2;
+        this.textInputStyle.letterSpacing = `${(config.letterSpacing || 0) * scale}px`; // 字距也需要縮放
+        this.textInputStyle.lineHeight = config.lineHeight || 1.2; // 行高是相對值，通常不需要乘以 scale
         this.textInputStyle.color = config.color || 'black';
         this.textInputStyle.textAlign = config.textAlign || 'left';
+
+        // 旋轉中心也需要是轉換後的
+        this.textInputStyle.transformOrigin = 'center center';
         if (config.rotation) {
-            this.textInputStyle.transform = `rotate(${Math.round((config.rotation * 180) / Math.PI)}deg)`;
+            this.textInputStyle.transform = `rotate(${config.rotation}rad)`;
         } else {
             this.textInputStyle.transform = 'none';
         }

@@ -6,8 +6,8 @@ export const processFile = (file: File) => {
 
     return new Promise<IUploadedImage>((resolve, reject) => {
         // 驗證是否為圖片檔案
-        if (!generalDefaults.supportedImageFiles.includes(file.type)) {
-            ErrorMessage(`不支援的檔案格式。請上傳 ${generalDefaults.supportedImageFiles.join(', ')} 格式的檔案。`);
+        if (!generalDefaults.allowedExtensions.includes(file.type)) {
+            ErrorMessage(`不支援的檔案格式。請上傳 ${generalDefaults.allowedExtensions.join(', ')} 格式的檔案。`);
             reject('Invalid file type')
             return;
         }

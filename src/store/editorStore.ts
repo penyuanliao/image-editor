@@ -45,6 +45,20 @@ export const useEditorStore = defineStore('editor', () => {
   const history = ref<string[]>(['[]']); // 每個步驟的資料
   // 正在還原狀態
   const isRestoring = ref(false); // 用於防止在 undo/redo 時觸發 watch
+  // 預覽圖片
+  const previewImage = ref<string>('');
+  //
+  const saveConfirm = ref<boolean>(false);
+
+  // const saveFileOptions = ref<{
+  //   fileName: string,
+  //   mineType: string,
+  //   quality: number
+  // }>({
+  //   fileName: `edited-image-${Date.now()}`,
+  //   mineType: "image/png",
+  //   quality: 1
+  // })
 
   // --- 互動狀態管理 ---
 
@@ -59,9 +73,9 @@ export const useEditorStore = defineStore('editor', () => {
   const savingImage = ref(false);
   // Scrollbar 邊緣值
   const viewTranslate = ref<{ scale: number, x: number, y: number, minX: number, minY: number, maxX: number, maxY: number }>({ scale: 1, x: 0, y: 0, minX: 0, minY: 0, maxX: 0, maxY: 0});
-
+  // 計算放大、位移使用
   const canvas = ref<HTMLCanvasElement>();
-
+  // 計算放大、位移使用
   const viewportEl = ref<HTMLDivElement>();
 
   // --- Getters ---
@@ -261,7 +275,7 @@ export const useEditorStore = defineStore('editor', () => {
   /**
    * 上下撐滿
    */
-  const elEqualStageHeight = () => {
+  const fitToHeight = () => {
     if (selectedElement.value && selectedElement.value.config) {
       const config = selectedElement.value.config as IImageConfig;
       config.height = (stage.config.height || 1) * (stage.config.scaleY || 1);
@@ -272,7 +286,7 @@ export const useEditorStore = defineStore('editor', () => {
   /**
    * 左右撐滿
    */
-  const elEqualStageWidth = () => {
+  const fitToWidth = () => {
     if (selectedElement.value && selectedElement.value.config) {
       const config = selectedElement.value.config as IImageConfig;
       config.width = (stage.config.width || 1) * (stage.config.scaleX || 1);
@@ -424,6 +438,9 @@ export const useEditorStore = defineStore('editor', () => {
   function setViewport(value: HTMLDivElement) {
     viewportEl.value = value;
   }
+  function setPreviewImage(value: string) {
+    previewImage.value = value;
+  }
 
   return {
     // State
@@ -445,6 +462,8 @@ export const useEditorStore = defineStore('editor', () => {
     rotationInDegrees,
     hasUndo,
     hasRedo,
+    previewImage,
+    saveConfirm,
     // Actions
     addImage,
     setOriginalImage,
@@ -466,8 +485,8 @@ export const useEditorStore = defineStore('editor', () => {
     flipVertical,
     replaceSelectedElementImage,
     imageCache,
-    elEqualStageWidth,
-    elEqualStageHeight,
+    fitToWidth,
+    fitToHeight,
     defaultPropsPanel,
     saveHistory,
     undo,
@@ -475,6 +494,7 @@ export const useEditorStore = defineStore('editor', () => {
     setScale,
     updateViewTranslate,
     setCanvas,
-    setViewport
+    setViewport,
+    setPreviewImage
   };
 });

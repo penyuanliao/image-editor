@@ -54,7 +54,7 @@ const triggerFileInput = () => {
         ref="fileInput"
         @change="handleFileChange"
         multiple
-        :accept="generalDefaults.supportedImageFiles.join(',')"
+        :accept="generalDefaults.allowedExtensions.join(',')"
         hidden
     />
     <div class="categories">

@@ -34,7 +34,7 @@ const progressValue = ref(props.progressValue || 0);
         <span class="text">图层</span>
       </div>
       <UndoRedo v-if="advancedDefaults.undoRedoEnabled"/>
-      <NZoomControl/>
+      <NZoomControl v-if="advancedDefaults.zoomEnabled"/>
     </div>
   </div>
 </template>

@@ -9,7 +9,7 @@ export interface IGeneralSettings {
         maxHeight: number;
     },
     // 支援的圖片格式
-    supportedImageFiles: string[];
+    allowedExtensions: string[];
     // 還原步驟最大值
     undoRedoStackMax: number;
     // 縮放範圍
@@ -44,7 +44,7 @@ export const generalDefaults: IGeneralSettings = {
         maxWidth: 800,
         maxHeight: 600
     },
-    supportedImageFiles: ["image/png", "image/jpeg", "image/webp"],
+    allowedExtensions: ["image/png", "image/jpeg", "image/webp"],
     undoRedoStackMax: 20,
     zoomLimits: {
         max: 5,
@@ -162,7 +162,7 @@ export const advancedDefaults:IAdvancedSettings = {
     popupMenu: true,
     imageCropEditEnabled: false,
     alignEnabled: false,
-    zoomEnabled: true,
+    zoomEnabled: false,
     undoRedoEnabled: false,
     eachSideHandlesEnabled: true,
     pivotPointEnabled: true,

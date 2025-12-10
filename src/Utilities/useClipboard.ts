@@ -17,7 +17,7 @@ export const clipboardPaste = async ():Promise<{
         if (item.types.includes('text/plain')) {
             let blob = await item.getType("text/plain");
             texts.push( await blob.text());
-        } else if (item.types.every((type) => generalDefaults.supportedImageFiles.includes(type))) {
+        } else if (item.types.every((type) => generalDefaults.allowedExtensions.includes(type))) {
             const png = item.types.includes('image/png');
             const blob = await item.getType(png ? "image/png" : "image/jpeg");
             const image = await loadImage(blob);

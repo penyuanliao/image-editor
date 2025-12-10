@@ -326,7 +326,7 @@ const handleSaveHistory = () => {
       <div class="ctrl">
         <NPosition @change="handlePositionChange" style="padding-right: 10px;"/>
         <el-tooltip content="左右滿版" placement="top" :auto-close="500">
-          <el-button class="full-stage-btn" @click="editorStore.elEqualStageWidth">
+          <el-button class="full-stage-btn" @click="editorStore.fitToWidth">
             <template #icon>
               <el-icon size="24">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M15.58 11.25H8.42l.89-1.002a.75.75 0 0 0-1.12-.996l-2 2.25a.75.75 0 0 0 0 .996l2 2.25a.75.75 0 1 0 1.12-.996l-.89-1.002h7.16l-.89 1.002a.75.75 0 1 0 1.12.996l2-2.25.011-.012a.75.75 0 0 0-.013-.987l-1.997-2.247a.75.75 0 0 0-1.121.996z" fill="currentColor"/>
@@ -337,7 +337,7 @@ const handleSaveHistory = () => {
           </el-button>
         </el-tooltip>
         <el-tooltip content="上下滿版" placement="top" :auto-close="500">
-          <el-button class="full-stage-btn" @click="editorStore.elEqualStageHeight">
+          <el-button class="full-stage-btn" @click="editorStore.fitToHeight">
             <template #icon>
               <el-icon size="24">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
