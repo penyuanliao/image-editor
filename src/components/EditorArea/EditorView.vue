@@ -382,9 +382,12 @@ const updateCanvasScale = () => {
   const { width, height } = editorStore.stage.config as StageConfig;
   // 由小至大時候需要拉大canvas
   if (windowSize.width > editor.value.viewport.width || windowSize.height > editor.value.viewport.height) {
+    const offsetX = (windowSize.width - editor.value.viewport.width) / 2;
+    const offsetY = (windowSize.height - editor.value.viewport.height) / 2;
     editor.value.viewport.width = windowSize.width;
     editor.value.viewport.height = windowSize.height;
     editor.value.updateViewportSize(width, height);
+    editor.value.regulateElements(offsetX, offsetY);
     // !Issue: 需要處理Elements的物件相對定增加x, y
     editor.value.render();
   }

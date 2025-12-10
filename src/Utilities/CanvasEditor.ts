@@ -1301,10 +1301,10 @@ export class CanvasEditor {
     }
     // 更新Canvas大小時候需要動態調整Element位置
     public regulateElements(x: number, y: number) {
-        this.store.selectedElements.forEach((el) => {
+        this.store.elements.forEach((el) => {
             el.config.x += x;
             el.config.y += y;
-        })
+        });
     };
     // 銷毀時要移除監聽器
     public destroy() {
