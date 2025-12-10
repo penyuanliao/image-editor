@@ -14,6 +14,8 @@ import {CreateImageElement} from "./Utilities/useCreateCanvasElement.ts";
 import StagePropsPanel from "./components/Panels/StagePropsPanel.vue";
 import NNavbar from "@/components/Basic/NNavbar.vue";
 import NavigationController from "@/components/Panels/MaterialPanel/NavigationController.vue";
+import AuthenticationError from "@/components/Views/AuthenticationError.vue";
+import NLoading from "@/components/Views/NLoading.vue";
 
 const editorStore = useEditorStore();
 const editor = ref<InstanceType<typeof EditorView> | null>(null);
@@ -101,6 +103,8 @@ const styleSidebar = computed(() => {
   }
 });
 
+const state = ref<'loading' | 'completed' | 'denied'>('completed')
+
 watch(selected, async () => {
   // 等待 DOM 更新 (sidebar 寬度變化) 完成
   await nextTick();
@@ -110,8 +114,10 @@ watch(selected, async () => {
 </script>
 
 <template>
+  <NLoading v-if="state === 'loading'"/>
+  <AuthenticationError v-if="state === 'denied'"/>
   <!-- 使用 DropZone 元件並監聽 files-dropped 事件 -->
-  <DropZone class="drop-zone-wrapper" @files-dropped="handleFilesDropped">
+  <DropZone v-if="state==='completed'" class="drop-zone-wrapper" @files-dropped="handleFilesDropped">
     <div
         class="main-container"
     >

@@ -1,24 +1,36 @@
 <script setup lang="ts">
 
+import { computed } from "vue";
 import {Close, Search} from "@element-plus/icons-vue";
 
 const props = defineProps({
-  'input': {
+  input: {
     type: String,
     default: ''
   }
 });
 
+const emit = defineEmits(['update:input', 'change']);
+
+const inputValue = computed({
+  get() {
+    return props.input;
+  },
+  set(value) {
+    emit('update:input', value);
+  }
+});
 </script>
 
 <template>
   <div style="width: 100%; height: fit-content; padding: 20px 0; display: flex; justify-content: center; align-items: center; flex-direction: column;">
     <el-input
-        v-model="props.input"
+        v-model="inputValue"
         class="source-search-input"
         placeholder="搜尋素材"
         :clear-icon="Close"
         clearable
+        @change="emit('change', inputValue)"
     >
       <template v-slot:suffix>
         <div class="submit-btn">

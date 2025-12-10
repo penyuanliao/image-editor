@@ -52,7 +52,7 @@ export const useEditorStore = defineStore('editor', () => {
   // 用於文字雙擊編輯
   const editingElement = ref<ICanvasElement | null>(null);
   // 檔案名稱
-  const pageName = ref<string | null>(`edited-image-${Date.now()}.png`);
+  const pageName = ref<string | null>(`edited-image-${Date.now()}`);
   // --- 預載入控制項圖示 ---
   const deleteIcon = ref(new Image());
   //狀態控制: 儲存中
@@ -60,7 +60,7 @@ export const useEditorStore = defineStore('editor', () => {
   // Div 縮放比例
   const divScale = ref<number>(1);
   // Scrollbar 邊緣值
-  const uploaderTranslate = ref<{ x: number, y: number, minX: number, minY: number, maxX: number, maxY: number }>({ x: 0, y: 0, minX: 0, minY: 0, maxX: 0, maxY: 0});
+  const viewTranslate = ref<{ x: number, y: number, minX: number, minY: number, maxX: number, maxY: number }>({ x: 0, y: 0, minX: 0, minY: 0, maxX: 0, maxY: 0});
 
   const canvas = ref<HTMLCanvasElement>();
 
@@ -393,9 +393,12 @@ export const useEditorStore = defineStore('editor', () => {
 
   function setDivScale(scale: number) {
     const { min, max } = generalDefaults.zoomLimits;
+    if (divScale.value < 1 && scale > 1) scale = 1;
+
     divScale.value = Math.max(min, Math.min(scale, max));
   }
-  function updateUploaderTranslate() {
+  //
+  function updateViewTranslate() {
     if (!viewportEl.value || !canvas.value) return;
 
     const viewportWidth = viewportEl.value.clientWidth;
@@ -412,10 +415,10 @@ export const useEditorStore = defineStore('editor', () => {
     const edgeDistanceY: number = overflowY === 0 ? 0 : 20;
     // NBaseScrollbar 的滾動範圍是基於中心點的偏移量
 
-    uploaderTranslate.value.minX = -overflowX / 2 - edgeDistanceX;
-    uploaderTranslate.value.maxX = overflowX / 2 + edgeDistanceX;
-    uploaderTranslate.value.minY = -overflowY / 2 - edgeDistanceY;
-    uploaderTranslate.value.maxY = overflowY / 2 + edgeDistanceY;
+    viewTranslate.value.minX = -overflowX / 2 - edgeDistanceX;
+    viewTranslate.value.maxX = overflowX / 2 + edgeDistanceX;
+    viewTranslate.value.minY = -overflowY / 2 - edgeDistanceY;
+    viewTranslate.value.maxY = overflowY / 2 + edgeDistanceY;
   }
   function setCanvas(value: HTMLCanvasElement) {
     canvas.value = value;
@@ -438,7 +441,7 @@ export const useEditorStore = defineStore('editor', () => {
     deleteIcon,
     savingImage,
     divScale,
-    uploaderTranslate,
+    viewTranslate,
     // Getters
     selectedElement,
     selectedIndex,
@@ -473,7 +476,7 @@ export const useEditorStore = defineStore('editor', () => {
     undo,
     redo,
     setDivScale,
-    updateUploaderTranslate,
+    updateViewTranslate,
     setCanvas,
     setViewport
   };

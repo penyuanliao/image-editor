@@ -85,9 +85,6 @@ export class CanvasEditor {
     public viewOffsetY: number = 0;
     public autoDivScale: boolean = true;
 
-    // 用於平移 uploader-container
-    public uploaderTranslate: { x: number, y: number, minX: number, minY: number, maxX: number, maxY: number } = { x: 0, y: 0, minX: 0, minY: 0, maxX: 0, maxY: 0 }
-
     public viewport: ICanvasViewport = {
         width: 800,
         height: 600,
@@ -176,7 +173,7 @@ export class CanvasEditor {
         if (wheelElement) {
             this.wheelElement = wheelElement;
             this.store.setViewport(wheelElement);
-            this.store.updateUploaderTranslate();
+            this.store.updateViewTranslate();
             // 因為滑鼠滾輪放大無法觸發scrollbar顯示事件這邊透過:key改變強制 Vue 重掛載該 DOM
             this.wheelElement?.addEventListener('wheel', this.handleWheel.bind(this));
         }
@@ -216,17 +213,14 @@ export class CanvasEditor {
     }
 
     public setImage(image: HTMLImageElement, base64: string) {
-        // const index:number = this.store.addImage(image);
-        // this.store.setOriginalImage(index);
-        // this.render();
         if (!this.canvas) return;
         const shrink: number = 0.9;
 
         const info = calculateConstrainedSize(
             image.naturalWidth,
             image.naturalHeight,
-            this.canvas.width,
-            this.canvas.height
+            this.artboardSize.width,
+            this.artboardSize.height
         );
 
         this.store.addImage({
@@ -1049,7 +1043,7 @@ export class CanvasEditor {
         // clientWidth/Height 不會包含 transform: scale 的效果。
         // 我們需要手動計算縮放後的可滾動範圍。
         if (this.canvas && this.wheelElement) {
-            this.store.updateUploaderTranslate();
+            this.store.updateViewTranslate();
         }
 
         this.render();
@@ -1163,8 +1157,7 @@ export class CanvasEditor {
         if (this.handleCopy)
             document.removeEventListener('copy', this.handleCopy);
     }
-
-    //對齊物件
+    // 對齊物件
     public align(horizontally: 'left' | 'center' | 'right' | string | null, vertically: 'top' | 'middle' | 'bottom' | string | null) {
         const selectedElements = this.store.selectedElements;
         if (selectedElements.length < 2 || !this.ctx) {
@@ -1222,7 +1215,7 @@ export class CanvasEditor {
         // 4. Re-render the canvas to show changes
         this.render();
     }
-    
+    // 對齊場景
     public stageAlign(horizontally: 'left' | 'center' | 'right' | string | null, vertically: 'top' | 'middle' | 'bottom' | string | null) {
 
         const selectedElements = this.store.selectedElements;
@@ -1264,7 +1257,13 @@ export class CanvasEditor {
         // Re-render the canvas to show changes
         this.render();
     }
-
+    // 更新Canvas大小時候需要動態調整Element位置
+    public regulateElements(x: number, y: number) {
+        this.store.selectedElements.forEach((el) => {
+            el.config.x += x;
+            el.config.y += y;
+        })
+    };
     // 銷毀時要移除監聽器
     public destroy() {
         this.textInput = null;

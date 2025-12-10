@@ -91,6 +91,8 @@ export const useMaterialsStore = defineStore('materialsStore', () => {
     // 群組裡面的material
     const selectedCategoryId = ref<number>(0);
 
+    const searchValue = ref<string>('');
+
     // 從 API 獲取模板的 action
     const getMaterials = async () => {
         isLoading.value = true;
@@ -133,22 +135,22 @@ export const useMaterialsStore = defineStore('materialsStore', () => {
         if (selectedGroup.value == -1) return [];
         const categories = rawData.value[selectedGroup.value];
         if (!categories || !Array.isArray(categories.Info)) return [];
-        return categories.Info.map((categoryData) => {
+        return categories.Info.map((category) => {
             // 轉換每個分類下的素材項目
-            const galleryItems: IGalleryItem[] = categoryData.Info.map((materialInfo) => {
+            const galleryItems: IGalleryItem[] = category.Info.map((material) => {
                 return {
-                    id: materialInfo.ID,
-                    name: materialInfo.MaterialName,
-                    src: materialInfo.Urlpath,
-                    categoryId: categoryData.ID,
+                    id: material.ID,
+                    name: material.MaterialName,
+                    src: material.Urlpath,
+                    categoryId: category.ID,
                     visible: true
                 };
             });
 
             // 組合成 IGallery 格式
             return {
-                id: categoryData.ID,
-                category: categoryData.CategoryName,
+                id: category.ID,
+                category: category.CategoryName,
                 items: galleryItems,
                 visible: true,
             };
@@ -162,7 +164,31 @@ export const useMaterialsStore = defineStore('materialsStore', () => {
         }
     })
 
+    const filtered = computed(() => {
+
+        if (!searchValue.value) {
+            return [];
+        }
+        const searchTerm = searchValue.value.toLowerCase();
+
+        // 使用 flatMap 將多層陣列扁平化
+        return rawData.value.flatMap(group =>
+            group.Info.flatMap(category =>
+                category.Info
+                    .filter(material => material.MaterialName.toLowerCase().includes(searchTerm))
+                    .map(material => ({
+                        id: material.ID,
+                        name: material.MaterialName,
+                        src: material.Urlpath,
+                        categoryId: category.ID, // 保留分類ID以便追蹤
+                        visible: true
+                    }))
+            )
+        );
+    });
+
     return {
+        searchValue,
         isLoading,
         error,
         getMaterials,
@@ -171,5 +197,6 @@ export const useMaterialsStore = defineStore('materialsStore', () => {
         categoryImages,
         selectedMaterialGroup,
         selectedCategoryId,
+        filtered
     };
 });

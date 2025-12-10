@@ -1,42 +1,47 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import {ref, watch} from "vue";
 import gsap from "gsap";
 import CategoriesGroupView from "@/components/Panels/MaterialPanel/CategoriesGroupView.vue";
 import CategoriesView from "@/components/Panels/MaterialPanel/CategoriesView.vue";
 import CategoryGalleryView from "@/components/Panels/MaterialPanel/CategoryGalleryView.vue";
-import {Back, Close, Search} from "@element-plus/icons-vue";
+import { Back } from "@element-plus/icons-vue";
 import {useMaterialsStore} from "@/store/useMaterialsStore.ts";
 import {ElementTypesEnum} from "@/types.ts";
 import NSearchButton from "@/components/Basic/NSearchButton.vue";
 const materialsStore = useMaterialsStore();
 
 const emit = defineEmits<{ (e: 'add-element', action: any): void }>();
-const selectedIndex = ref(0);
+
 const contentWrapper = ref<HTMLDivElement | null>(null);
+
+const currentStep = ref(0);
+
 const title = ref<string>('');
+
 const subTitle = ref<string>('');
+
 const input = ref<string>('');
 
-const handleViewClick = (index: number) => {
+const handleViewClick = (step: number) => {
   // 當返回時，清空對應層級的標題
-  if (index < 2) {
+  if (step < 2) {
     subTitle.value = '';
   }
-  if (index < 1) {
+  if (step < 1) {
     title.value = '';
   }
-  selectedIndex.value = index;
+  currentStep.value = step;
 };
 
 const handleMoreClick = (name: string) => {
-  selectedIndex.value = 2;
+  currentStep.value = 2;
   subTitle.value = name;
 }
 
 const handleCategoriesGroupChange = (value: { id: number, name: string, index: number }) => {
   console.log('handleCategoriesGroupChange', value);
   title.value = value.name;
-  selectedIndex.value = 1;
+  currentStep.value = 1;
   materialsStore.selectedMaterialGroup.value = value.index;
 };
 
@@ -51,8 +56,13 @@ const handleImageChange = (value: { id: number, src: string, name: string }) => 
     }, name: value.name
   });
 }
+const handleInputChange = (value: string) => {
+  materialsStore.searchValue = value;
+};
 
-watch(selectedIndex, (newIndex) => {
+
+watch(currentStep, (newIndex) => {
+
   if (contentWrapper.value) {
     const viewWidth = contentWrapper.value.children[0]?.clientWidth || 0;
     gsap.to(contentWrapper.value, {
@@ -66,10 +76,10 @@ watch(selectedIndex, (newIndex) => {
 
 <template>
   <div class="view-container">
-    <div class="content-wrapper" ref="contentWrapper">
+    <div v-if="!materialsStore.searchValue" class="content-wrapper" ref="contentWrapper">
       <div class="view scroll-bar-hidden">
         <div class="content">
-          <NSearchButton v-bind:input="input"/>
+          <NSearchButton v-model:input="input" @change="handleInputChange"/>
           <p>請選擇分類</p>
           <CategoriesGroupView @change="handleCategoriesGroupChange"/>
         </div>
@@ -84,7 +94,7 @@ watch(selectedIndex, (newIndex) => {
           <h2>{{ title }}</h2>
         </div>
         <div class="content">
-          <NSearchButton v-bind:input="input"/>
+          <NSearchButton v-model:input="input"/>
           <CategoriesView
               @change="handleImageChange"
               @more="handleMoreClick" />
@@ -100,9 +110,15 @@ watch(selectedIndex, (newIndex) => {
           <h2>{{ subTitle }}</h2>
         </div>
         <div class="content">
-          <NSearchButton v-bind:input="input"/>
-          <CategoryGalleryView @change="handleImageChange"/>
+          <NSearchButton v-model:input="input"/>
+          <CategoryGalleryView v-bind:data="materialsStore.categoryImages" @change="handleImageChange"/>
         </div>
+      </div>
+    </div>
+    <div v-else class="content-wrapper">
+      <div class="view content">
+        <NSearchButton v-model:input="input" @change="handleInputChange"/>
+        <CategoryGalleryView v-bind:data="materialsStore.filtered" @change="handleImageChange"/>
       </div>
     </div>
   </div>

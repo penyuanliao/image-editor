@@ -11,13 +11,16 @@ const zoomPercentage = computed(() => {
 const disabled = computed(() => editorStore.elements.length === 0);
 
 const zoomIn = () => {
-  editorStore.setDivScale(editorStore.divScale + 0.1);
-  editorStore.updateUploaderTranslate();
+  const scaleFactor = editorStore.stage.config.scaleX || 1;
+  editorStore.setDivScale(editorStore.divScale + 0.1 / scaleFactor);
+  editorStore.updateViewTranslate();
 };
 
 const zoomOut = () => {
-  editorStore.setDivScale(editorStore.divScale - 0.1);
-  editorStore.updateUploaderTranslate();
+  const scaleFactor = editorStore.stage.config.scaleX || 1;
+  const newScale = Math.max(0.1 / scaleFactor, editorStore.divScale - 0.1 / scaleFactor); // 確保不會小於最小比例
+  editorStore.setDivScale(newScale);
+  editorStore.updateViewTranslate();
 };
 </script>
 

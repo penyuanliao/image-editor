@@ -1,10 +1,16 @@
 <script setup lang="ts">
 
-import { type IGalleryItem, useMaterialsStore } from "@/store/useMaterialsStore.ts";
-import {computed} from "vue";
+import { type IGalleryItem } from "@/store/useMaterialsStore.ts";
+import {computed, type PropType} from "vue";
 import NImage from "@/components/Basic/NImage.vue";
 
-const materialsStore = useMaterialsStore();
+const props = defineProps({
+  'data': {
+    type: Array as PropType<IGalleryItem[]>,
+    required: true,
+    default: () => []
+  }
+});
 
 const emit = defineEmits(['change']);
 
@@ -13,7 +19,7 @@ const itemsPerRow: number = 3;
 // 將分類資料分組，每組 3 個，以對應 el-row 的結構
 const groupRows = computed(() => {
   const rows = [];
-  const images = materialsStore.categoryImages || [];
+  const images = props.data || [];
   console.log('images', images);
   for (let i = 0; i < images.length; i += itemsPerRow) {
     rows.push(images.slice(i, i + itemsPerRow));

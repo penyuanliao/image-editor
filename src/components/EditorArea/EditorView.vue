@@ -414,10 +414,10 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh,
 
 <template>
   <NBaseScrollbar ref="wheelerRef"
-                  v-bind:minX="editorStore.uploaderTranslate.minX"
-                  v-bind:maxX="editorStore.uploaderTranslate.maxX"
-                  v-bind:minY="editorStore.uploaderTranslate.minY"
-                  v-bind:maxY="editorStore.uploaderTranslate.maxY">
+                  v-bind:minX="editorStore.viewTranslate.minX"
+                  v-bind:maxX="editorStore.viewTranslate.maxX"
+                  v-bind:minY="editorStore.viewTranslate.minY"
+                  v-bind:maxY="editorStore.viewTranslate.maxY">
     <div class="editor-wrapper">
       <!-- 鍵盤控制器，用於處理快捷鍵 -->
       <KeyboardController
@@ -501,6 +501,7 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh,
             @change="handleChange"
         />
       </div>
+<!--      <div v-if="editor.isRotating" class="rotation">{{ `${ editorStore.rotationInDegrees }°` }}</div>-->
     </div>
   </NBaseScrollbar>
 </template>
@@ -692,5 +693,13 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh,
   min-height: 36px;
   flex-direction: row;
 }
-
+.rotation {
+  position: fixed; /* 使用 fixed 定位，相對於視窗 */
+  background-color: black;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  z-index: 1000;
+  padding: 1px 5px 3px 5px;
+  opacity: 0.7;
+}
 </style>
