@@ -405,6 +405,8 @@ const handleCtrlEvent = (action: string) => {
   } else if (action === 'redo') {
     editorStore.redo();
     editor.value.render();
+  } else if (action === 'esc') {
+    editorStore.clearSelection();
   }
 }
 watch(() => editorStore.viewTranslate.x, () => {

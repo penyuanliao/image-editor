@@ -53,6 +53,10 @@ const handleKeyDown = (event: KeyboardEvent) => {
       event.preventDefault();
       emit('move-selected', { dx: 1, dy: 0 });
       break;
+    case 'Escape':
+      event.preventDefault();
+      emit('ctrl-event', 'esc');
+      break;
   }
 };
 
