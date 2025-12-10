@@ -57,10 +57,8 @@ export const useEditorStore = defineStore('editor', () => {
   const deleteIcon = ref(new Image());
   //狀態控制: 儲存中
   const savingImage = ref(false);
-  // Div 縮放比例
-  const divScale = ref<number>(1);
   // Scrollbar 邊緣值
-  const viewTranslate = ref<{ x: number, y: number, minX: number, minY: number, maxX: number, maxY: number }>({ x: 0, y: 0, minX: 0, minY: 0, maxX: 0, maxY: 0});
+  const viewTranslate = ref<{ scale: number, x: number, y: number, minX: number, minY: number, maxX: number, maxY: number }>({ scale: 1, x: 0, y: 0, minX: 0, minY: 0, maxX: 0, maxY: 0});
 
   const canvas = ref<HTMLCanvasElement>();
 
@@ -391,11 +389,11 @@ export const useEditorStore = defineStore('editor', () => {
     return true;
   };
 
-  function setDivScale(scale: number) {
+  function setScale(scale: number) {
     const { min, max } = generalDefaults.zoomLimits;
-    if (divScale.value < 1 && scale > 1) scale = 1;
+    if (viewTranslate.value.scale < 1 && scale > 1) scale = 1;
 
-    divScale.value = Math.max(min, Math.min(scale, max));
+    viewTranslate.value.scale = Math.max(min, Math.min(scale, max));
   }
   //
   function updateViewTranslate() {
@@ -405,8 +403,8 @@ export const useEditorStore = defineStore('editor', () => {
     const viewportHeight = viewportEl.value.clientHeight;
     const canvasWidth = canvas.value.width;
     const canvasHeight = canvas.value.height;
-    const scaledContentWidth = canvasWidth * divScale.value;
-    const scaledContentHeight = canvasHeight * divScale.value;
+    const scaledContentWidth = canvasWidth * viewTranslate.value.scale;
+    const scaledContentHeight = canvasHeight * viewTranslate.value.scale;
 
     // 計算內容超出視窗的部分
     const overflowX = Math.max(0, scaledContentWidth - viewportWidth);
@@ -440,7 +438,6 @@ export const useEditorStore = defineStore('editor', () => {
     pageName,
     deleteIcon,
     savingImage,
-    divScale,
     viewTranslate,
     // Getters
     selectedElement,
@@ -475,7 +472,7 @@ export const useEditorStore = defineStore('editor', () => {
     saveHistory,
     undo,
     redo,
-    setDivScale,
+    setScale,
     updateViewTranslate,
     setCanvas,
     setViewport

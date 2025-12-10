@@ -3,6 +3,7 @@ import {ref, watch, onMounted, computed, nextTick} from "vue";
 import {ElementTypesEnum} from "@/types.ts";
 import {useEditorStore} from "@/store/editorStore.ts";
 
+const emit = defineEmits(['updateScroll']);
 const editorStore = useEditorStore();
 
 // 延伸寬度不包含本體
@@ -48,6 +49,7 @@ const parentElement = ref<HTMLElement | null>(null);
 const updateThumbs = () => {
   updateHorizontalThumb();
   updateVerticalThumb();
+  handleUpdateScroll(translateX.value, translateY.value);
 };
 
 const updateHorizontalThumb = () => {
@@ -83,9 +85,11 @@ const onWheel = (e: WheelEvent) => {
   const newTranslateY = translateY.value + e.deltaY;
   if (showHorizontalScrollbar.value) {
     translateX.value = Math.min(Math.max(newTranslateX, props.minX), props.maxX);
+    editorStore.viewTranslate.x = translateX.value;
   }
   if (showVerticalScrollbar.value) {
     translateY.value = Math.min(Math.max(newTranslateY, props.minY), props.maxY);
+    editorStore.viewTranslate.y = translateY.value;
   }
   updateThumbs();
 };
@@ -99,6 +103,7 @@ const onTrackClickX = (e: MouseEvent) => {
   const ratio = (offset - thumbWidth.value / 2) / (visibleWidth - thumbWidth.value);
   translateX.value = props.minX + ratio * totalRangeX.value;
   translateX.value = Math.min(Math.max(translateX.value, props.minX), props.maxX);
+  editorStore.viewTranslate.x = translateX.value;
   updateHorizontalThumb();
 };
 
@@ -110,6 +115,7 @@ const onTrackClickY = (e: MouseEvent) => {
   const ratio = (offset - thumbHeight.value / 2) / (visibleHeight - thumbHeight.value);
   translateY.value = props.minY + ratio * totalRangeY.value;
   translateY.value = Math.min(Math.max(translateY.value, props.minY), props.maxY);
+  editorStore.viewTranslate.y = translateY.value;
   updateVerticalThumb();
 };
 
@@ -133,6 +139,7 @@ const onThumbMoveX = (e: MouseEvent) => {
   thumbLeft.value = newLeft;
   const ratio = newLeft / (visibleWidth - thumbWidth.value);
   translateX.value = props.minX + ratio * totalRangeX.value;
+  editorStore.viewTranslate.x = translateX.value;
 };
 
 const onThumbUpX = () => {
@@ -161,6 +168,7 @@ const onThumbMoveY = (e: MouseEvent) => {
   thumbTop.value = newTop;
   const ratio = newTop / (visibleHeight - thumbHeight.value);
   translateY.value = props.minY + ratio * totalRangeY.value;
+  editorStore.viewTranslate.y = translateY.value;
 };
 
 const onThumbUpY = () => {
@@ -176,9 +184,11 @@ const centerView = () => {
 const scrollTo = (x: number, y: number) => {
   if (showHorizontalScrollbar.value) {
     translateX.value = Math.min(Math.max(x, props.minX), props.maxX);
+    editorStore.viewTranslate.x = translateX.value;
   }
   if (showVerticalScrollbar.value) {
     translateY.value = Math.min(Math.max(y, props.minY), props.maxY);
+    editorStore.viewTranslate.y = translateY.value;
   }
   updateThumbs();
 };
@@ -190,6 +200,9 @@ const handlePointerUp = (event: PointerEvent) => {
     editorStore.saveHistory();
     editorStore.clearSelection();
   }
+}
+const handleUpdateScroll = (x: number, y: number) => {
+  emit('updateScroll',{ x, y });
 }
 
 onMounted(() => {
@@ -205,6 +218,8 @@ watch(() => [props.minX, props.maxX, props.minY, props.maxY], async () => {
   // 當滾動範圍變化時，確保目前的 translate 值仍在新的範圍內
   translateX.value = Math.min(Math.max(translateX.value, props.minX), props.maxX);
   translateY.value = Math.min(Math.max(translateY.value, props.minY), props.maxY);
+  editorStore.viewTranslate.x = translateX.value;
+  editorStore.viewTranslate.y = translateY.value;
 
   // 等待 DOM 更新 (v-if 可能會新增/移除滾動條)
   await nextTick();
@@ -228,7 +243,6 @@ defineExpose({
       <div class="viewport" ref="viewport" @pointerup.self="handlePointerUp">
         <div
             class="content"
-            :style="{ transform: `translateX(${-translateX}px) translateY(${-translateY}px)` }"
         >
           <slot />
         </div>

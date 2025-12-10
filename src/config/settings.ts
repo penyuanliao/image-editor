@@ -47,7 +47,7 @@ export const generalDefaults: IGeneralSettings = {
     supportedImageFiles: ["image/png", "image/jpeg", "image/webp"],
     undoRedoStackMax: 20,
     zoomLimits: {
-        max: 2,
+        max: 5,
         min: 0.2
     }
 };

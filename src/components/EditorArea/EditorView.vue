@@ -340,15 +340,15 @@ const refresh = () => {
 }
 // 更新畫布比例
 const updateCanvasScale = () => {
-  if (wheelerRef.value && wheelerRef.value.parentElement && editor.value.autoDivScale) {
+  if (wheelerRef.value && wheelerRef.value.parentElement && editor.value.autoScale) {
     const { clientWidth, clientHeight } = wheelerRef.value.parentElement;
     const scaleX = Math.min(1, clientWidth / editor.value.artboardSize.width);
     const scaleY = Math.min(1, clientHeight / editor.value.artboardSize.height);
     const scale = Math.min(scaleX, scaleY);
     if (scale < 1)
-      editorStore.setDivScale(scale);
+      editorStore.setScale(scale);
     else
-      editorStore.setDivScale(1);
+      editorStore.setScale(1);
   }
   // 計算視窗大小
   const windowSize: { width: number, height: number } = {
@@ -407,6 +407,12 @@ const handleCtrlEvent = (action: string) => {
     editor.value.render();
   }
 }
+watch(() => editorStore.viewTranslate.x, () => {
+  editor.value.render();
+})
+watch(() => editorStore.viewTranslate.y, () => {
+  editor.value.render();
+})
 
 defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh, updateCanvasScale });
 
@@ -428,9 +434,6 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh,
       />
       <div
           class="uploader-container"
-          :style="{
-            transform: `scale(${editorStore.divScale})`,
-          }"
           ref="uploaderContainer">
         <canvas
             ref="canvas"
@@ -497,7 +500,7 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh,
         <NCropControls
             :crop-box="editor.cropBox"
             :viewport="editor.viewport"
-            :div-scale="editorStore.divScale"
+            :div-scale="editorStore.viewTranslate.scale"
             @change="handleChange"
         />
       </div>

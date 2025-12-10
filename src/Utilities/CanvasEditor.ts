@@ -80,10 +80,19 @@ export class CanvasEditor {
     public cropBox: { x: number, y: number, width: number, height: number, scale: number; };
 
     // 縮放與平移狀態
-    public scale: number = 1; // 這邊是canvas縮放比例
-    public viewOffsetX: number = 0;
-    public viewOffsetY: number = 0;
-    public autoDivScale: boolean = true;
+    // public scale: number = 1; // 這邊是canvas縮放比例
+
+    get scale(): number {
+        return this.store?.viewTranslate.scale || 1;
+    }
+
+    get viewOffsetX(): number {
+        return this.store?.viewTranslate.x || 0;
+    }
+    get viewOffsetY(): number {
+        return this.store?.viewTranslate.y || 0;
+    }
+    public autoScale: boolean = true;
 
     public viewport: ICanvasViewport = {
         width: 800,
@@ -196,9 +205,22 @@ export class CanvasEditor {
 
     // --- 座標轉換 ---
     private screenToWorld(x: number, y: number): { x: number, y: number } {
+        if (!this.canvas) {
+            return { x, y };
+        }
+        const cx = this.canvas.width / 2;
+        const cy = this.canvas.height / 2;
+
+        const panX = this.viewOffsetX;
+        const panY = this.viewOffsetY;
+        const scale = this.scale;
+
+        const worldX = (x - panX - cx) / scale + cx;
+        const worldY = (y + panY - cy) / scale + cy;
+
         return {
-            x: (x - this.viewOffsetX) / this.scale,
-            y: (y - this.viewOffsetY) / this.scale,
+            x: worldX,
+            y: worldY,
         };
     }
 
@@ -302,8 +324,13 @@ export class CanvasEditor {
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         // 2. 儲存 context 狀態並套用視圖變換 (縮放/平移)
         ctx.save();
-        ctx.translate(this.viewOffsetX, this.viewOffsetY);
+        ctx.translate(this.store.viewTranslate.x, this.store.viewTranslate.y * -1);
+        // 中心點縮放
+        const cx = canvas?.width / 2;
+        const cy = canvas?.height / 2;
+        ctx.translate(cx, cy);
         ctx.scale(this.scale, this.scale);
+        ctx.translate(-cx, -cy);
 
 
         // --- 以下所有繪圖都在世界座標系中進行 ---
@@ -1034,10 +1061,10 @@ export class CanvasEditor {
         if (!this.canvas) return;
         const zoomIntensity = 0.05;
         const delta = -event.deltaY * zoomIntensity;
-        const newScale = this.store.divScale + delta;
+        const newScale = this.scale + delta;
 
-        this.store.setDivScale(newScale);
-        this.autoDivScale = false;
+        this.store.setScale(newScale);
+        this.autoScale = false;
         await nextTick();
 
         // clientWidth/Height 不會包含 transform: scale 的效果。
