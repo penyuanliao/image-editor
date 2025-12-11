@@ -1,0 +1,1421 @@
+{
+  "status": true,
+  "data": [
+    {
+      "ID": 81,
+      "CategoryName": "父層-2",
+      "Info": [
+        {
+          "ID": 57,
+          "CategoryName": "VIP",
+          "Info": [
+            {
+              "ID": 51,
+              "MaterialName": "VIP_01",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/51/VIP_01.png",
+              "Tags": null
+            },
+            {
+              "ID": 52,
+              "MaterialName": "VIP_02",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/52/VIP_02.png",
+              "Tags": null
+            },
+            {
+              "ID": 53,
+              "MaterialName": "VIP_03",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/53/VIP_03.png",
+              "Tags": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ID": 80,
+      "CategoryName": "父層",
+      "Info": [
+        {
+          "ID": 76,
+          "CategoryName": "福袋",
+          "Info": [
+            {
+              "ID": 304,
+              "MaterialName": "福袋_1",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/304/%E7%A6%8F%E8%A2%8B-01.png",
+              "Tags": null
+            },
+            {
+              "ID": 305,
+              "MaterialName": "福袋_2",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/305/%E7%A6%8F%E8%A2%8B-02.png",
+              "Tags": null
+            },
+            {
+              "ID": 306,
+              "MaterialName": "福袋_3",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/306/%E7%A6%8F%E8%A2%8B-03.png",
+              "Tags": null
+            },
+            {
+              "ID": 307,
+              "MaterialName": "福袋_4",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/307/%E7%A6%8F%E8%A2%8B-04.png",
+              "Tags": null
+            },
+            {
+              "ID": 308,
+              "MaterialName": "福袋_5",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/308/%E7%A6%8F%E8%A2%8B-05.png",
+              "Tags": null
+            },
+            {
+              "ID": 309,
+              "MaterialName": "福袋_6",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/309/%E7%A6%8F%E8%A2%8B-06.png",
+              "Tags": null
+            },
+            {
+              "ID": 310,
+              "MaterialName": "福袋_7",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/310/%E7%A6%8F%E8%A2%8B-07.png",
+              "Tags": null
+            },
+            {
+              "ID": 311,
+              "MaterialName": "福袋_8",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/311/%E7%A6%8F%E8%A2%8B-08.png",
+              "Tags": null
+            },
+            {
+              "ID": 312,
+              "MaterialName": "福袋_9",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/312/%E7%A6%8F%E8%A2%8B-09.png",
+              "Tags": null
+            },
+            {
+              "ID": 313,
+              "MaterialName": "福袋_10",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/313/%E7%A6%8F%E8%A2%8B-10.png",
+              "Tags": null
+            }
+          ]
+        },
+        {
+          "ID": 75,
+          "CategoryName": "荷官",
+          "Info": [
+            {
+              "ID": 293,
+              "MaterialName": "荷官_1",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/293/%E8%8D%B7%E5%AE%98-01.png",
+              "Tags": null
+            },
+            {
+              "ID": 294,
+              "MaterialName": "荷官_2",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/294/%E8%8D%B7%E5%AE%98-02.png",
+              "Tags": null
+            },
+            {
+              "ID": 295,
+              "MaterialName": "荷官_3",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/295/%E8%8D%B7%E5%AE%98-03.png",
+              "Tags": null
+            },
+            {
+              "ID": 296,
+              "MaterialName": "荷官_4",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/296/%E8%8D%B7%E5%AE%98-04.png",
+              "Tags": null
+            },
+            {
+              "ID": 297,
+              "MaterialName": "荷官_5",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/297/%E8%8D%B7%E5%AE%98-05.png",
+              "Tags": null
+            },
+            {
+              "ID": 298,
+              "MaterialName": "荷官_6",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/298/%E8%8D%B7%E5%AE%98-06.png",
+              "Tags": null
+            },
+            {
+              "ID": 299,
+              "MaterialName": "荷官_7",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/299/%E8%8D%B7%E5%AE%98-07.png",
+              "Tags": null
+            },
+            {
+              "ID": 300,
+              "MaterialName": "荷官_8",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/300/%E8%8D%B7%E5%AE%98-08.png",
+              "Tags": null
+            },
+            {
+              "ID": 301,
+              "MaterialName": "荷官_9",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/301/%E8%8D%B7%E5%AE%98-09.png",
+              "Tags": null
+            },
+            {
+              "ID": 302,
+              "MaterialName": "荷官_10",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/302/%E8%8D%B7%E5%AE%98-10.png",
+              "Tags": null
+            },
+            {
+              "ID": 303,
+              "MaterialName": "荷官_11",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/303/%E8%8D%B7%E5%AE%98-11.png",
+              "Tags": null
+            }
+          ]
+        },
+        {
+          "ID": 74,
+          "CategoryName": "寶箱",
+          "Info": [
+            {
+              "ID": 282,
+              "MaterialName": "寶箱_1",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/282/%E5%AF%B6%E7%AE%B1-01.png",
+              "Tags": null
+            },
+            {
+              "ID": 283,
+              "MaterialName": "寶箱_2",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/283/%E5%AF%B6%E7%AE%B1-02.png",
+              "Tags": null
+            },
+            {
+              "ID": 284,
+              "MaterialName": "寶箱_3",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/284/%E5%AF%B6%E7%AE%B1-03.png",
+              "Tags": null
+            },
+            {
+              "ID": 285,
+              "MaterialName": "寶箱_4",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/285/%E5%AF%B6%E7%AE%B1-05.png",
+              "Tags": null
+            },
+            {
+              "ID": 287,
+              "MaterialName": "寶箱_5",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/287/%E5%AF%B6%E7%AE%B1-04.png",
+              "Tags": null
+            },
+            {
+              "ID": 288,
+              "MaterialName": "寶箱_6",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/288/%E5%AF%B6%E7%AE%B1-06.png",
+              "Tags": null
+            },
+            {
+              "ID": 289,
+              "MaterialName": "寶箱_7",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/289/%E5%AF%B6%E7%AE%B1-07.png",
+              "Tags": null
+            },
+            {
+              "ID": 290,
+              "MaterialName": "寶箱_8",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/290/%E5%AF%B6%E7%AE%B1-08.png",
+              "Tags": null
+            },
+            {
+              "ID": 291,
+              "MaterialName": "寶箱_9",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/291/%E5%AF%B6%E7%AE%B1-09.png",
+              "Tags": null
+            },
+            {
+              "ID": 292,
+              "MaterialName": "寶箱_10",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/292/%E5%AF%B6%E7%AE%B1-10.png",
+              "Tags": null
+            }
+          ]
+        },
+        {
+          "ID": 73,
+          "CategoryName": "自然",
+          "Info": [
+            {
+              "ID": 144,
+              "MaterialName": "山_01",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/144/%E5%B1%B1.png",
+              "Tags": null
+            },
+            {
+              "ID": 145,
+              "MaterialName": "花_01",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/145/%E8%8A%B1.png",
+              "Tags": null
+            }
+          ]
+        },
+        {
+          "ID": 72,
+          "CategoryName": "$Logo",
+          "Info": [
+            {
+              "ID": 132,
+              "MaterialName": "BBIN Logo 白",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/132/BBIN+Logo_800x568.png",
+              "Tags": null
+            },
+            {
+              "ID": 133,
+              "MaterialName": "BBIN Logo 紅",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/133/BBIN+Logo_1000x720.png",
+              "Tags": null
+            },
+            {
+              "ID": 134,
+              "MaterialName": "PG电子 Logo",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/134/PG%E7%94%B5%E5%AD%90+Logo_668x418.png",
+              "Tags": null
+            },
+            {
+              "ID": 135,
+              "MaterialName": "WG电子 Logo",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/135/WG%E7%94%B5%E5%AD%90+Logo_668x418.png",
+              "Tags": null
+            },
+            {
+              "ID": 136,
+              "MaterialName": "PA电子 Logo",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/136/PA%E7%94%B5%E5%AD%90+Logo_668x418.png",
+              "Tags": null
+            },
+            {
+              "ID": 137,
+              "MaterialName": "5G电子 Logo",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/137/5G%E7%94%B5%E5%AD%90-Logo_668x418.png",
+              "Tags": null
+            }
+          ]
+        },
+        {
+          "ID": 71,
+          "CategoryName": "礼物",
+          "Info": [
+            {
+              "ID": 131,
+              "MaterialName": "礼物_01",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/131/%E7%A4%BC%E7%89%A9_01.png",
+              "Tags": null
+            },
+            {
+              "ID": 269,
+              "MaterialName": "礼物_02",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/269/%E7%A6%AE%E7%89%A9-01.png",
+              "Tags": null
+            },
+            {
+              "ID": 270,
+              "MaterialName": "礼物_03",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/270/%E7%A6%AE%E7%89%A9-02.png",
+              "Tags": null
+            },
+            {
+              "ID": 271,
+              "MaterialName": "礼物_04",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/271/%E7%A6%AE%E7%89%A9-03.png",
+              "Tags": null
+            },
+            {
+              "ID": 272,
+              "MaterialName": "礼物_05",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/272/%E7%A6%AE%E7%89%A9-04.png",
+              "Tags": null
+            },
+            {
+              "ID": 273,
+              "MaterialName": "礼物_06",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/273/%E7%A6%AE%E7%89%A9-05.png",
+              "Tags": null
+            },
+            {
+              "ID": 276,
+              "MaterialName": "礼物_07",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/276/%E7%A6%AE%E7%89%A9-06.png",
+              "Tags": null
+            },
+            {
+              "ID": 277,
+              "MaterialName": "礼物_08",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/277/%E7%A6%AE%E7%89%A9-07.png",
+              "Tags": null
+            },
+            {
+              "ID": 278,
+              "MaterialName": "礼物_09",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/278/%E7%A6%AE%E7%89%A9-08.png",
+              "Tags": null
+            },
+            {
+              "ID": 279,
+              "MaterialName": "礼物_10",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/279/%E7%A6%AE%E7%89%A9-09.png",
+              "Tags": null
+            },
+            {
+              "ID": 280,
+              "MaterialName": "礼物_11",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/280/%E7%A6%AE%E7%89%A9-10.png",
+              "Tags": null
+            },
+            {
+              "ID": 281,
+              "MaterialName": "礼物_12",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/281/%E7%A6%AE%E7%89%A9-11.png",
+              "Tags": null
+            }
+          ]
+        },
+        {
+          "ID": 70,
+          "CategoryName": "钱",
+          "Info": [
+            {
+              "ID": 125,
+              "MaterialName": "钱包_01",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/125/%E9%92%B1%E5%8C%85_01.png",
+              "Tags": null
+            },
+            {
+              "ID": 126,
+              "MaterialName": "钱包_02",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/126/%E9%92%B1%E5%8C%85_02.png",
+              "Tags": null
+            },
+            {
+              "ID": 127,
+              "MaterialName": "钱包_03",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/127/%E9%92%B1%E5%8C%85_03.png",
+              "Tags": null
+            },
+            {
+              "ID": 128,
+              "MaterialName": "钱袋_01",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/128/%E9%92%B1%E8%A2%8B_01.png",
+              "Tags": null
+            },
+            {
+              "ID": 129,
+              "MaterialName": "钱袋_02",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/129/%E9%92%B1%E5%8C%85_02.png",
+              "Tags": null
+            },
+            {
+              "ID": 130,
+              "MaterialName": "钱袋_03",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/130/%E9%92%B1%E8%A2%8B_03.png",
+              "Tags": null
+            },
+            {
+              "ID": 249,
+              "MaterialName": "钱袋_04",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/249/%E9%8C%A2%E5%8C%85-01.png",
+              "Tags": null
+            },
+            {
+              "ID": 250,
+              "MaterialName": "钱袋_05",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/250/%E9%8C%A2%E5%8C%85-02.png",
+              "Tags": null
+            },
+            {
+              "ID": 251,
+              "MaterialName": "钱袋_06",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/251/%E9%8C%A2%E5%8C%85-03.png",
+              "Tags": null
+            },
+            {
+              "ID": 253,
+              "MaterialName": "钱袋_07",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/253/%E9%8C%A2%E5%8C%85-04.png",
+              "Tags": null
+            },
+            {
+              "ID": 254,
+              "MaterialName": "钱袋_08",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/254/%E9%8C%A2%E5%8C%85-05.png",
+              "Tags": null
+            },
+            {
+              "ID": 255,
+              "MaterialName": "钱袋_09",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/255/%E9%8C%A2%E5%8C%85-07.png",
+              "Tags": null
+            },
+            {
+              "ID": 256,
+              "MaterialName": "钱袋_10",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/256/%E9%8C%A2%E5%8C%85-08.png",
+              "Tags": null
+            },
+            {
+              "ID": 257,
+              "MaterialName": "钱袋_11",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/257/%E9%8C%A2%E5%8C%85-09.png",
+              "Tags": null
+            },
+            {
+              "ID": 258,
+              "MaterialName": "钱袋_12",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/258/%E9%8C%A2%E5%8C%85-10.png",
+              "Tags": null
+            }
+          ]
+        },
+        {
+          "ID": 69,
+          "CategoryName": "#标签",
+          "Info": [
+            {
+              "ID": 123,
+              "MaterialName": "标签_01",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/123/%E6%A0%87%E7%AD%BE_01_1.png",
+              "Tags": null
+            },
+            {
+              "ID": 124,
+              "MaterialName": "标签_02",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/124/%E6%A0%87%E7%AD%BE_02_1.png",
+              "Tags": null
+            },
+            {
+              "ID": 193,
+              "MaterialName": "@001_標籤_黑",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/193/%E6%A8%99%E7%B1%A4.png",
+              "Tags": null
+            },
+            {
+              "ID": 194,
+              "MaterialName": "@001_標籤_藍",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/194/%E6%A8%99%E7%B1%A4.png",
+              "Tags": null
+            },
+            {
+              "ID": 195,
+              "MaterialName": "@001_標籤_金",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/195/%E6%A8%99%E7%B1%A4.png",
+              "Tags": null
+            },
+            {
+              "ID": 196,
+              "MaterialName": "@001_標籤_綠",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/196/%E6%A8%99%E7%B1%A4.png",
+              "Tags": null
+            },
+            {
+              "ID": 197,
+              "MaterialName": "@001_標籤_紫",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/197/%E6%A8%99%E7%B1%A4.png",
+              "Tags": null
+            },
+            {
+              "ID": 198,
+              "MaterialName": "@001_標籤_紅",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/198/%E6%A8%99%E7%B1%A4.png",
+              "Tags": null
+            },
+            {
+              "ID": 199,
+              "MaterialName": "@008_標籤_黑",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/199/%E6%A8%99%E7%B1%A4_bk_01.png",
+              "Tags": null
+            },
+            {
+              "ID": 200,
+              "MaterialName": "@008_標籤_藍",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/200/%E6%A8%99%E7%B1%A4.png",
+              "Tags": null
+            },
+            {
+              "ID": 201,
+              "MaterialName": "@008_標籤_金",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/201/%E6%A8%99%E7%B1%A4.png",
+              "Tags": null
+            },
+            {
+              "ID": 202,
+              "MaterialName": "@008_標籤_綠",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/202/%E6%A8%99%E7%B1%A4.png",
+              "Tags": null
+            },
+            {
+              "ID": 203,
+              "MaterialName": "@008_標籤_紫",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/203/%E6%A8%99%E7%B1%A4.png",
+              "Tags": null
+            },
+            {
+              "ID": 204,
+              "MaterialName": "@008_標籤_紅",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/204/%E6%A8%99%E7%B1%A4.png",
+              "Tags": null
+            },
+            {
+              "ID": 205,
+              "MaterialName": "@106_標籤_黑",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/205/%E6%A8%99%E7%B1%A4_b.png",
+              "Tags": null
+            },
+            {
+              "ID": 206,
+              "MaterialName": "@106_標籤_藍",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/206/%E6%A8%99%E7%B1%A4_bl.png",
+              "Tags": null
+            },
+            {
+              "ID": 207,
+              "MaterialName": "@106_標籤_金",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/207/%E6%A8%99%E7%B1%A4_go.png",
+              "Tags": null
+            },
+            {
+              "ID": 208,
+              "MaterialName": "@106_標籤_綠",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/208/%E6%A8%99%E7%B1%A4_gr.png",
+              "Tags": null
+            },
+            {
+              "ID": 209,
+              "MaterialName": "@106_標籤_紫",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/209/%E6%A8%99%E7%B1%A4_p.png",
+              "Tags": null
+            },
+            {
+              "ID": 210,
+              "MaterialName": "@106_標籤_紅",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/210/%E6%A8%99%E7%B1%A4_r.png",
+              "Tags": null
+            },
+            {
+              "ID": 211,
+              "MaterialName": "@hh_標籤_黑",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/211/%E6%A8%99%E7%B1%A4_b.png",
+              "Tags": null
+            },
+            {
+              "ID": 212,
+              "MaterialName": "@hh_標籤_藍",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/212/%E6%A8%99%E7%B1%A4_bl.png",
+              "Tags": null
+            },
+            {
+              "ID": 213,
+              "MaterialName": "@hh_標籤_金",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/213/%E6%A8%99%E7%B1%A4_go.png",
+              "Tags": null
+            },
+            {
+              "ID": 214,
+              "MaterialName": "@hh_標籤_綠",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/214/%E6%A8%99%E7%B1%A4_gr.png",
+              "Tags": null
+            },
+            {
+              "ID": 215,
+              "MaterialName": "@hh_標籤_紫",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/215/%E6%A8%99%E7%B1%A4_p.png",
+              "Tags": null
+            },
+            {
+              "ID": 216,
+              "MaterialName": "@hh_標籤_紅",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/216/%E6%A8%99%E7%B1%A4_r.png",
+              "Tags": null
+            },
+            {
+              "ID": 217,
+              "MaterialName": "@sun_標籤_黑",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/217/%E6%A8%99%E7%B1%A4_b.png",
+              "Tags": null
+            },
+            {
+              "ID": 218,
+              "MaterialName": "@sun_標籤_藍",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/218/%E6%A8%99%E7%B1%A4_bl.png",
+              "Tags": null
+            },
+            {
+              "ID": 219,
+              "MaterialName": "@sun_標籤_金",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/219/%E6%A8%99%E7%B1%A4_go.png",
+              "Tags": null
+            },
+            {
+              "ID": 220,
+              "MaterialName": "@sun_標籤_綠",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/220/%E6%A8%99%E7%B1%A4_gr.png",
+              "Tags": null
+            },
+            {
+              "ID": 221,
+              "MaterialName": "@sun_標籤_紫",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/221/%E6%A8%99%E7%B1%A4_p.png",
+              "Tags": null
+            },
+            {
+              "ID": 222,
+              "MaterialName": "@sun_標籤_紅",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/222/%E6%A8%99%E7%B1%A4_r.png",
+              "Tags": null
+            },
+            {
+              "ID": 223,
+              "MaterialName": "@xj_標籤_黑",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/223/%E6%A8%99%E7%B1%A4_b.png",
+              "Tags": null
+            },
+            {
+              "ID": 224,
+              "MaterialName": "@xj_標籤_藍",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/224/%E6%A8%99%E7%B1%A4_bl.png",
+              "Tags": null
+            },
+            {
+              "ID": 225,
+              "MaterialName": "@xj_標籤_金",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/225/%E6%A8%99%E7%B1%A4_go.png",
+              "Tags": null
+            },
+            {
+              "ID": 226,
+              "MaterialName": "@xj_標籤_綠",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/226/%E6%A8%99%E7%B1%A4_gr.png",
+              "Tags": null
+            },
+            {
+              "ID": 227,
+              "MaterialName": "@xj_標籤_紫",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/227/%E6%A8%99%E7%B1%A4_p.png",
+              "Tags": null
+            },
+            {
+              "ID": 228,
+              "MaterialName": "@xj_標籤_紅",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/228/%E6%A8%99%E7%B1%A4_r.png",
+              "Tags": null
+            }
+          ]
+        },
+        {
+          "ID": 68,
+          "CategoryName": "撲滿",
+          "Info": [
+            {
+              "ID": 122,
+              "MaterialName": "扑满_01",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/122/%E6%89%91%E6%BB%A1_01.png",
+              "Tags": null
+            },
+            {
+              "ID": 259,
+              "MaterialName": "扑满_02",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/259/%E6%92%B2%E6%BB%BF-01.png",
+              "Tags": null
+            },
+            {
+              "ID": 260,
+              "MaterialName": "扑满_03",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/260/%E6%92%B2%E6%BB%BF-03.png",
+              "Tags": null
+            },
+            {
+              "ID": 261,
+              "MaterialName": "扑满_04",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/261/%E6%92%B2%E6%BB%BF-04.png",
+              "Tags": null
+            },
+            {
+              "ID": 262,
+              "MaterialName": "扑满_05",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/262/%E6%92%B2%E6%BB%BF-05.png",
+              "Tags": null
+            },
+            {
+              "ID": 263,
+              "MaterialName": "扑满_06",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/263/%E6%92%B2%E6%BB%BF-06.png",
+              "Tags": null
+            },
+            {
+              "ID": 264,
+              "MaterialName": "扑满_07",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/264/%E6%92%B2%E6%BB%BF-07.png",
+              "Tags": null
+            },
+            {
+              "ID": 265,
+              "MaterialName": "扑满_08",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/265/%E6%92%B2%E6%BB%BF-09.png",
+              "Tags": null
+            },
+            {
+              "ID": 266,
+              "MaterialName": "扑满_09",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/266/%E6%92%B2%E6%BB%BF-08.png",
+              "Tags": null
+            },
+            {
+              "ID": 268,
+              "MaterialName": "扑满_10",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/268/%E6%92%B2%E6%BB%BF-10.png",
+              "Tags": null
+            }
+          ]
+        },
+        {
+          "ID": 67,
+          "CategoryName": "舞台",
+          "Info": [
+            {
+              "ID": 121,
+              "MaterialName": "舞台_01",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/121/%E8%88%9E%E5%8F%B0_01.png",
+              "Tags": null
+            }
+          ]
+        },
+        {
+          "ID": 66,
+          "CategoryName": "虚拟币",
+          "Info": [
+            {
+              "ID": 114,
+              "MaterialName": "NO钱包_01",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/114/NO%E9%92%B1%E5%8C%85_01.png",
+              "Tags": null
+            },
+            {
+              "ID": 115,
+              "MaterialName": "NO钱包_02",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/115/NO%E9%92%B1%E5%8C%85_02.png",
+              "Tags": null
+            },
+            {
+              "ID": 116,
+              "MaterialName": "USDT_01",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/116/USDT_01.png",
+              "Tags": null
+            },
+            {
+              "ID": 117,
+              "MaterialName": "USDT_02",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/117/USDT_02.png",
+              "Tags": null
+            },
+            {
+              "ID": 118,
+              "MaterialName": "USDT_03",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/118/USDT_03.png",
+              "Tags": null
+            },
+            {
+              "ID": 119,
+              "MaterialName": "USDT_04",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/119/USDT_04.png",
+              "Tags": null
+            },
+            {
+              "ID": 120,
+              "MaterialName": "多钱包_01",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/120/%E5%A4%9A%E9%92%B1%E5%8C%85_01.png",
+              "Tags": null
+            }
+          ]
+        },
+        {
+          "ID": 65,
+          "CategoryName": "科技",
+          "Info": [
+            {
+              "ID": 112,
+              "MaterialName": "科技_01",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/112/%E7%A7%91%E6%8A%80_01.png",
+              "Tags": null
+            },
+            {
+              "ID": 113,
+              "MaterialName": "科技_02",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/113/%E7%A7%91%E6%8A%80_01.png",
+              "Tags": null
+            }
+          ]
+        },
+        {
+          "ID": 64,
+          "CategoryName": "异常",
+          "Info": [
+            {
+              "ID": 96,
+              "MaterialName": "异常1",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/96/%E5%BC%82%E5%B8%B81.png",
+              "Tags": null
+            },
+            {
+              "ID": 97,
+              "MaterialName": "异常2",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/97/%E5%BC%82%E5%B8%B82.png",
+              "Tags": null
+            }
+          ]
+        },
+        {
+          "ID": 63,
+          "CategoryName": "财神",
+          "Info": [
+            {
+              "ID": 90,
+              "MaterialName": "财神_01",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/90/%E8%B4%A2%E7%A5%9E_01.png",
+              "Tags": null
+            },
+            {
+              "ID": 91,
+              "MaterialName": "财神_02",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/91/%E8%B4%A2%E7%A5%9E_02.png",
+              "Tags": null
+            },
+            {
+              "ID": 92,
+              "MaterialName": "财神_03",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/92/%E8%B4%A2%E7%A5%9E_03.png",
+              "Tags": null
+            },
+            {
+              "ID": 93,
+              "MaterialName": "财神_04",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/93/%E8%B4%A2%E7%A5%9E_04.png",
+              "Tags": null
+            },
+            {
+              "ID": 94,
+              "MaterialName": "财神_05",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/94/%E8%B4%A2%E7%A5%9E_05.png",
+              "Tags": null
+            },
+            {
+              "ID": 95,
+              "MaterialName": "财神_06",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/95/%E8%B4%A2%E7%A5%9E_06.png",
+              "Tags": null
+            },
+            {
+              "ID": 229,
+              "MaterialName": "财神_07",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/229/%E8%B2%A1%E7%A5%9E-01.png",
+              "Tags": null
+            },
+            {
+              "ID": 230,
+              "MaterialName": "财神_08",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/230/%E8%B2%A1%E7%A5%9E-02.png",
+              "Tags": null
+            },
+            {
+              "ID": 231,
+              "MaterialName": "财神_09",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/231/%E8%B2%A1%E7%A5%9E-03.png",
+              "Tags": null
+            },
+            {
+              "ID": 232,
+              "MaterialName": "财神_10",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/232/%E8%B2%A1%E7%A5%9E-05.png",
+              "Tags": null
+            },
+            {
+              "ID": 234,
+              "MaterialName": "财神_11",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/234/%E8%B2%A1%E7%A5%9E-06.png",
+              "Tags": null
+            },
+            {
+              "ID": 235,
+              "MaterialName": "财神_12",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/235/%E8%B2%A1%E7%A5%9E-07.png",
+              "Tags": null
+            },
+            {
+              "ID": 236,
+              "MaterialName": "财神_13",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/236/%E8%B2%A1%E7%A5%9E-08.png",
+              "Tags": null
+            },
+            {
+              "ID": 237,
+              "MaterialName": "财神_14",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/237/%E8%B2%A1%E7%A5%9E-09.png",
+              "Tags": null
+            },
+            {
+              "ID": 238,
+              "MaterialName": "财神_15",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/238/%E8%B2%A1%E7%A5%9E-10.png",
+              "Tags": null
+            }
+          ]
+        },
+        {
+          "ID": 61,
+          "CategoryName": "#背景",
+          "Info": [
+            {
+              "ID": 63,
+              "MaterialName": "背景_01",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/63/%E8%83%8C%E6%99%AF_01_1.png",
+              "Tags": null
+            },
+            {
+              "ID": 64,
+              "MaterialName": "背景_02",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/64/%E8%83%8C%E6%99%AF_02_1.png",
+              "Tags": "財神,黃色,喜氣"
+            },
+            {
+              "ID": 65,
+              "MaterialName": "背景_03",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/65/%E8%83%8C%E6%99%AF_03_1.png",
+              "Tags": "財神,黑色,喜氣"
+            },
+            {
+              "ID": 66,
+              "MaterialName": "背景_04",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/66/%E8%83%8C%E6%99%AF_04_4.png",
+              "Tags": "財神,紅色,喜氣"
+            },
+            {
+              "ID": 150,
+              "MaterialName": "@001_背景_黑",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/150/%E8%83%8C%E6%99%AF_all.png",
+              "Tags": null
+            },
+            {
+              "ID": 151,
+              "MaterialName": "@001_背景_藍",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/151/%E8%83%8C%E6%99%AF_all.png",
+              "Tags": null
+            },
+            {
+              "ID": 152,
+              "MaterialName": "@001_背景_金",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/152/%E8%83%8C%E6%99%AF_all.png",
+              "Tags": null
+            },
+            {
+              "ID": 153,
+              "MaterialName": "@001_背景_綠",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/153/%E8%83%8C%E6%99%AF_all.png",
+              "Tags": null
+            },
+            {
+              "ID": 154,
+              "MaterialName": "@001_背景_紫",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/154/%E8%83%8C%E6%99%AF_all.png",
+              "Tags": null
+            },
+            {
+              "ID": 155,
+              "MaterialName": "@001_背景_紅",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/155/%E8%83%8C%E6%99%AF_all.png",
+              "Tags": null
+            },
+            {
+              "ID": 163,
+              "MaterialName": "@008_背景_黑",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/163/bg.png",
+              "Tags": null
+            },
+            {
+              "ID": 164,
+              "MaterialName": "@008_背景_藍",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/164/bg.png",
+              "Tags": null
+            },
+            {
+              "ID": 165,
+              "MaterialName": "@008_背景_金",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/165/bg.png",
+              "Tags": null
+            },
+            {
+              "ID": 166,
+              "MaterialName": "@008_背景_綠",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/166/bg.png",
+              "Tags": null
+            },
+            {
+              "ID": 167,
+              "MaterialName": "@008_背景_紫",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/167/bg.png",
+              "Tags": null
+            },
+            {
+              "ID": 168,
+              "MaterialName": "@008_背景_紅",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/168/bg.png",
+              "Tags": null
+            },
+            {
+              "ID": 169,
+              "MaterialName": "@106_背景_黑",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/169/106_b.png",
+              "Tags": null
+            },
+            {
+              "ID": 170,
+              "MaterialName": "@106_背景_藍",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/170/106_bl.png",
+              "Tags": null
+            },
+            {
+              "ID": 171,
+              "MaterialName": "@106_背景_金",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/171/106_go.png",
+              "Tags": null
+            },
+            {
+              "ID": 172,
+              "MaterialName": "@106_背景_綠",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/172/106_gr.png",
+              "Tags": null
+            },
+            {
+              "ID": 173,
+              "MaterialName": "@106_背景_紫",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/173/106_p.png",
+              "Tags": null
+            },
+            {
+              "ID": 174,
+              "MaterialName": "@106_背景_紅",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/174/106_r.png",
+              "Tags": null
+            },
+            {
+              "ID": 175,
+              "MaterialName": "@hh_背景_黑",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/175/hh_b.png",
+              "Tags": null
+            },
+            {
+              "ID": 176,
+              "MaterialName": "@hh_背景_藍",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/176/hh_bl.png",
+              "Tags": null
+            },
+            {
+              "ID": 177,
+              "MaterialName": "@hh_背景_金",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/177/hh_go.png",
+              "Tags": null
+            },
+            {
+              "ID": 178,
+              "MaterialName": "@hh_背景_綠",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/178/hh_gr.png",
+              "Tags": null
+            },
+            {
+              "ID": 179,
+              "MaterialName": "@hh_背景_紫",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/179/hh_p.png",
+              "Tags": null
+            },
+            {
+              "ID": 180,
+              "MaterialName": "@hh_背景_紅",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/180/hh_r.png",
+              "Tags": null
+            },
+            {
+              "ID": 181,
+              "MaterialName": "@sun_背景_黑",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/181/sun_b.png",
+              "Tags": null
+            },
+            {
+              "ID": 182,
+              "MaterialName": "@hh_背景_藍",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/182/sun_bl.png",
+              "Tags": null
+            },
+            {
+              "ID": 183,
+              "MaterialName": "@sun_背景_金",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/183/sun_go.png",
+              "Tags": null
+            },
+            {
+              "ID": 184,
+              "MaterialName": "@sun_背景_綠",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/184/sun_gr.png",
+              "Tags": null
+            },
+            {
+              "ID": 185,
+              "MaterialName": "@sun_背景_紫",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/185/sun_p.png",
+              "Tags": null
+            },
+            {
+              "ID": 186,
+              "MaterialName": "@sun_背景_紅",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/186/sun_r.png",
+              "Tags": null
+            },
+            {
+              "ID": 187,
+              "MaterialName": "@xj_背景_黑",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/187/xj_b.png",
+              "Tags": null
+            },
+            {
+              "ID": 188,
+              "MaterialName": "@xj_背景_藍",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/188/xj_bl.png",
+              "Tags": null
+            },
+            {
+              "ID": 189,
+              "MaterialName": "@xj_背景_金",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/189/xj_go.png",
+              "Tags": null
+            },
+            {
+              "ID": 190,
+              "MaterialName": "@xj_背景_綠",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/190/xj_gr.png",
+              "Tags": null
+            },
+            {
+              "ID": 191,
+              "MaterialName": "@xj_背景_紫",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/191/xj_p.png",
+              "Tags": null
+            },
+            {
+              "ID": 192,
+              "MaterialName": "@xj_背景_紅",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/192/xj_r.png",
+              "Tags": null
+            }
+          ]
+        },
+        {
+          "ID": 60,
+          "CategoryName": "紅包",
+          "Info": [
+            {
+              "ID": 58,
+              "MaterialName": "紅包_01",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/58/%E7%B4%85%E5%8C%85_01.png",
+              "Tags": null
+            },
+            {
+              "ID": 59,
+              "MaterialName": "紅包_02",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/59/%E7%B4%85%E5%8C%85_02.png",
+              "Tags": null
+            },
+            {
+              "ID": 60,
+              "MaterialName": "紅包_03",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/60/%E7%B4%85%E5%8C%85_03.png",
+              "Tags": null
+            },
+            {
+              "ID": 61,
+              "MaterialName": "紅包_04",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/61/%E7%B4%85%E5%8C%85_04.png",
+              "Tags": null
+            },
+            {
+              "ID": 62,
+              "MaterialName": "紅包_05",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/62/%E7%B4%85%E5%8C%85_05.png",
+              "Tags": null
+            },
+            {
+              "ID": 239,
+              "MaterialName": "紅包_06",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/239/%E7%B4%85%E5%8C%85-01.png",
+              "Tags": null
+            },
+            {
+              "ID": 240,
+              "MaterialName": "紅包_07",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/240/%E7%B4%85%E5%8C%85-02.png",
+              "Tags": null
+            },
+            {
+              "ID": 241,
+              "MaterialName": "紅包_08",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/241/%E7%B4%85%E5%8C%85-03.png",
+              "Tags": null
+            },
+            {
+              "ID": 242,
+              "MaterialName": "紅包_09",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/242/%E7%B4%85%E5%8C%85-04.png",
+              "Tags": null
+            },
+            {
+              "ID": 243,
+              "MaterialName": "紅包_10",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/243/%E7%B4%85%E5%8C%85-05.png",
+              "Tags": null
+            },
+            {
+              "ID": 244,
+              "MaterialName": "紅包_11",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/244/%E7%B4%85%E5%8C%85-06.png",
+              "Tags": null
+            },
+            {
+              "ID": 245,
+              "MaterialName": "紅包_12",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/245/%E7%B4%85%E5%8C%85-07.png",
+              "Tags": null
+            },
+            {
+              "ID": 246,
+              "MaterialName": "紅包_13",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/246/%E7%B4%85%E5%8C%85-08.png",
+              "Tags": null
+            },
+            {
+              "ID": 247,
+              "MaterialName": "紅包_14",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/247/%E7%B4%85%E5%8C%85-09.png",
+              "Tags": null
+            },
+            {
+              "ID": 248,
+              "MaterialName": "紅包_15",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/248/%E7%B4%85%E5%8C%85-10.png",
+              "Tags": null
+            }
+          ]
+        },
+        {
+          "ID": 59,
+          "CategoryName": "行事历",
+          "Info": [
+            {
+              "ID": 56,
+              "MaterialName": "行事历_01",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/56/%E8%A1%8C%E4%BA%8B%E6%9B%86_01.png",
+              "Tags": null
+            },
+            {
+              "ID": 57,
+              "MaterialName": "行事历_02",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/57/%E8%A1%8C%E4%BA%8B%E6%9B%86_02.png",
+              "Tags": null
+            }
+          ]
+        },
+        {
+          "ID": 58,
+          "CategoryName": "吉祥物",
+          "Info": [
+            {
+              "ID": 54,
+              "MaterialName": "吉祥物_01",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/54/%E5%90%89%E7%A5%A5%E7%89%A9_01.png",
+              "Tags": null
+            },
+            {
+              "ID": 55,
+              "MaterialName": "吉祥物_02",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/55/%E5%90%89%E7%A5%A5%E7%89%A9_02.png",
+              "Tags": null
+            }
+          ]
+        },
+        {
+          "ID": 1,
+          "CategoryName": "数字",
+          "Info": [
+            {
+              "ID": 99,
+              "MaterialName": "金色立体数字_0",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/99/%E9%87%91%E8%89%B2%E7%AB%8B%E4%BD%93%E6%95%B0%E5%AD%97_0.png",
+              "Tags": null
+            },
+            {
+              "ID": 100,
+              "MaterialName": "金色立体数字_1",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/100/%E9%87%91%E8%89%B2%E7%AB%8B%E4%BD%93%E6%95%B0%E5%AD%97_1.png",
+              "Tags": null
+            },
+            {
+              "ID": 101,
+              "MaterialName": "金色立体数字_2",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/101/%E9%87%91%E8%89%B2%E7%AB%8B%E4%BD%93%E6%95%B0%E5%AD%97_2.png",
+              "Tags": null
+            },
+            {
+              "ID": 102,
+              "MaterialName": "金色立体数字_3",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/102/%E9%87%91%E8%89%B2%E7%AB%8B%E4%BD%93%E6%95%B0%E5%AD%97_3.png",
+              "Tags": null
+            },
+            {
+              "ID": 103,
+              "MaterialName": "金色立体数字_4",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/103/%E9%87%91%E8%89%B2%E7%AB%8B%E4%BD%93%E6%95%B0%E5%AD%97_4.png",
+              "Tags": null
+            },
+            {
+              "ID": 104,
+              "MaterialName": "金色立体数字_5",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/104/%E9%87%91%E8%89%B2%E7%AB%8B%E4%BD%93%E6%95%B0%E5%AD%97_5.png",
+              "Tags": null
+            },
+            {
+              "ID": 105,
+              "MaterialName": "金色立体数字_6",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/105/%E9%87%91%E8%89%B2%E7%AB%8B%E4%BD%93%E6%95%B0%E5%AD%97_6.png",
+              "Tags": null
+            },
+            {
+              "ID": 106,
+              "MaterialName": "金色立体数字_7",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/106/%E9%87%91%E8%89%B2%E7%AB%8B%E4%BD%93%E6%95%B0%E5%AD%97_7.png",
+              "Tags": null
+            },
+            {
+              "ID": 107,
+              "MaterialName": "金色立体数字_8",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/107/%E9%87%91%E8%89%B2%E7%AB%8B%E4%BD%93%E6%95%B0%E5%AD%97_8.png",
+              "Tags": null
+            },
+            {
+              "ID": 108,
+              "MaterialName": "金色立体数字_9",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/108/%E9%87%91%E8%89%B2%E7%AB%8B%E4%BD%93%E6%95%B0%E5%AD%97_9.png",
+              "Tags": null
+            },
+            {
+              "ID": 111,
+              "MaterialName": "金色立体数字_%",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/111/%E9%87%91%E8%89%B2%E7%AB%8B%E4%BD%93%E6%95%B0%E5%AD%97_%E7%99%BE%E5%88%86%E6%AF%94.png",
+              "Tags": null
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

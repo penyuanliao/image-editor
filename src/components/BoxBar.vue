@@ -82,6 +82,7 @@ onMounted(() => {
 }
 .box-item {
   display: flex;
+  position: relative;
   align-items: center;
   justify-content: center;
   cursor: pointer;
@@ -89,8 +90,12 @@ onMounted(() => {
   height: 60px;
   flex-direction: column;
   color: theme.$text-color;
+  transition: scale 0.2s ease;
   &.active {
     color: theme.$text-color-active;
+  }
+  &:hover {
+    scale: 1.1;
   }
 }
 .box-item-icon {

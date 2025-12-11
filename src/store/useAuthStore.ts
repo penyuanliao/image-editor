@@ -1,5 +1,6 @@
 import {defineStore} from 'pinia';
 import {computed, ref} from 'vue';
+import {apiLogin, type LoginResponseResult, type UserInfo} from "@/api/login.ts";
 
 export interface ResponseResult {
     status: boolean;
@@ -12,7 +13,7 @@ export interface ResponseResult {
 // PD驗證
 export const useAuthStore = defineStore('authStore', () => {
 
-    const rawData = ref<Record<number, any>>({});
+    const rawData = ref<UserInfo>();
     // 記錄讀取狀態
     const isLoading = ref(false);
     // 記錄錯誤訊息
@@ -25,7 +26,6 @@ export const useAuthStore = defineStore('authStore', () => {
         isLoading.value = true;
         error.value = null;
         try {
-            const contentType: string = 'application/json';
             const queryString = window.location.search;
             const urlParams = new URLSearchParams(queryString);
             // 使用者名稱
@@ -33,26 +33,12 @@ export const useAuthStore = defineStore('authStore', () => {
             // 使用者sid
             const sid: string = urlParams.get('sid') || '';
             // 使用者驗證碼
-            const authentication: string = urlParams.get('token') || '';
+            const code: string = urlParams.get('code') || '';
 
-            const response = await fetch(`/api/frontend/auth`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': contentType
-                },
-                body: JSON.stringify({
-                    user,
-                    sid,
-                    authentication
-                })
-            });
-            if (!response.ok) {
-                throw new Error('Failed to fetch auth');
-            }
-            const result: ResponseResult = await response.json();
+            const result: LoginResponseResult = await apiLogin({ user, sid, code });
             if (result.status) {
                 rawData.value = result.data;
-                _authorization.value = result.data?.authorization;
+                _authorization.value = result.data?.token || null;
                 return result;
             } else {
                 error.value = result.error || "驗證失敗";

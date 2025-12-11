@@ -58,6 +58,7 @@ export interface IImageConfig extends AbsoluteConfig {
     base64?: string;
     radius?: number | number[]; // 圓角
     cropConfig?: IImageCropConfig; // 圖片剪裁設定
+    imageGenMode?: number;
 }
 
 // 多顏色區塊的段落

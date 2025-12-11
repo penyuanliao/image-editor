@@ -70,7 +70,8 @@ export const createCanvasElement = (element: ICanvasElement, canvas: { width: nu
                     rotation: 0,
                     opacity: Math.min(Math.max(config.opacity || 1, 0), 1.0),
                     categoryId: config.categoryId,
-                    draggable: true
+                    draggable: true,
+                    imageGenMode: (typeof config.imageGenMode === 'number' ? config.imageGenMode : 1)
                 }
             });
         }

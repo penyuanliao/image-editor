@@ -3,6 +3,7 @@
 import {type IGalleryItem, useMaterialsStore} from "@/store/useMaterialsStore.ts";
 import {computed, watch} from "vue";
 import NImage from "@/components/Basic/NImage.vue";
+import {ArrowRight} from "@element-plus/icons-vue";
 
 const materialsStore = useMaterialsStore();
 const emit = defineEmits(['more', 'change']);
@@ -30,13 +31,17 @@ watch(() => materialsStore.materials, () => {
   <template v-for="(row, rowIndex) in materialCategories" :key="`${row.id}`">
     <el-row class="label" :gutter="10">
       <el-col :span="16"><div class="title">{{ row.category }}</div></el-col>
-      <el-col :span="8"><div class="more" @click="handleMoreButton(rowIndex, row.category)">more</div></el-col>
+      <el-col :span="8">
+        <div class="more" @click="handleMoreButton(rowIndex, row.category)">
+          更多<el-icon><ArrowRight /></el-icon>
+        </div>
+      </el-col>
     </el-row>
 
     <el-row class="row" :gutter="28">
       <el-col v-for="item in row.items.slice(0, 3)" :span="8">
         <div class="image-item" @click="handleChange(item)">
-          <NImage :src="item.src"/>
+          <NImage :src="item.src" fit="contain"/>
         </div>
       </el-col>
     </el-row>
@@ -79,6 +84,7 @@ watch(() => materialsStore.materials, () => {
   cursor: pointer;
   box-sizing: border-box;
   border: 2px solid transparent;
+  overflow: hidden;
   &:active {
     background-color: rgba(80, 80, 80, 0.6);
   }
@@ -103,9 +109,13 @@ watch(() => materialsStore.materials, () => {
   display: flex;
   justify-content: flex-end;
   padding-right: 10px;
+  padding-top: 10px;
   cursor: pointer;
+  font-size: 12px;
+  text-align: center;
+  align-items: center;
   &:hover {
-    color: #409eff;
+    color: theme.$button-text-color;
   }
 }
 </style>

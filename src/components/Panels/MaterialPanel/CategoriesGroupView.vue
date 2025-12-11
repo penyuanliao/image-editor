@@ -8,13 +8,13 @@ const emit = defineEmits(['change']);
 const itemsPerRow: number = 3;
 
 
-const groupList = materialsStore.groupList || [];
+const groupList = computed(() => materialsStore.groupList || []);
 
 // 將分類資料分組，每組 3 個，以對應 el-row 的結構
 const groupRows = computed(() => {
   const rows = [];
-  for (let i = 0; i < groupList.length; i += itemsPerRow) {
-    rows.push(groupList.slice(i, i + itemsPerRow));
+  for (let i = 0; i < groupList.value.length; i += itemsPerRow) {
+    rows.push(groupList.value.slice(i, i + itemsPerRow));
   }
   return rows;
 });

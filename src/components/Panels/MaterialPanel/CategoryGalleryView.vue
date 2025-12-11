@@ -20,7 +20,6 @@ const itemsPerRow: number = 3;
 const groupRows = computed(() => {
   const rows = [];
   const images = props.data || [];
-  console.log('images', images);
   for (let i = 0; i < images.length; i += itemsPerRow) {
     rows.push(images.slice(i, i + itemsPerRow));
   }
@@ -38,7 +37,7 @@ const handleChange = (group: IGalleryItem) => {
     <el-row v-for="(row, rowIndex) in groupRows" :key="rowIndex" class="row" :gutter="20">
       <el-col v-for="group in row" :key="group.id" :span="8">
         <div class="image-item ep-bg-purple" @click="handleChange(group)">
-          <NImage :src="group.src"/>
+          <NImage :src="group.src" fit="contain"/>
         </div>
       </el-col>
     </el-row>

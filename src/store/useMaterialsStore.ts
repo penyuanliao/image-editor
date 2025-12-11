@@ -1,27 +1,9 @@
 import {defineStore} from 'pinia';
 import {computed, ref} from 'vue';
-
-export interface ResponseResult {
-    status: boolean;
-    message?: string;
-    data: MaterialsData[];
-}
-export interface MaterialInfo {
-    ID: number;
-    MaterialName: string;
-    Urlpath: string;
-}
-export interface MaterialGroup {
-    ID: number;
-    CategoryName: string;
-    Info: MaterialInfo[];
-}
-
-export interface MaterialsData {
-    ID: number;
-    CategoryName: string;
-    Info: MaterialGroup[];
-}
+import {
+    apiGetMaterials,
+    type ResMaterialsData,
+} from '@/api/materials.ts';
 
 
 /**
@@ -31,7 +13,7 @@ export interface IGalleryItem {
     id: number;
     name: string;
     src: string;
-    visible: boolean;
+    imageGenMode: number;
 }
 
 /**
@@ -40,48 +22,12 @@ export interface IGalleryItem {
 export interface IGallery {
     id: number;
     category: string;
-    visible: boolean;
     items: IGalleryItem[];
 }
 // 取得素材庫的action
 export const useMaterialsStore = defineStore('materialsStore', () => {
     // 存放模板列表
-    const rawData = ref<MaterialsData[]>([
-        /*{
-            ID: 1,
-            CategoryName: '聯名活動素材',
-            Info: [
-                { ID: 1, Urlpath: './assets/stickers/coffee.png', MaterialName: 'coffee' },
-                { ID: 2, Urlpath: './assets/stickers/dollar.svg', MaterialName: 'dollar' },
-                { ID: 3, Urlpath: './assets/stickers/fries.svg', MaterialName: 'fries' },
-                { ID: 4, Urlpath: './assets/stickers/gambler-luck.svg', MaterialName: 'gambler-luck' },
-                { ID: 5, Urlpath: './assets/stickers/gem.svg', MaterialName: 'gem' },
-                { ID: 6, Urlpath: './assets/stickers/hamburger.svg', MaterialName: 'hamburger' },
-                { ID: 7, Urlpath: './assets/stickers/ice-cream.svg', MaterialName: 'ice-cream' },
-                { ID: 8, Urlpath: './assets/stickers/peach.svg', MaterialName: 'peach' },
-                { ID: 9, Urlpath: './assets/stickers/soda.svg', MaterialName: 'soda' },
-                { ID: 10, Urlpath: './assets/stickers/syrup.svg', MaterialName: 'syrup' },
-            ]
-        },
-        {
-            ID: 2,
-            CategoryName: 'BB Logo素材',
-            Info: [
-                { ID: 11, Urlpath: './assets/stickers/target.svg', MaterialName: 'target' },
-                { ID: 12, Urlpath: './assets/stickers/mustache.svg', MaterialName: 'mustache' },
-                { ID: 13, Urlpath: './assets/stickers/clock-ring.svg', MaterialName: 'clock-ring' },
-            ]
-        },
-        {
-            ID: 3,
-            CategoryName: 'BB 產品素材',
-            Info: [
-                { ID: 14, Urlpath: './assets/stickers/banking-money.svg', MaterialName: 'banking-money' },
-                { ID: 15, Urlpath: './assets/stickers/smoker.svg', MaterialName: 'smoker' },
-            ]
-        }
-        */
-    ]);
+    const rawData = ref<ResMaterialsData[]>([]);
     // 記錄讀取狀態
     const isLoading = ref(false);
     // 記錄錯誤訊息
@@ -98,12 +44,8 @@ export const useMaterialsStore = defineStore('materialsStore', () => {
         isLoading.value = true;
         error.value = null;
         try {
-            // 這裡替換成你真實的 API 請求
-            const response = await fetch('/api/frontend/material/list');
-            if (!response.ok) {
-                throw new Error('Failed to fetch materials');
-            }
-            const result: ResponseResult = await response.json();
+            const result = await apiGetMaterials();
+
             if (result.status) rawData.value = result.data;
             return result;
         } catch (e: any) {
@@ -112,6 +54,12 @@ export const useMaterialsStore = defineStore('materialsStore', () => {
             isLoading.value = false;
         }
     };
+    const getImageGenMode = (name: string) => {
+        let imageGenMode: number = 1;
+        if (name.includes("#")) imageGenMode = 2; // 背景模式
+        if (name.includes("$")) imageGenMode = 0; // 不支援AI產圖
+        return imageGenMode;
+    }
 
     const selectedMaterialGroup = computed({
         get: () => selectedGroup,
@@ -143,7 +91,7 @@ export const useMaterialsStore = defineStore('materialsStore', () => {
                     name: material.MaterialName,
                     src: material.Urlpath,
                     categoryId: category.ID,
-                    visible: true
+                    imageGenMode: getImageGenMode(category.CategoryName)
                 };
             });
 
@@ -152,7 +100,6 @@ export const useMaterialsStore = defineStore('materialsStore', () => {
                 id: category.ID,
                 category: category.CategoryName,
                 items: galleryItems,
-                visible: true,
             };
         });
     });
@@ -169,19 +116,19 @@ export const useMaterialsStore = defineStore('materialsStore', () => {
         if (!searchValue.value) {
             return [];
         }
-        const searchTerm = searchValue.value.toLowerCase();
+        const searchTerm = searchValue.value.toLowerCase().trim();
 
         // 使用 flatMap 將多層陣列扁平化
         return rawData.value.flatMap(group =>
             group.Info.flatMap(category =>
                 category.Info
-                    .filter(material => material.MaterialName.toLowerCase().includes(searchTerm))
+                    .filter(material => (material.Tags || '').toLowerCase().includes(searchTerm))
                     .map(material => ({
                         id: material.ID,
                         name: material.MaterialName,
                         src: material.Urlpath,
                         categoryId: category.ID, // 保留分類ID以便追蹤
-                        visible: true
+                        imageGenMode: getImageGenMode(category.CategoryName)
                     }))
             )
         );

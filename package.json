@@ -4,7 +4,7 @@
   "version": "0.1.10",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --mode dev",
     "build": "npm version patch --no-git-tag-version && vue-tsc -b && vite build",
     "release": "npm version major --no-git-tag-version && vue-tsc -b && vite build",
     "preview": "vite preview"

@@ -31,6 +31,7 @@ const inputValue = computed({
         :clear-icon="Close"
         clearable
         @change="emit('change', inputValue)"
+        @clear="emit('change', '')"
     >
       <template v-slot:suffix>
         <div class="submit-btn">

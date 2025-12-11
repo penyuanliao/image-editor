@@ -18,6 +18,10 @@ import {Picture} from "@element-plus/icons-vue";
 
 <style scoped lang="scss">
 @use "@/styles/theme";
+.el-image {
+  width: 100%;
+  height: 100%;
+}
 .skeleton {
   width: 100%;
   height: 100%;

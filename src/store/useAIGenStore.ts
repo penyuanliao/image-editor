@@ -1,20 +1,6 @@
 import {defineStore} from 'pinia';
 import {ref} from 'vue';
-
-export interface ResponseResult {
-    status: boolean;
-    error?: string;
-    image: string;
-}
-// originalimage, materialid, originalurl 三則一
-export interface AIGenRequest {
-    originalimage?: string;
-    materialid?: number;
-    materialurl?: string; // choice = 0 有 materialid
-    originalurl?: string;
-    prompt?: string;
-    choice: number;
-}
+import {type AIGenRequest, type ImageGenerateResult, apiImageGenerate} from "@/api/generate.ts";
 // 產生的AI圖片action
 export const useAIGenStore = defineStore('aiGenStore', () => {
     // 使用次數
@@ -43,36 +29,30 @@ export const useAIGenStore = defineStore('aiGenStore', () => {
         isLoading.value = true;
         error.value = null;
         try {
-            const contentType: string = 'application/json';
+            // 這邊有三個流程
+            // 1. 物件轉換
+            // 2. 風格轉換
             const body:AIGenRequest  = {
-                choice: args.choice
+                choice: args.choice // 轉換CODE
             };
+            // 1. 如果有帶素材編號就不是自己上傳物件
             if (source.materialId && source.materialId > 0) {
                 body.materialid = source.materialId;
-                if (args.choice === 0) body.materialurl = source.url;
             } else if (source.base64) {
+                // 2. 這邊是手動上傳的圖片
                 body.originalimage = source.base64.replace(/^data:image\/[a-z]+;base64,/, '')
             } else {
+                // 3. 想直接從素材庫取出來
                 body.originalurl = source.image.src;
             }
-            // 選擇的
+            // 檢查是否選擇自訂生成
             if (args.prompt && args.choice === 0) {
                 body.prompt = args.prompt;
+                body.materialurl = source.url;
             }
-            // 這裡替換成你真實的 API 請求
-            const response = await fetch(`/api/frontend/image/generate`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': contentType
-                },
-                body: JSON.stringify(body)
-            });
-            remainingTries.value--;
-            if (!response.ok) {
-                throw new Error('Failed to fetch api generated');
-            }
-            const result: ResponseResult = await response.json();
+            const result: ImageGenerateResult = await apiImageGenerate(JSON.stringify(body));
             if (result.status) {
+                remainingTries.value--;
                 if (source.materialId) {
                     if (rawData.value[source.materialId]) {
                         rawData.value[source.materialId].push(result.image);

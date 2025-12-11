@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {ref, watch} from "vue";
+import {onMounted, ref, watch} from "vue";
 import gsap from "gsap";
 import CategoriesGroupView from "@/components/Panels/MaterialPanel/CategoriesGroupView.vue";
 import CategoriesView from "@/components/Panels/MaterialPanel/CategoriesView.vue";
@@ -45,7 +45,7 @@ const handleCategoriesGroupChange = (value: { id: number, name: string, index: n
   materialsStore.selectedMaterialGroup.value = value.index;
 };
 
-const handleImageChange = (value: { id: number, src: string, name: string }) => {
+const handleImageChange = (value: { id: number, src: string, name: string, imageGenMode: number }) => {
   emit('add-element', {
     type: ElementTypesEnum.Image,
     config: {
@@ -53,13 +53,16 @@ const handleImageChange = (value: { id: number, src: string, name: string }) => 
       id: value.id,
       x: 0,
       y: 0,
+      imageGenMode: value.imageGenMode
     }, name: value.name
   });
 }
 const handleInputChange = (value: string) => {
   materialsStore.searchValue = value;
 };
-
+onMounted(async () => {
+  await materialsStore.getMaterials();
+});
 
 watch(currentStep, (newIndex) => {
 
@@ -77,14 +80,14 @@ watch(currentStep, (newIndex) => {
 <template>
   <div class="view-container">
     <div v-if="!materialsStore.searchValue" class="content-wrapper" ref="contentWrapper">
-      <div class="view scroll-bar-hidden">
+      <section class="view scroll-bar-hidden">
         <div class="content">
           <NSearchButton v-model:input="input" @change="handleInputChange"/>
           <p>請選擇分類</p>
           <CategoriesGroupView @change="handleCategoriesGroupChange"/>
         </div>
-      </div>
-      <div class="view scroll-bar-hidden">
+      </section>
+      <section class="view scroll-bar-hidden">
         <div class="header">
           <el-button class="back" @click="handleViewClick(0)">
             <template #icon>
@@ -99,8 +102,8 @@ watch(currentStep, (newIndex) => {
               @change="handleImageChange"
               @more="handleMoreClick" />
         </div>
-      </div>
-      <div class="view scroll-bar-hidden">
+      </section>
+      <section class="view scroll-bar-hidden">
         <div class="header">
           <el-button class="back" @click="handleViewClick(1)">
             <template #icon>
@@ -113,13 +116,13 @@ watch(currentStep, (newIndex) => {
           <NSearchButton v-model:input="input"/>
           <CategoryGalleryView v-bind:data="materialsStore.categoryImages" @change="handleImageChange"/>
         </div>
-      </div>
+      </section>
     </div>
-    <div v-else class="content-wrapper">
-      <div class="view content">
+    <div v-else class="filter-wrapper">
+      <section class="view content">
         <NSearchButton v-model:input="input" @change="handleInputChange"/>
         <CategoryGalleryView v-bind:data="materialsStore.filtered" @change="handleImageChange"/>
-      </div>
+      </section>
     </div>
   </div>
 </template>
@@ -136,6 +139,11 @@ watch(currentStep, (newIndex) => {
 }
 
 .content-wrapper {
+  display: flex;
+  position: relative;
+  height: 100%;
+}
+.filter-wrapper {
   display: flex;
   position: relative;
   height: 100%;

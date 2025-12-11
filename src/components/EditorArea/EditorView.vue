@@ -656,6 +656,7 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh,
   flex-wrap: wrap;
   z-index: 10;
   bottom: 50px;
+  cursor: default;
 }
 
 

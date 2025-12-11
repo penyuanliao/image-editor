@@ -43,48 +43,48 @@ const triggerFileInput = () => {
 
 <template>
   <NPanel :searchEnabled="false" title="上传">
-    <div class="categories">
+    <section class="upload-panel-section">
       <NPanelButton @pointerup="triggerFileInput">
         <template #default>上傳圖片</template>
         <template #icon><UploadFilled /></template>
       </NPanelButton>
-    </div>
+    </section>
     <input
-        type="file"
-        ref="fileInput"
-        @change="handleFileChange"
-        multiple
-        :accept="generalDefaults.allowedExtensions.join(',')"
-        hidden
+      type="file"
+      ref="fileInput"
+      @change="handleFileChange"
+      multiple
+      :accept="generalDefaults.allowedExtensions.join(',')"
+      hidden
     />
-    <div class="categories">
-      <div class="category-items">
+    <section class="upload-panel-section">
+      <div class="upload-panel-list">
         <div
             v-for="(info, index) in editorStore.imageList"
             :key="index"
-            class="image"
+            class="upload-panel-item"
             :style="{ backgroundImage: `url(${info.image.src})` }"
             @click="handleAddingElement(info)"
         ></div>
       </div>
-    </div>
+    </section>
   </NPanel>
 </template>
 
 <style scoped lang="scss">
-.categories {
+.upload-panel-section {
   width: 100%;
   display: flex;
   flex-direction: column;
   margin-top: 10px;
 }
-.category-items {
+.upload-panel-list {
   display: flex;
   flex-wrap: wrap;
   flex-direction: row;
   gap: 10px;
 }
-.image {
+.upload-panel-item {
   width: 80px;
   height: 80px;
   flex-shrink: 0;

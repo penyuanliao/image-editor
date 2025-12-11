@@ -144,14 +144,14 @@ export const useEditorStore = defineStore('editor', () => {
       originalImage.value = imageList.value[index]?.image;
     }
   }
-
+  // 增加物件
   function addElement(element: ICanvasElement) {
     elements.value.push(element);
     selectedElements.value = [element]; // 新增後自動選取
     setCache([element]);
     saveHistory();
   }
-
+  // 增加多個物件
   function addElements(newElements: ICanvasElement[]) {
     elements.value.push(...newElements);
     selectedElements.value = newElements; // 新增後自動選取
