@@ -10,6 +10,7 @@ import Symbols from "@/components/Basic/Symbols.vue";
 import {advancedDefaults, generalDefaults} from "@/config/settings.ts";
 import NCropControls from "@/components/EditorArea/NCropControls.vue";
 import NBaseScrollbar from "@/components/Basic/NBaseScrollbar.vue";
+import NContextMenu from "@/components/Basic/NContextMenu.vue";
 
 const editorStore = useEditorStore();
 const emit = defineEmits(['element-selected']);
@@ -68,6 +69,13 @@ const contextMenu = reactive({
   y: 0,
   element: null as ICanvasElement | null,
 });
+const contextMenuPosition = ref({
+  top: 0,
+  left: 0,
+  bottom: 0,
+  right: 0,
+} as DOMRect);
+
 // PopOver選單狀態
 const popOverMenu = reactive({
   visible: false,
@@ -119,10 +127,17 @@ onMounted(async () => {
 
     // 設定右鍵選單的回呼函式
     editor.value.onContextMenu = (event) => {
+
+      contextMenuPosition.value = DOMRect.fromRect({
+        x: event.x,
+        y: event.y
+      });
+
       contextMenu.visible = true;
       contextMenu.x = event.x;
       contextMenu.y = event.y;
       contextMenu.element = event.element;
+
     };
     // 設定PopOver選單的回呼函式
     editor.value.onPopOverMenu = (event) => {
@@ -285,6 +300,22 @@ const saveImage = async () => {
 };
 
 // --- 右鍵選單方法 ---
+
+const handleContextMenuCommand = (cmd: string) => {
+  switch (cmd) {
+    case 'delete':
+      deleteSelectedElement();
+      break;
+    case 'lock':
+    {
+      if (editorStore.selectedElement?.config) {
+        editorStore.selectedElement.config.draggable = false;
+      }
+      break;
+    }
+  }
+}
+
 const closeContextMenu = () => {
   contextMenu.visible = false;
 };
@@ -511,19 +542,7 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh,
         </div>
       </div>
       <!-- 自訂右鍵選單 -->
-      <div
-          v-if="contextMenu.visible && contextMenu.element"
-          class="context-menu"
-          :style="{ top: `${contextMenu.y}px`, left: `${contextMenu.x}px` }"
-          @click.stop
-      >
-        <div class="context-menu-item" @click="deleteSelectedElement">
-          刪除
-        </div>
-        <!-- 在這裡可以新增更多選項，例如： -->
-        <!-- <div class="context-menu-item">上移一層</div> -->
-        <!-- <div class="context-menu-item">下移一層</div> -->
-      </div>
+      <NContextMenu v-model:position="contextMenuPosition" :visible="contextMenu.visible" @command="handleContextMenuCommand"/>
       <div class="actions-bar" :style="{ opacity: editorStore.elements.length === 0 ? 0 : 1 }">
         <el-button class="save-button" @click="saveImage">
           <el-icon size="20"><Symbols name="download"/></el-icon>

@@ -4,44 +4,45 @@ import gsap from "gsap";
 import CategoriesGroupView from "@/components/Panels/MaterialPanel/CategoriesGroupView.vue";
 import CategoriesView from "@/components/Panels/MaterialPanel/CategoriesView.vue";
 import CategoryGalleryView from "@/components/Panels/MaterialPanel/CategoryGalleryView.vue";
-import { Back } from "@element-plus/icons-vue";
 import {useMaterialsStore} from "@/store/useMaterialsStore.ts";
 import {ElementTypesEnum} from "@/types.ts";
 import NSearchButton from "@/components/Basic/NSearchButton.vue";
 const materialsStore = useMaterialsStore();
 
 const emit = defineEmits<{ (e: 'add-element', action: any): void }>();
+// 目前頁面控制流程
+const NAV_CTRL_STEPS = {
+  GROUP_VIEW: 0,
+  CATEGORY_VIEW: 1,
+  GALLERY_VIEW: 2,
+}
 
 const contentWrapper = ref<HTMLDivElement | null>(null);
 
-const currentStep = ref(0);
-
+const galleryViewRef = ref<HTMLDivElement>();
+// 目前頁面
+const currentStep = ref(NAV_CTRL_STEPS.GROUP_VIEW);
+// 群組標題
 const title = ref<string>('');
 
-const subTitle = ref<string>('');
+const categoryName = ref<string>('');
 
 const input = ref<string>('');
 
 const handleViewClick = (step: number) => {
-  // 當返回時，清空對應層級的標題
-  if (step < 2) {
-    subTitle.value = '';
-  }
-  if (step < 1) {
-    title.value = '';
-  }
+
   currentStep.value = step;
 };
 
 const handleMoreClick = (name: string) => {
-  currentStep.value = 2;
-  subTitle.value = name;
+  currentStep.value = NAV_CTRL_STEPS.GALLERY_VIEW;
+  categoryName.value = name;
 }
 
 const handleCategoriesGroupChange = (value: { id: number, name: string, index: number }) => {
   console.log('handleCategoriesGroupChange', value);
   title.value = value.name;
-  currentStep.value = 1;
+  currentStep.value = NAV_CTRL_STEPS.CATEGORY_VIEW;
   materialsStore.selectedMaterialGroup.value = value.index;
 };
 
@@ -62,6 +63,16 @@ const handleInputChange = (value: string) => {
 };
 onMounted(async () => {
   await materialsStore.getMaterials();
+
+  if (galleryViewRef.value) {
+    galleryViewRef.value.addEventListener('scrollend', () => {
+      console.log('scrollend');
+    });
+    galleryViewRef.value.addEventListener('scroll', () => {
+      console.log('scroll');
+    });
+  }
+
 });
 
 watch(currentStep, (newIndex) => {
@@ -72,6 +83,10 @@ watch(currentStep, (newIndex) => {
       x: -newIndex * viewWidth,
       duration: 0.4,
       ease: "power2.inOut",
+      onComplete: () => {
+        if (currentStep.value === 0) title.value = "";
+        if (currentStep.value === 1) categoryName.value = "";
+      }
     });
   }
 });
@@ -88,14 +103,11 @@ watch(currentStep, (newIndex) => {
         </div>
       </section>
       <section class="view scroll-bar-hidden">
-        <div class="header">
-          <el-button class="back" @click="handleViewClick(0)">
-            <template #icon>
-              <el-icon size="24"><Back /></el-icon>
-            </template>
-          </el-button>
-          <h2>{{ title }}</h2>
-        </div>
+        <el-page-header class="header" @back="handleViewClick(NAV_CTRL_STEPS.GROUP_VIEW)">
+          <template #content>
+            <h2>{{ title }}</h2>
+          </template>
+        </el-page-header>
         <div class="content">
           <NSearchButton v-model:input="input"/>
           <CategoriesView
@@ -103,15 +115,12 @@ watch(currentStep, (newIndex) => {
               @more="handleMoreClick" />
         </div>
       </section>
-      <section class="view scroll-bar-hidden">
-        <div class="header">
-          <el-button class="back" @click="handleViewClick(1)">
-            <template #icon>
-              <el-icon size="24"><Back /></el-icon>
-            </template>
-          </el-button>
-          <h2>{{ subTitle }}</h2>
-        </div>
+      <section ref="galleryViewRef" class="view scroll-bar-hidden">
+        <el-page-header class="header" @back="handleViewClick(NAV_CTRL_STEPS.CATEGORY_VIEW)">
+          <template #content>
+            <h2>{{ categoryName }}</h2>
+          </template>
+        </el-page-header>
         <div class="content">
           <NSearchButton v-model:input="input"/>
           <CategoryGalleryView v-bind:data="materialsStore.categoryImages" @change="handleImageChange"/>

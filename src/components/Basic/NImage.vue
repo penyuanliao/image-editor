@@ -4,7 +4,7 @@ import {Picture} from "@element-plus/icons-vue";
 </script>
 
 <template>
-  <el-image v-bind="$attrs">
+  <el-image v-bind="$attrs" lazy>
     <template #placeholder>
       <div class="skeleton"/>
     </template>

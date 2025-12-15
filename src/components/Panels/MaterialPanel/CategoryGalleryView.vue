@@ -3,12 +3,17 @@
 import { type IGalleryItem } from "@/store/useMaterialsStore.ts";
 import {computed, type PropType} from "vue";
 import NImage from "@/components/Basic/NImage.vue";
+import NThreeDotsLoading from "@/components/Basic/NThreeDotsLoading.vue";
 
 const props = defineProps({
   'data': {
     type: Array as PropType<IGalleryItem[]>,
     required: true,
     default: () => []
+  },
+  'loading': {
+    type: Boolean,
+    default: false
   }
 });
 
@@ -41,6 +46,9 @@ const handleChange = (group: IGalleryItem) => {
         </div>
       </el-col>
     </el-row>
+    <div class="page-loading">
+      <NThreeDotsLoading v-if="props.loading"/>
+    </div>
   </div>
 </template>
 
@@ -97,4 +105,14 @@ const handleChange = (group: IGalleryItem) => {
   padding-right: 10px;
 
 }
+.page-loading {
+  width: 100%;
+  height: 50px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+}
+
 </style>

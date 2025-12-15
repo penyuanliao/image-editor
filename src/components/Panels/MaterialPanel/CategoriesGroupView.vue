@@ -30,7 +30,10 @@ const handleSelectChange = (value: { id: number, name: string, index: number }) 
     <el-col v-for="group in row" :key="group.id" :span="8">
       <div class="group-item ep-bg-purple" @click="handleSelectChange(group)">
         <div>
-          <svg width="36" height="36" viewBox="0 0 2.16 2.16" xmlns="http://www.w3.org/2000/svg"><path fill="#ffa000" d="M1.8.54H.99L.81.36H.36a.18.18 0 0 0-.18.18V.9h1.8V.72A.18.18 0 0 0 1.8.54"/><path fill="#ffca28" d="M1.8.54H.36a.18.18 0 0 0-.18.18v.9c0 .099.081.18.18.18H1.8a.18.18 0 0 0 .18-.18v-.9A.18.18 0 0 0 1.8.54"/></svg>
+          <svg width="36" height="36" viewBox="0 0 2.16 2.16" xmlns="http://www.w3.org/2000/svg">
+            <path fill="#ffa000" d="M1.8.54H.99L.81.36H.36a.18.18 0 0 0-.18.18V.9h1.8V.72A.18.18 0 0 0 1.8.54"/>
+            <path fill="#ffca28" d="M1.8.54H.36a.18.18 0 0 0-.18.18v.9c0 .099.081.18.18.18H1.8a.18.18 0 0 0 .18-.18v-.9A.18.18 0 0 0 1.8.54"/>
+          </svg>
         </div>
         {{ group.name }}
       </div>

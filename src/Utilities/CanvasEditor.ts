@@ -484,7 +484,7 @@ export class CanvasEditor {
 
         const { x, y } = this.screenToWorld(event.offsetX, event.offsetY);
         const clickedElement = this.findElementAtPosition(x, y);
-
+        if (!clickedElement?.config.draggable) return;
         // 如果點擊到元素，就將其設為單獨選取
         if (clickedElement) {
             this.store.setSelectedElements([clickedElement]);
@@ -492,7 +492,7 @@ export class CanvasEditor {
         }
 
         // 觸發回呼，將事件資訊傳遞給 Vue 元件來顯示 UI
-        this.onContextMenu?.({ x: event.offsetX, y: event.offsetY, element: clickedElement as ICanvasElement });
+        this.onContextMenu?.({ x: event.clientX, y: event.clientY, element: clickedElement as ICanvasElement });
     }
     public showPopOverMenu(visible: boolean) {
         if (!this.canvas || !this.ctx) return;
