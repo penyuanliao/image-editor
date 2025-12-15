@@ -529,6 +529,7 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh,
         </div>
         <div class="upload-prompt-overlay" :style="{
         opacity: editorStore.elements.length === 0 ? 1 : 0,
+        'pointer-events': editorStore.elements.length === 0 ? 'auto' : 'none',
         width: `${ editor.artboardSize.width }px`,
         height: `${ editor.artboardSize.height }px`,
         top: `${(editor.viewport.height - editor.artboardSize.height) / 2}px`, // 計算垂直置中位置

@@ -24,9 +24,9 @@ const galleryViewRef = ref<HTMLDivElement>();
 const currentStep = ref(NAV_CTRL_STEPS.GROUP_VIEW);
 // 群組標題
 const title = ref<string>('');
-
+// 分類名稱
 const categoryName = ref<string>('');
-
+// 搜尋字串
 const input = ref<string>('');
 
 const handleViewClick = (step: number) => {
@@ -65,11 +65,11 @@ onMounted(async () => {
   await materialsStore.getMaterials();
 
   if (galleryViewRef.value) {
-    galleryViewRef.value.addEventListener('scrollend', () => {
-      console.log('scrollend');
+    galleryViewRef.value.addEventListener("scrollend", () => {
+      // TODO: 未來分頁模式從這邊檢查
     });
-    galleryViewRef.value.addEventListener('scroll', () => {
-      console.log('scroll');
+    galleryViewRef.value.addEventListener("scroll", () => {
+      // TODO: 未來分頁模式從這邊檢查
     });
   }
 

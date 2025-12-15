@@ -218,12 +218,12 @@ export class CanvasEditor {
         const panY = this.viewOffsetY;
         const scale = this.scale;
 
-        const worldX = (x - panX - cx) / scale + cx;
-        const worldY = (y + panY - cy) / scale + cy;
+        const unpannedX = x + panX;
+        const unpannedY = y + panY;
 
         return {
-            x: worldX,
-            y: worldY,
+            x: (unpannedX - cx) / scale + cx,
+            y: (unpannedY - cy) / scale + cy,
         };
     }
 

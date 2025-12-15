@@ -18,9 +18,15 @@ import AuthenticationError from "@/components/Views/AuthenticationError.vue";
 import NLoading from "@/components/Views/NLoading.vue";
 
 const editorStore = useEditorStore();
+// 素材編輯器view
 const editor = ref<InstanceType<typeof EditorView> | null>(null);
+// 目前Panel選擇狀態
 const selected = ref<string>();
+// 系統版本
 const version = __APP_VERSION__;
+// 載入狀態
+const state = ref<'loading' | 'completed' | 'denied'>('completed');
+
 // State to hold the currently selected element from the canvas
 const selectedElementForPanel = ref<any | null>(null);
 const handleAddElement = (element: any) => {
@@ -103,13 +109,12 @@ const styleSidebar = computed(() => {
   }
 });
 
-const state = ref<'loading' | 'completed' | 'denied'>('completed')
 
 watch(selected, async () => {
   // 等待 DOM 更新 (sidebar 寬度變化) 完成
   await nextTick();
   // 然後再呼叫 updateCanvasScale，此時它會讀取到正確的 editor-area 寬度
-  setTimeout(() => editor.value?.updateCanvasScale(), 200); //
+  setTimeout(() => editor.value?.updateCanvasScale(), 200);
 });
 </script>
 

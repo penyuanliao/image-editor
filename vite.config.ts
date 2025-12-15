@@ -18,9 +18,17 @@ export default defineConfig((configEnv: ConfigEnv) => {
           if (req.url === API_ENDPOINTS.GET_MATERIALS) {
             const filePath = path.resolve(__dirname, './src/test/material.json');
             const json = fs.readFileSync(filePath, 'utf-8');
+            await new Promise(resolve => setTimeout(resolve, Math.random() * 1000)); // 模擬網路延遲
             res.setHeader('Content-Type', 'application/json');
             res.end(json);
             return;
+          }
+          if (req.url === API_ENDPOINTS.LOGIN) {
+            const filePath = path.resolve(__dirname, './src/test/loginSuccessful.json');
+            const json = fs.readFileSync(filePath, 'utf-8');
+            await new Promise(resolve => setTimeout(resolve, Math.random() * 5000)); // 模擬網路延遲
+            res.setHeader('Content-Type', 'application/json');
+            res.end(json);
           }
 
           // if (req.url === API_ENDPOINTS.IMAGE_GENERATE && req.method === 'POST') {
