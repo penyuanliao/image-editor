@@ -1,36 +1,37 @@
 <script setup lang="ts">
 
-import {type IGalleryItem, useMaterialsStore} from "@/store/useMaterialsStore.ts";
-import {computed, watch} from "vue";
+import { type IGallery, type IGalleryItem } from "@/store/useMaterialsStore.ts";
+import { type PropType } from "vue";
 import NImage from "@/components/Basic/NImage.vue";
 import {ArrowRight} from "@element-plus/icons-vue";
 
-const materialsStore = useMaterialsStore();
+const props = defineProps({
+  data: {
+    type: Array as PropType<IGallery[]>,
+    required: true,
+    default: () => {
+      return [];
+    },
+  },
+});
 const emit = defineEmits(['more', 'change']);
 
-const materialCategories = computed(() => materialsStore.materials);
-
 const handleMoreButton = (index: number, name: string) => {
-  console.log('handleMoreButton', index, name);
-  materialsStore.selectedCategoryId = index;
-  emit('more', name);
+  emit('more', { index, name });
 }
 const handleChange = (group: IGalleryItem) => {
   emit('change', group);
 };
 
-watch(() => materialsStore.materials, () => {
-  console.log('materialCategories', materialCategories.value);
-
-})
-
 </script>
 
 <template>
 <section class="categories-view">
-  <template v-for="(row, rowIndex) in materialCategories" :key="`${row.id}`">
+  <template v-for="(row, rowIndex) in props.data" :key="`${row.id}`">
     <el-row class="label" :gutter="10">
-      <el-col :span="16"><div class="title">{{ row.category }}</div></el-col>
+      <el-col :span="16">
+        <span class="title">{{ row.category }}</span>
+      </el-col>
       <el-col :span="8">
         <div class="more" @click="handleMoreButton(rowIndex, row.category)">
           更多<el-icon><ArrowRight /></el-icon>
@@ -95,25 +96,26 @@ watch(() => materialsStore.materials, () => {
 }
 .title {
   border-radius: 4px;
-  min-height: 16px;
+  min-height: 24px;
 }
 .label {
-  height: 16px;
+  height: 24px;
+  position: relative;
+  display: flex;
   .el-col,
   .el-row {
     margin-bottom: 0;
   }
-
 }
 .more {
   display: flex;
   justify-content: flex-end;
-  padding-right: 10px;
-  padding-top: 10px;
+  //padding-top: 10px;
   cursor: pointer;
   font-size: 12px;
   text-align: center;
   align-items: center;
+  height: 24px;
   &:hover {
     color: theme.$button-text-color;
   }

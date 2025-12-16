@@ -16,8 +16,12 @@ import NNavbar from "@/components/Basic/NNavbar.vue";
 import NavigationController from "@/components/Panels/MaterialPanel/NavigationController.vue";
 import AuthenticationError from "@/components/Views/AuthenticationError.vue";
 import NLoading from "@/components/Views/NLoading.vue";
+import {useAuthStore} from "@/store/useAuthStore.ts";
 
 const editorStore = useEditorStore();
+
+const authStore = useAuthStore();
+
 // 素材編輯器view
 const editor = ref<InstanceType<typeof EditorView> | null>(null);
 // 目前Panel選擇狀態
@@ -25,10 +29,13 @@ const selected = ref<string>();
 // 系統版本
 const version = __APP_VERSION__;
 // 載入狀態
-const state = ref<'loading' | 'completed' | 'denied'>('completed');
+const state = ref<'loading' | 'completed' | 'denied'>('loading');
+
+const panelMaxHeight = ref(window.innerHeight - 80 - 22);
 
 // State to hold the currently selected element from the canvas
 const selectedElementForPanel = ref<any | null>(null);
+
 const handleAddElement = (element: any) => {
   if (element) {
     editor.value?.addElement(element);
@@ -74,27 +81,6 @@ const handleFilesDropped = async (files: FileList) => {
   }
 };
 
-const panelMaxHeight = ref(window.innerHeight - 80 - 22);
-
-const updatePanelHeight = () => {
-  panelMaxHeight.value = window.innerHeight - 80 - 22; // 80 for navbar, 22 for content padding-top
-};
-
-const contentStyle = computed(() => {
-  return {
-    '--panel-max-height': `${panelMaxHeight.value}px`
-  }
-});
-
-onMounted(() => {
-  window.addEventListener('resize', updatePanelHeight);
-  editorStore.defaultPropsPanel();
-});
-
-onUnmounted(() => {
-  window.removeEventListener('resize', updatePanelHeight);
-});
-
 const handlePointerUp = (event: PointerEvent) => {
   event.preventDefault();
   if (editorStore.selectedElement?.type !== ElementTypesEnum.Stage &&
@@ -103,12 +89,35 @@ const handlePointerUp = (event: PointerEvent) => {
     editorStore.clearSelection();
   }
 }
+
+const updatePanelHeight = () => {
+  panelMaxHeight.value = window.innerHeight - 80 - 22; // 80 for navbar, 22 for content padding-top
+};
+// ---- Style ---- //
 const styleSidebar = computed(() => {
   return {
     width: selected.value !== '' ? '420px' : '85px',
   }
 });
 
+const contentStyle = computed(() => {
+  return {
+    '--panel-max-height': `${panelMaxHeight.value}px`
+  }
+});
+
+onMounted(async () => {
+  window.addEventListener('resize', updatePanelHeight);
+  editorStore.defaultPropsPanel();
+  // await authStore.checkLogin();
+  // console.log('is-login:', authStore.isLogin());
+  // state.value = (!authStore.isLogin()) ? 'denied' : 'completed';
+  state.value = 'completed';
+});
+
+onUnmounted(() => {
+  window.removeEventListener('resize', updatePanelHeight);
+});
 
 watch(selected, async () => {
   // 等待 DOM 更新 (sidebar 寬度變化) 完成
@@ -116,6 +125,7 @@ watch(selected, async () => {
   // 然後再呼叫 updateCanvasScale，此時它會讀取到正確的 editor-area 寬度
   setTimeout(() => editor.value?.updateCanvasScale(), 200);
 });
+
 </script>
 
 <template>

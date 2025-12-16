@@ -22,7 +22,7 @@ export const useAuthStore = defineStore('authStore', () => {
     const _authorization = ref<string | null>(null);
 
     // 從 API 獲取模板的 action
-    const fetchAuth = async () => {
+    const checkLogin = async () => {
         isLoading.value = true;
         error.value = null;
         try {
@@ -52,7 +52,7 @@ export const useAuthStore = defineStore('authStore', () => {
     };
     // 是否登入
     const isLogin = () => {
-        return (!!_authorization.value);
+        return !!(_authorization.value);
     }
     // 授權碼
     const authorization = computed(() => _authorization.value);
@@ -60,7 +60,7 @@ export const useAuthStore = defineStore('authStore', () => {
     return {
         isLoading,
         error,
-        fetchAuth,
+        checkLogin,
         isLogin,
         authorization
     };

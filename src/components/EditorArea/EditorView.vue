@@ -86,21 +86,6 @@ const popOverMenu = reactive({
     y: -40
   },
 });
-// 將世界座標轉換為螢幕座標
-const worldToScreen = (worldX: number, worldY: number) => {
-  if (!canvas.value) return { x: worldX, y: worldY };
-
-  const scale = editor.value.scale;
-  const panX = editor.value.viewOffsetX;
-  const panY = editor.value.viewOffsetY;
-  const cx = canvas.value.width / 2;
-  const cy = canvas.value.height / 2;
-
-  const screenX = (worldX - cx) * scale + cx + panX;
-  const screenY = (worldY - cy) * scale + cy - panY;
-
-  return { x: screenX, y: screenY };
-};
 onMounted(async () => {
   const { viewport } = generalDefaults;
   const config = editorStore.stage.config as StageConfig;
@@ -143,7 +128,7 @@ onMounted(async () => {
     editor.value.onPopOverMenu = (event) => {
       popOverMenu.visible = advancedDefaults.popupMenu && (event.visible || false);
       if (popOverMenu.visible) {
-        const screenCoords = worldToScreen(event.x, event.y);
+        const screenCoords = editor.value.worldToScreen(event.x, event.y);
         popOverMenu.x = screenCoords.x + popOverMenu.offset.x;
         popOverMenu.y = screenCoords.y + popOverMenu.offset.y;
       }
@@ -390,12 +375,13 @@ const alignSelectedElement = (horizontal: string, vertical: string) => {
     editor.value.align(horizontal, vertical);
   }
 }
+// 更新畫面
 const refresh = () => {
   editor.value.render();
 }
 // 更新畫布比例
 const updateCanvasScale = () => {
-  if (wheelerRef.value && wheelerRef.value.parentElement && editor.value.autoScale) {
+  if (wheelerRef.value && wheelerRef.value.parentElement && editorStore.viewTranslate.autoScale) {
     const { clientWidth, clientHeight } = wheelerRef.value.parentElement;
     const scaleX = Math.min(1, clientWidth / editor.value.artboardSize.width);
     const scaleY = Math.min(1, clientHeight / editor.value.artboardSize.height);
@@ -556,7 +542,7 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh,
             @change="handleChange"
         />
       </div>
-<!--      <div v-if="editor.isRotating" class="rotation">{{ `${ editorStore.rotationInDegrees }°` }}</div>-->
+      <div v-if="editor.isRotating" class="rotation">{{ `${ editorStore.rotationInDegrees }°` }}</div>
     </div>
   </NBaseScrollbar>
 </template>

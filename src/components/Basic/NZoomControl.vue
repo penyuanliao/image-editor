@@ -13,6 +13,7 @@ const disabled = computed(() => editorStore.elements.length === 0);
 const zoomIn = () => {
   const scaleFactor = editorStore.stage.config.scaleX || 1;
   editorStore.setScale(editorStore.viewTranslate.scale + 0.1 / scaleFactor);
+  editorStore.viewTranslate.autoScale = false;
   editorStore.updateViewTranslate();
 };
 
@@ -20,6 +21,7 @@ const zoomOut = () => {
   const scaleFactor = editorStore.stage.config.scaleX || 1;
   const newScale = Math.max(0.1 / scaleFactor, editorStore.viewTranslate.scale - 0.1 / scaleFactor); // 確保不會小於最小比例
   editorStore.setScale(newScale);
+  editorStore.viewTranslate.autoScale = false;
   editorStore.updateViewTranslate();
 };
 </script>

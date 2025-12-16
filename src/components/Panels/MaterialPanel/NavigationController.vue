@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {onMounted, ref, watch} from "vue";
+import {computed, onMounted, ref, watch} from "vue";
 import gsap from "gsap";
 import CategoriesGroupView from "@/components/Panels/MaterialPanel/CategoriesGroupView.vue";
 import CategoriesView from "@/components/Panels/MaterialPanel/CategoriesView.vue";
@@ -29,18 +29,19 @@ const categoryName = ref<string>('');
 // 搜尋字串
 const input = ref<string>('');
 
-const handleViewClick = (step: number) => {
+const materialCategories = computed(() => materialsStore.materials);
 
+const handleViewClick = (step: number) => {
   currentStep.value = step;
 };
 
-const handleMoreClick = (name: string) => {
+const handleMoreClick = ({ index, name }: { index: number, name: string}) => {
+  materialsStore.selectedCategoryId = index;
   currentStep.value = NAV_CTRL_STEPS.GALLERY_VIEW;
   categoryName.value = name;
 }
 
 const handleCategoriesGroupChange = (value: { id: number, name: string, index: number }) => {
-  console.log('handleCategoriesGroupChange', value);
   title.value = value.name;
   currentStep.value = NAV_CTRL_STEPS.CATEGORY_VIEW;
   materialsStore.selectedMaterialGroup.value = value.index;
@@ -111,6 +112,7 @@ watch(currentStep, (newIndex) => {
         <div class="content">
           <NSearchButton v-model:input="input"/>
           <CategoriesView
+              v-bind:data="materialCategories"
               @change="handleImageChange"
               @more="handleMoreClick" />
         </div>

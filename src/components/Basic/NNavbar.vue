@@ -52,7 +52,7 @@ const progressValue = ref(props.progressValue || 0);
   //grid-template-columns: 1fr 330px;
   background-color: white;
   border-bottom: 1px solid theme.$border-color-base;
-
+  z-index: 100;
   .logo {
     width: 150px;
     object-fit: contain;

@@ -24,7 +24,21 @@ export default defineConfig((configEnv: ConfigEnv) => {
             return;
           }
           if (req.url === API_ENDPOINTS.LOGIN) {
-            const filePath = path.resolve(__dirname, './src/test/loginSuccessful.json');
+            const user: { sid: string, code: string, user: string } = await new Promise((resolve, reject) => {
+              let rawData = '';
+              req.on('data', (chunk) =>  {
+                rawData += chunk.toString();
+              });
+              req.on('end', () => {
+                try {
+                  resolve(JSON.parse(rawData));
+                } catch (error) {
+                  reject(error);
+                }
+              });
+            });
+            const file: string = (user.code !== "esball") ? "./src/test/loginSuccessful.json" : "./src/test/loginFailure.json"
+            const filePath = path.resolve(__dirname, file);
             const json = fs.readFileSync(filePath, 'utf-8');
             await new Promise(resolve => setTimeout(resolve, Math.random() * 5000)); // 模擬網路延遲
             res.setHeader('Content-Type', 'application/json');

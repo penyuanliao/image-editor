@@ -72,7 +72,7 @@ export const useEditorStore = defineStore('editor', () => {
   //狀態控制: 儲存中
   const savingImage = ref(false);
   // Scrollbar 邊緣值
-  const viewTranslate = ref<{ scale: number, x: number, y: number, minX: number, minY: number, maxX: number, maxY: number }>({ scale: 1, x: 0, y: 0, minX: 0, minY: 0, maxX: 0, maxY: 0});
+  const viewTranslate = ref<{ scale: number, x: number, y: number, minX: number, minY: number, maxX: number, maxY: number, autoScale: boolean }>({ scale: 1, x: 0, y: 0, minX: 0, minY: 0, maxX: 0, maxY: 0, autoScale: true });
   // 計算放大、位移使用
   const canvas = ref<HTMLCanvasElement>();
   // 計算放大、位移使用
@@ -166,7 +166,7 @@ export const useEditorStore = defineStore('editor', () => {
     );
     saveHistory();
   }
-
+  // 更新物件
   function updateElement(elementId: string, props: Partial<ICanvasElement>) {
     const element = elements.value.find(el => el.id === elementId);
     if (element) {

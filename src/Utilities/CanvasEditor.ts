@@ -89,7 +89,6 @@ export class CanvasEditor {
     get viewOffsetY(): number {
         return this.store?.viewTranslate.y || 0;
     }
-    public autoScale: boolean = true;
 
     public viewport: ICanvasViewport = {
         width: 800,
@@ -226,6 +225,22 @@ export class CanvasEditor {
             y: (unpannedY - cy) / scale + cy,
         };
     }
+    // 將世界座標轉換為螢幕座標
+    public worldToScreen(worldX: number, worldY: number) {
+        if (!this.canvas) {
+            return { x: worldX, y: worldY };
+        }
+        const scale = this.scale;
+        const cx = this.canvas.width / 2;
+        const cy = this.canvas.height / 2;
+        const panX = this.viewOffsetX;
+        const panY = this.viewOffsetY;
+        // 1. 先以中心點為基準進行縮放
+        const scaledX = (worldX - cx) * scale + cx;
+        const scaledY = (worldY - cy) * scale + cy;
+        // 2. 再套用反向平移
+        return { x: scaledX - panX, y: scaledY - panY };
+    }
 
     // --- 公開方法 (API) ---
     public resetCropMarks() {
@@ -236,7 +251,7 @@ export class CanvasEditor {
             cropBox.y = (canvas.height - cropBox.height) / 2;
         }
     }
-
+    // 新增圖片到圖片庫並新增至畫布上面
     public setImage(image: HTMLImageElement, base64: string) {
         if (!this.canvas) return;
         const shrink: number = 0.9;
@@ -251,13 +266,13 @@ export class CanvasEditor {
         this.store.addImage({
             imageUrl: image.src,
             image: image,
-            name: 'new image 1',
+            name: 'new image',
             base64
         });
         this.store.addElement({
             id: nanoid(12),
             type: ElementTypesEnum.Image,
-            name:  '新貼圖',
+            name:  'new image',
             config: {
                 content: image.src,
                 x: this.canvas.width / 2,
@@ -273,7 +288,7 @@ export class CanvasEditor {
         } as ICanvasElement);
         this.render();
     }
-
+    // 增加元件到畫布上面
     public async addElement(element: any):Promise<boolean> {
         if (!this.canvas ) {
             ErrorMessage('畫布並未被建立!!');
@@ -342,7 +357,7 @@ export class CanvasEditor {
             drawBackground(this.canvas, this.ctx, store.originalImage);
         }
 
-        // 4. 繪製所有元素
+        // 3. 繪製所有元素
         store.elements.forEach(element => {
 
             const isCroppingThisElement = (element.config as IImageConfig).cropConfig?.isCropping;
@@ -366,7 +381,7 @@ export class CanvasEditor {
                 drawImage(ctx, element);
             }
         });
-        // 3. 繪製裁切框
+        // 4. 繪製裁切框(元素後畫為了遮住元素)
         drawCropMarks(canvas, ctx, cropBox);
 
         // 5. 繪製控制項
@@ -494,6 +509,7 @@ export class CanvasEditor {
         // 觸發回呼，將事件資訊傳遞給 Vue 元件來顯示 UI
         this.onContextMenu?.({ x: event.clientX, y: event.clientY, element: clickedElement as ICanvasElement });
     }
+    // 選單位置
     public showPopOverMenu(visible: boolean) {
         if (!this.canvas || !this.ctx) return;
 
@@ -539,7 +555,7 @@ export class CanvasEditor {
             });
         }
     }
-
+    // 處理滑鼠點擊事件
     private handleMouseDown(event: MouseEvent) {
         if (!this.canvas) return;
         const { x, y } = this.screenToWorld(event.offsetX, event.offsetY);
@@ -1067,7 +1083,7 @@ export class CanvasEditor {
         const newScale = this.scale + delta;
 
         this.store.setScale(newScale);
-        this.autoScale = false;
+        this.store.viewTranslate.autoScale = false;
         await nextTick();
 
         // clientWidth/Height 不會包含 transform: scale 的效果。
