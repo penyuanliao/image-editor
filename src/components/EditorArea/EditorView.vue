@@ -486,11 +486,14 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh,
           ref="uploaderContainer">
         <canvas
           ref="canvas"
-          :style="{ opacity: editorStore.elements.length === 0 ? 0 : 1 }"
+          :style="{
+            opacity: editorStore.elements.length === 0 ? 0 : 1,
+            'pointer-events': editorStore.elements.length !== 0 ? 'auto' : 'none',
+          }"
           :class="{
-             'editor-canvas': true,
-             'grid-white': generalDefaults.gridBackground === 'white',
-             'grid-black-white': generalDefaults.gridBackground === 'blackAndWhite',
+           'editor-canvas': true,
+           'grid-white': generalDefaults.gridBackground === 'white',
+           'grid-black-white': generalDefaults.gridBackground === 'blackAndWhite',
           }"
           class="editor-canvas grid"
         ></canvas>
@@ -535,7 +538,7 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh,
       </div>
       <!-- 自訂右鍵選單 -->
       <NContextMenu v-model:position="contextMenuPosition" :visible="contextMenu.visible" @command="handleContextMenuCommand"/>
-      <div class="actions-bar" :style="{ opacity: editorStore.elements.length === 0 ? 0 : 1 }">
+      <div class="actions-bar" v-if="editorStore.elements.length !== 0">
         <el-button class="save-button" @click="saveImage">
           <el-icon size="20"><Symbols name="download"/></el-icon>
           <span>储存图片</span>

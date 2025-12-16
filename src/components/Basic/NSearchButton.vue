@@ -23,7 +23,7 @@ const inputValue = computed({
 </script>
 
 <template>
-  <div style="width: 100%; height: fit-content; padding: 20px 0; display: flex; justify-content: center; align-items: center; flex-direction: column;">
+  <div class="search-input">
     <el-input
         v-model="inputValue"
         class="source-search-input"
@@ -44,4 +44,13 @@ const inputValue = computed({
 
 <style scoped lang="scss">
 @use "@/styles/theme";
+.search-input {
+  width: 100%;
+  height: fit-content;
+  padding: 20px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
 </style>

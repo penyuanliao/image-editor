@@ -46,11 +46,15 @@ onMounted(() => {
 
       <div class="ctrl">
         <span>寬：</span>
-        <el-input-number class="el-input" v-model="(store.stage.config as StageConfig).width" :controls="false" style="width: 100%" />
+        <el-input-number class="el-input" v-model="(store.stage.config as StageConfig).width" :controls="false" style="width: 100%">
+          <template #suffix>px</template>
+        </el-input-number>
       </div>
       <div class="ctrl">
         <span>高：</span>
-        <el-input-number class="el-input" v-model="(store.stage.config as StageConfig).height" :controls="false" style="width: 100%" />
+        <el-input-number class="el-input" v-model="(store.stage.config as StageConfig).height" :controls="false" style="width: 100%">
+          <template #suffix>px</template>
+        </el-input-number>
       </div>
       <div class="ctrl once-line">
         <span>背景顏色：</span>
