@@ -463,7 +463,7 @@ watch(() => editorStore.viewTranslate.scale, () => {
   editor.value.render();
 });
 
-defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh, updateCanvasScale, preview });
+defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh, updateCanvasScale, preview, saveImage });
 
 </script>
 
@@ -485,9 +485,14 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh,
           class="uploader-container"
           ref="uploaderContainer">
         <canvas
-            ref="canvas"
-            :style="{ opacity: editorStore.elements.length === 0 ? 0 : 1 }"
-            class="editor-canvas"
+          ref="canvas"
+          :style="{ opacity: editorStore.elements.length === 0 ? 0 : 1 }"
+          :class="{
+             'editor-canvas': true,
+             'grid-white': generalDefaults.gridBackground === 'white',
+             'grid-black-white': generalDefaults.gridBackground === 'blackAndWhite',
+          }"
+          class="editor-canvas grid"
         ></canvas>
         <textarea
             v-if="editor.editingElement"
@@ -576,16 +581,29 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh,
   width: 800px;
   height: 600px;
   //max-height: 600px;
+
   min-height: 50px; /* 避免過度縮小 */
   //transition: all 0.3s ease;
   //transform-origin: 0 0;
 }
-
 .editor-canvas {
   width: 100%;
   height: 100%;
   display: block;
   cursor: default;
+}
+.grid-black-white {
+  background-color: #ccc;
+  background-image: linear-gradient(45deg, #fff 25%, transparent 25%, transparent 75%, #fff 75%, #fff),
+  linear-gradient(45deg, #fff 25%, transparent 25%, transparent 75%, #fff 75%, #fff);
+  background-size: 20px 20px;
+  background-position: 0 0, 10px 10px;
+}
+.grid-white {
+  background-color: #fff;
+  background-image: linear-gradient(to right, #eee 1px, transparent 1px),
+  linear-gradient(to bottom, #eee 1px, transparent 1px);
+  background-size: 20px 20px; /* 每個格子的尺寸 */
 }
 
 .upload-prompt-overlay {

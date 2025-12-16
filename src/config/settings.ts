@@ -16,7 +16,8 @@ export interface IGeneralSettings {
     zoomLimits: {
         max: number;
         min: number;
-    }
+    },
+    gridBackground: 'blackAndWhite' | 'white' | 'none';
 }
 
 export interface IAdvancedSettings {
@@ -49,7 +50,8 @@ export const generalDefaults: IGeneralSettings = {
     zoomLimits: {
         max: 5,
         min: 0.2
-    }
+    },
+    gridBackground: 'none',
 };
 
 export const appearanceDefaults = {
