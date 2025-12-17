@@ -68,6 +68,7 @@ const contextMenu = reactive({
   x: 0,
   y: 0,
   element: null as ICanvasElement | null,
+  wordPosition: { x: 0, y: 0 },
 });
 const contextMenuPosition = ref({
   top: 0,
@@ -111,18 +112,17 @@ onMounted(async () => {
     editor.value.render();
 
     // 設定右鍵選單的回呼函式
-    editor.value.onContextMenu = (event) => {
+    editor.value.onContextMenu = (event, wordPosition) => {
 
       contextMenuPosition.value = DOMRect.fromRect({
         x: event.x,
         y: event.y
       });
-
-      contextMenu.visible = true;
+      contextMenu.visible = !!(event.element);
       contextMenu.x = event.x;
       contextMenu.y = event.y;
       contextMenu.element = event.element;
-
+      contextMenu.wordPosition = wordPosition;
     };
     // 設定PopOver選單的回呼函式
     editor.value.onPopOverMenu = (event) => {
@@ -286,18 +286,35 @@ const saveImage = async () => {
 
 // --- 右鍵選單方法 ---
 
-const handleContextMenuCommand = (cmd: string) => {
-  switch (cmd) {
-    case 'delete':
+const handleContextMenuCommand = (action: string) => {
+  switch (action) {
+    case "delete":
       deleteSelectedElement();
       break;
-    case 'lock':
-    {
+    case "lock":
+    case "unlock":
       if (editorStore.selectedElement?.config) {
-        editorStore.selectedElement.config.draggable = false;
+        editorStore.selectedElement.config.draggable = !editorStore.selectedElement.config.draggable;
       }
       break;
-    }
+    case "copy":
+      editor.value.copy();
+      break;
+    case "paste":
+      console.log('contextMenu.wordPosition', contextMenu.wordPosition);
+      editor.value.paste(contextMenu.visible ? contextMenu.wordPosition : undefined);
+      break;
+    case "undo":
+      editorStore.undo();
+      editor.value.render();
+      break;
+    case "redo":
+      editorStore.redo();
+      editor.value.render();
+      break;
+    case "sec":
+      editorStore.clearSelection();
+      break;
   }
 }
 
@@ -442,17 +459,6 @@ const handleTextEditing = (type: string, action: string) => {
     editor.value.render();
   }
 }
-const handleCtrlEvent = (action: string) => {
-  if (action === 'undo') {
-    editorStore.undo();
-    editor.value.render();
-  } else if (action === 'redo') {
-    editorStore.redo();
-    editor.value.render();
-  } else if (action === 'esc') {
-    editorStore.clearSelection();
-  }
-}
 watch(() => editorStore.viewTranslate.x, () => {
   editor.value.render();
 });
@@ -479,7 +485,7 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh,
           @delete-selected="handleDeleteSelected"
           @move-selected="handleMoveSelected"
           @text-editing="handleTextEditing"
-          @ctrl-event="handleCtrlEvent"
+          @ctrl-event="handleContextMenuCommand"
       />
       <div
           class="uploader-container"
@@ -537,7 +543,12 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh,
         </div>
       </div>
       <!-- 自訂右鍵選單 -->
-      <NContextMenu v-model:position="contextMenuPosition" :visible="contextMenu.visible" @command="handleContextMenuCommand"/>
+      <NContextMenu
+          v-model:position="contextMenuPosition"
+          v-bind:lock="editorStore.selectedElement?.config.draggable"
+          :visible="contextMenu.visible"
+          :element="contextMenu.element"
+          @command="handleContextMenuCommand"/>
       <div class="actions-bar" v-if="editorStore.elements.length !== 0">
         <el-button class="save-button" @click="saveImage">
           <el-icon size="20"><Symbols name="download"/></el-icon>

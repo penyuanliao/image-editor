@@ -539,7 +539,7 @@ export const drawControls = (ctx: CanvasRenderingContext2D,
         ctx.strokeStyle = stageTheme.borderColor;
         ctx.lineWidth = stageTheme.borderStrokeWidth;
         const isTransformable = element.type === ElementTypesEnum.Image || element.type === ElementTypesEnum.Text;
-        if (isTransformable) {
+        if (isTransformable && element.config.draggable) {
             drawTransformHandles(ctx, element, multiple, isResizing);
         } else { // Draw simple dashed box for other types like 'icon'
             ctx.setLineDash([6, 3]);

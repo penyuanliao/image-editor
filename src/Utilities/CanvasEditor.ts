@@ -71,7 +71,7 @@ export class CanvasEditor {
     protected store: EditorStore; // 儲存 Pinia store 的引用
     public editingElement?: ICanvasElement | null = null;
     // 回應右鍵選單監聽事件
-    public onContextMenu: ((event: IContextMenuEvent) => void) | null = null;
+    public onContextMenu: ((event: IContextMenuEvent, wordPosition: { x: number, y: number }) => void) | null = null;
     public onPopOverMenu: ((event: IContextMenuEvent) => void) | null = null;
     public onStartEditText: ((element: ICanvasElement) => void) | null = null;
     // 點擊兩下編輯的輸入框
@@ -252,7 +252,7 @@ export class CanvasEditor {
         }
     }
     // 新增圖片到圖片庫並新增至畫布上面
-    public setImage(image: HTMLImageElement, base64: string) {
+    public addImage(image: HTMLImageElement, base64: string) {
         if (!this.canvas) return;
         const shrink: number = 0.9;
 
@@ -288,13 +288,24 @@ export class CanvasEditor {
         } as ICanvasElement);
         this.render();
     }
+    // 新增文字到畫布上面
+    public async addText(str: string) {
+        if (!this.canvas) return;
+        return this.addElement({
+            type: ElementTypesEnum.Text,
+            name: 'new text',
+            config: {
+                content: str
+            } as ITextConfig
+        } as ICanvasElement);
+    }
     // 增加元件到畫布上面
     public async addElement(element: any):Promise<boolean> {
         if (!this.canvas ) {
             ErrorMessage('畫布並未被建立!!');
             return false;
         }
-        const el = await createCanvasElement(element, this.canvas, this);
+        const el = await createCanvasElement(element, this.canvas, this.artboardSize);
         if (el) {
             this.store.addElement(el); // 使用 action 新增
             this.render();
@@ -507,7 +518,7 @@ export class CanvasEditor {
         }
 
         // 觸發回呼，將事件資訊傳遞給 Vue 元件來顯示 UI
-        this.onContextMenu?.({ x: event.clientX, y: event.clientY, element: clickedElement as ICanvasElement });
+        this.onContextMenu?.({ x: event.clientX, y: event.clientY, element: clickedElement as ICanvasElement }, { x, y });
     }
     // 選單位置
     public showPopOverMenu(visible: boolean) {
@@ -1155,54 +1166,18 @@ export class CanvasEditor {
         this.store.stage.config.scaleY = constrained.scale;
         this.store.stage.config.scaleX = constrained.scale;
     }
+    // 啟用快捷鍵: 複製和貼上
     public enableCopyAndPasteSupport() {
-
         if (this.handlePaste) return;
-
-        this.handlePaste = async () => {
-            const valid: boolean = await validationPermissions();
-            if (valid) {
-                const { texts, images } = await clipboardPaste();
-                for (const {image, base64 } of images) {
-                    // 新增上傳的圖片
-                    if (image) this.setImage(image, base64);
-                }
-                // 這邊是複製自己的Elements
-                for (const str of texts) {
-                    const jsonString:RegExpMatchArray | null = str.toString().match(/({.+?})(?={|$)/g);
-                    if (!jsonString) continue;
-                    const jsonData = JSON.parse(jsonString[0]);
-                    console.log('Clipboard JSON:', jsonData.value, Array.isArray(jsonData.value));
-                    const elements: ICanvasElement[] = [];
-                    if (Array.isArray(jsonData.value)) {
-                        for (let i = 0; i < jsonData.value.length; i++) {
-                            const el: any = jsonData.value[i];
-                            const image = await processUrl(el.config.url);
-                            el.id = nanoid(12);
-                            if (el.type === ElementTypesEnum.Image) {
-                                el.config.img = image;
-                            }
-                            el.config.x += 10;
-                            el.config.y += 10;
-                            elements.push(el);
-                        }
-                        this.store.addElements(elements);
-                    }
-                }
-
-                this.render();
-            }
-
-        }
+        this.handlePaste = async () => await this.paste();
         this.handleCopy = async (event: ClipboardEvent) => {
             // 在文字編輯模式不copy
             if (!this.editingElement) {
                 const data: string = JSON.stringify({
                     key: 'canvaElements',
-                    value: this.store.selectedElements
+                    value: this.store.selectedElements.filter((el) => el.config.draggable)
                 });
                 event.clipboardData?.setData('text/plain', data);
-                console.log('copy', data, this.editingElement);
                 event.preventDefault();
             }
         };
@@ -1322,6 +1297,69 @@ export class CanvasEditor {
             el.config.y += y;
         });
     };
+    // 複製
+    public copy() {
+        // 在文字編輯模式不執行複製
+        if (this.editingElement) return;
+
+        // 準備要複製的資料
+        const data: string = JSON.stringify({
+            key: 'canvaElements',
+            value: this.store.selectedElements.filter((el) => el.config.draggable)
+        });
+
+        // 使用 Clipboard API 將資料寫入剪貼簿
+        navigator.clipboard.writeText(data).then(() => {
+            console.log('Elements copied to clipboard:', data);
+        }).catch(err => {
+            console.error('Failed to copy elements: ', err);
+        });
+    }
+    // 貼上
+    public async paste(position?: { x: number, y: number }) {
+        const valid: boolean = await validationPermissions();
+        if (valid) {
+            const { texts, images } = await clipboardPaste();
+            for (const {image, base64 } of images) {
+                // 新增上傳的圖片
+                if (image) this.addImage(image, base64);
+            }
+            // 這邊是複製自己的Elements
+            for (const str of texts) {
+                const jsonString:RegExpMatchArray | null = str.toString().match(/({.+?})(?={|$)/g);
+                if (!jsonString) {
+                    // 只有純文字
+                    await this.addText(str);
+                    continue;
+                }
+                const jsonData = JSON.parse(jsonString[0]);
+                console.log('Clipboard JSON:', jsonData.value, Array.isArray(jsonData.value));
+                const elements: ICanvasElement[] = [];
+                if (Array.isArray(jsonData.value)) {
+                    for (let i = 0; i < jsonData.value.length; i++) {
+                        const el: any = jsonData.value[i];
+                        el.id = nanoid(12);
+                        if (el.type === ElementTypesEnum.Image) {
+                            el.config.img = await processUrl(el.config.url);
+                        }
+                        if (position) {
+                            el.config.x = position.x;
+                            el.config.y = position.y;
+                        } else {
+                            el.config.x += 10;
+                            el.config.y += 10;
+                        }
+                        elements.push(el);
+                    }
+                    this.store.addElements(elements);
+                }
+            }
+
+            this.render();
+        }
+    }
+    
+    
     // 銷毀時要移除監聽器
     public destroy() {
         this.textInput = null;

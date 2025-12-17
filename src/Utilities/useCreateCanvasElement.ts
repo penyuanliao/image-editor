@@ -3,9 +3,8 @@ import {ElementTypesEnum, type ICanvasElement, type IImageConfig, type ISVGConfi
 import {calculateConstrainedSize} from "@/Utilities/useImageEditor.ts";
 import {nanoid} from "nanoid";
 import {svgPathBbox} from "svg-path-bbox";
-import type {CanvasEditor} from "@/Utilities/CanvasEditor.ts";
 // 產生一個新的 CanvasElement
-export const createCanvasElement = (element: ICanvasElement, canvas: { width: number, height: number }, editor: CanvasEditor) => {
+export const createCanvasElement = (element: ICanvasElement, canvas: { width: number, height: number }, artboardSize: { width: number, height: number }) => {
     return new Promise<ICanvasElement>(async (resolve) => {
         if (element.type === ElementTypesEnum.Text) {
             const config = element.config as ITextConfig;
@@ -34,7 +33,7 @@ export const createCanvasElement = (element: ICanvasElement, canvas: { width: nu
                     gradientStartColor: config.gradientStartColor,
                     gradientEndColor: config.gradientEndColor,
                     gradientAngle: config.gradientAngle,
-                    opacity: Math.min(Math.max(config.opacity || 0, 0), 1.0),
+                    opacity: Math.min(Math.max((typeof config.opacity !== "number") ? 1 : config.opacity, 0), 1.0),
                     draggable: true
                 } as ITextConfig
             });
@@ -52,7 +51,7 @@ export const createCanvasElement = (element: ICanvasElement, canvas: { width: nu
             }
             const width: number = (img?.naturalWidth || 1);
             const height: number = (img?.naturalHeight || 1);
-            const info = calculateConstrainedSize(width, height, editor.artboardSize.width, editor.artboardSize.height);
+            const info = calculateConstrainedSize(width, height, artboardSize.width, artboardSize.height);
             const shrink: number = 0.9;
             resolve({
                 id: nanoid(12),
