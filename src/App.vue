@@ -109,7 +109,7 @@ const contentStyle = computed(() => {
 onMounted(async () => {
   window.addEventListener('resize', updatePanelHeight);
   editorStore.defaultPropsPanel();
-  // await authStore.checkLogin();
+  await authStore.checkLogin();
   // console.log('is-login:', authStore.isLogin());
   // state.value = (!authStore.isLogin()) ? 'denied' : 'completed';
   state.value = 'completed';
@@ -133,9 +133,7 @@ watch(selected, async () => {
   <AuthenticationError v-if="state === 'denied'"/>
   <!-- 使用 DropZone 元件並監聽 files-dropped 事件 -->
   <DropZone v-if="state==='completed'" class="drop-zone-wrapper" @files-dropped="handleFilesDropped">
-    <div
-        class="main-container"
-    >
+    <div class="main-container">
       <NNavbar/>
       <div class="content" :style="contentStyle">
         <div
@@ -164,11 +162,7 @@ watch(selected, async () => {
               ref="editor"
               @element-selected="handleElementSelected"
           />
-          <div class="layers-scroll scroll-bar-hidden">
-            <div class="layers">
-              <LayersPanel/>
-            </div>
-          </div>
+          <LayersPanel class="layers-scroll scroll-bar-hidden"/>
         </div>
 
         <div class="panel-properties props-panel">
@@ -267,15 +261,6 @@ watch(selected, async () => {
   overflow: auto;
   justify-content: center;
   padding: 5px 5px;
-}
-.layers {
-  position: relative;
-  display: flex;
-  width: 122px;
-  height: 100%;
-  border-radius: 20px;
-  background-color: theme.$panel-background-color;
-  box-shadow: 0 3px 3px 0 theme.$shadow-color;
 }
 
 .panel-properties {
