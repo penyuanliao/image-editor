@@ -1,5 +1,6 @@
 export const stageTheme = {
     borderColor: "#5F65E1",
+    hoverColor: "#6a6fdd",
     borderStrokeWidth: 1,
     anchorColor: "#FFFFFF",
     anchorBorderColor: "#5F65E1",

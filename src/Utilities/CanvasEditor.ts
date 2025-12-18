@@ -9,7 +9,7 @@ import {
     drawSVG,
     drawText,
     getElementBoundingBox,
-    getTransformHandles,
+    getTransformHandles, drawViewer,
 } from './useImageEditor.ts';
 import {ErrorMessage} from "./AlertMessage.ts";
 import {createCanvasElement} from "./useCreateCanvasElement.ts";
@@ -69,7 +69,10 @@ export class CanvasEditor {
     protected canvas?: HTMLCanvasElement;
     protected ctx?: CanvasRenderingContext2D;
     protected store: EditorStore; // 儲存 Pinia store 的引用
+    // 編輯時的元件
     public editingElement?: ICanvasElement | null = null;
+    // 滑鼠滑入元件
+    public hoveredElement?: ICanvasElement | null = null;
     // 回應右鍵選單監聽事件
     public onContextMenu: ((event: IContextMenuEvent, wordPosition: { x: number, y: number }) => void) | null = null;
     public onPopOverMenu: ((event: IContextMenuEvent) => void) | null = null;
@@ -404,6 +407,11 @@ export class CanvasEditor {
                 const box = getElementBoundingBox(ctx, selected);
                 drawControls(ctx, selected, box, store.selectedElements.length > 1, this.isResizing);
             });
+        }
+        // 5-2. 繪製Hovered顯示項目
+        if (this.hoveredElement) {
+            const box = getElementBoundingBox(ctx, this.hoveredElement);
+            drawViewer(ctx, box);
         }
         // 6. 顯示提示選單
         // 7. 繪製拖曳選擇框
@@ -999,9 +1007,15 @@ export class CanvasEditor {
         if (hoveredElement) {
             this.canvas.style.cursor = 'move';
         } else if (this.isPointInCropBox(x, y)) {
-            this.canvas.style.cursor = 'move';
+            // 剪裁區拖曳
+            // this.canvas.style.cursor = 'move';
+            this.canvas.style.cursor = 'default';
         } else {
             this.canvas.style.cursor = 'default';
+        }
+        if (hoveredElement !== this.hoveredElement) {
+            this.hoveredElement = hoveredElement;
+            this.render();
         }
     }
     private handleDoubleClick(event: MouseEvent) {
@@ -1064,6 +1078,7 @@ export class CanvasEditor {
         this.isResizing = null;
         this.isCroppingAction = null;
         this.isRotating = false;
+        this.hoveredElement = null;
         if (this.canvas) {
             this.isSelectionDragging = false;
             this.selectionRect = null;

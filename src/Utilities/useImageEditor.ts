@@ -548,6 +548,20 @@ export const drawControls = (ctx: CanvasRenderingContext2D,
         }
     }
 };
+/**
+ * 繪製框線滑入時候會用到
+ * @param ctx
+ * @param box
+ */
+export const drawViewer = (ctx: CanvasRenderingContext2D, box: { x: number, y: number, width: number, height: number } | null) => {
+    if (box) {
+        ctx.strokeStyle = stageTheme.hoverColor;
+        ctx.lineWidth = stageTheme.borderStrokeWidth;
+        // ctx.setLineDash([6, 3]);
+        ctx.strokeRect(box.x, box.y, box.width, box.height);
+        ctx.setLineDash([]);
+    }
+}
 
 /**
  * 獲取剪裁框的控制點
