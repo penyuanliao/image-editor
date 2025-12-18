@@ -338,8 +338,8 @@ export const drawImage = (
     }
 }
 // --- 元素互動輔助函式 ---
-export const getElementBoundingBox = (ctx: CanvasRenderingContext2D, el: ICanvasElement) => {
-    if (!ctx || !el) return null;
+export const getElementBoundingBox = (ctx: CanvasRenderingContext2D, el: ICanvasElement, skipNotDraggable: boolean = true) => {
+    if (!ctx || !el || !el.config.draggable && skipNotDraggable) return null;
     let width: number = 0;
     let height: number = 0;
     let x: number = 0;
@@ -551,11 +551,12 @@ export const drawControls = (ctx: CanvasRenderingContext2D,
 /**
  * 繪製框線滑入時候會用到
  * @param ctx
+ * @param element
  * @param box
  */
-export const drawViewer = (ctx: CanvasRenderingContext2D, box: { x: number, y: number, width: number, height: number } | null) => {
+export const drawViewer = (ctx: CanvasRenderingContext2D, element: ICanvasElement, box: { x: number, y: number, width: number, height: number } | null) => {
     if (box) {
-        ctx.strokeStyle = stageTheme.hoverColor;
+        ctx.strokeStyle = element.config.draggable ? stageTheme.hoverColor : stageTheme.hoverLockColor;
         ctx.lineWidth = stageTheme.borderStrokeWidth;
         // ctx.setLineDash([6, 3]);
         ctx.strokeRect(box.x, box.y, box.width, box.height);

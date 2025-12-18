@@ -63,7 +63,8 @@ watch(() => props.visible, () => {
       trigger="contextmenu"
       @command="handleCommand">
     <template #dropdown>
-      <el-dropdown-menu v-if="props.element">
+      <!-- 選擇任何元件 -->
+      <el-dropdown-menu v-if="props.element && props.lock">
         <el-dropdown-item :icon="CopyDocument" command="copy">
           <div class="item-text"><span>複製</span><span>Ctrl + C</span></div>
         </el-dropdown-item>
@@ -73,7 +74,7 @@ watch(() => props.visible, () => {
         <el-dropdown-item :icon="Delete" command="delete">
           <div class="item-text"><span>删除</span><span>Backspace</span></div>
         </el-dropdown-item>
-        <el-dropdown-item v-if="props.lock" :icon="Lock" command="lock">
+        <el-dropdown-item :icon="Lock" command="lock">
           <div class="item-text">
             <span>鎖定</span>
             <span>Ctrl +
@@ -83,7 +84,11 @@ watch(() => props.visible, () => {
             + L</span>
           </div>
         </el-dropdown-item>
-        <el-dropdown-item v-else :icon="Unlock" command="unlock">
+
+      </el-dropdown-menu>
+      <!-- 選擇元件已鎖定 -->
+      <el-dropdown-menu v-else-if="props.element && !props.lock">
+        <el-dropdown-item :icon="Unlock" command="unlock">
           <div class="item-text">
             <span>解除鎖定</span>
             <span>Ctrl +
@@ -94,6 +99,7 @@ watch(() => props.visible, () => {
           </div>
         </el-dropdown-item>
       </el-dropdown-menu>
+      <!-- 沒有選擇任何元件 -->
       <el-dropdown-menu v-else>
         <el-dropdown-item :icon="List" command="paste">
           <div class="item-text"><span>貼上</span><span>Ctrl + V</span></div>

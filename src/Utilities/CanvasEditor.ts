@@ -416,8 +416,8 @@ export class CanvasEditor {
         if (!existHoveredElement) this.hoveredElement = null; //在3.繪製物件時候檢查
         // 5-2. 繪製Hovered顯示項目
         if (this.hoveredElement && !isSelectedHoveredElement) {
-            const box = getElementBoundingBox(ctx, this.hoveredElement);
-            drawViewer(ctx, box);
+            const box = getElementBoundingBox(ctx, this.hoveredElement, false);
+            drawViewer(ctx, this.hoveredElement, box);
         }
         // 6. 顯示提示選單
         // 7. 繪製拖曳選擇框
@@ -449,7 +449,16 @@ export class CanvasEditor {
             y <= this.cropBox.y + this.cropBox.height
         );
     }
-    public findElementAtPosition(x: number, y: number) {
+    /**
+     * 在指定的畫布世界座標上尋找最上層的元素。
+     * 此方法會反向遍歷元素陣列，以確保從最上層的元素開始尋找。
+     * 它能處理旋轉和未旋轉的元素。
+     * @param {number} x - 世界座標系中的 X 座標。
+     * @param {number} y - 世界座標系中的 Y 座標。
+     * @param {boolean} [skipNotDraggable=true] - 是否跳過不可拖曳的元素。預設為 true。
+     * @returns 回傳找到的元素，如果該位置沒有元素則回傳 null。
+     */
+    public findElementAtPosition(x: number, y: number, skipNotDraggable: boolean = true) {
         const ctx = this.ctx;
         if (!ctx) return null;
 
@@ -464,12 +473,12 @@ export class CanvasEditor {
                 const localX = dx * Math.cos(-angle) - dy * Math.sin(-angle);
                 const localY = dx * Math.sin(-angle) + dy * Math.cos(-angle);
 
-                const box = getElementBoundingBox(ctx, el);
+                const box = getElementBoundingBox(ctx, el, skipNotDraggable);
                 if (!box) return false;
                 return Math.abs(localX) < box.width / 2 && Math.abs(localY) < box.height / 2;
             } else {
                 // For other elements, use the axis-aligned bounding box
-                const box = getElementBoundingBox(ctx, el);
+                const box = getElementBoundingBox(ctx, el, skipNotDraggable);
                 return box && this.isPointInBox(x, y, box);
             }
         });
@@ -523,8 +532,8 @@ export class CanvasEditor {
         if (!this.canvas) return;
 
         const { x, y } = this.screenToWorld(event.offsetX, event.offsetY);
-        const clickedElement = this.findElementAtPosition(x, y);
-        if (clickedElement?.config.draggable === false) return;
+        const clickedElement = this.findElementAtPosition(x, y, false);
+        // if (clickedElement?.config.draggable === false) return;
         // 如果點擊到元素，就將其設為單獨選取
         if (clickedElement) {
             this.store.setSelectedElements([clickedElement]);
@@ -1011,7 +1020,7 @@ export class CanvasEditor {
         }
 
         // 處理滑鼠游標
-        const hoveredElement = this.findElementAtPosition(x, y);
+        const hoveredElement = this.findElementAtPosition(x, y, false);
         if (hoveredElement && hoveredElement.config.draggable) {
             this.canvas.style.cursor = 'move';
         } else if (this.isPointInCropBox(x, y)) {

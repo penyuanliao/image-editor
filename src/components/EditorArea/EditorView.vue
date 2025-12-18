@@ -293,8 +293,8 @@ const handleContextMenuCommand = (action: string) => {
       break;
     case "lock":
     case "unlock":
-      if (editorStore.selectedElement?.config) {
-        editorStore.selectedElement.config.draggable = !editorStore.selectedElement.config.draggable;
+      if (contextMenu?.element?.config) {
+        contextMenu.element.config.draggable = !contextMenu.element.config.draggable;
       }
       break;
     case "copy":
