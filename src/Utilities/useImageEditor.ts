@@ -563,11 +563,11 @@ export const drawViewer = (ctx: CanvasRenderingContext2D, element: ICanvasElemen
         ctx.setLineDash([]);
     }
 }
-
 /**
- * 獲取剪裁框的控制點
+ * 計算剪裁框在畫布上的顯示資訊 (位置、尺寸、旋轉等)
+ * @param element - 要計算的圖片元素
  */
-export const getCropHandles = (_: CanvasRenderingContext2D, element: ICanvasElement) => {
+const getCropDisplayInfo = (element: ICanvasElement) => {
     const config = element.config as IImageConfig;
     const cropRect = config.cropConfig?.cropRect;
     if (!config || !cropRect) return null;
@@ -583,22 +583,46 @@ export const getCropHandles = (_: CanvasRenderingContext2D, element: ICanvasElem
     const scaleX = elementWidth / originalImgWidth;
     const scaleY = elementHeight / originalImgHeight;
 
+    // 剪裁框在元素本地座標系中的位置和大小 (中心點為 0,0)
     const displayCropX = cropRect.x * scaleX - elementWidth / 2;
     const displayCropY = cropRect.y * scaleY - elementHeight / 2;
     const displayCropWidth = cropRect.width * scaleX;
     const displayCropHeight = cropRect.height * scaleY;
 
-    // 旋轉後的中心點
-    const cx = config.x;
-    const cy = config.y;
-    const angle = config.rotation || 0;
+    return {
+        displayCropX, displayCropY, displayCropWidth, displayCropHeight,
+        elementWidth, elementHeight,
+        centerX: config.x,
+        centerY: config.y,
+        angle: config.rotation || 0,
+    };
+}
+/**
+ * 獲取剪裁框的控制點
+ */
+export const getCropHandles = (_: CanvasRenderingContext2D, element: ICanvasElement) => {
+    const config = element.config as IImageConfig;
+    const cropRect = config.cropConfig?.cropRect;
+    if (!config || !cropRect) return null;
+
+    const displayInfo = getCropDisplayInfo(element);
+    if (!displayInfo) return null;
+    const {
+        displayCropX,
+        displayCropY,
+        displayCropWidth,
+        displayCropHeight,
+        centerX,
+        centerY,
+        angle
+    } = displayInfo;
 
     const rotatePoint = (x: number, y: number) => {
         const cos = Math.cos(angle);
         const sin = Math.sin(angle);
         return {
-            x: cx + (x * cos - y * sin),
-            y: cy + (x * sin + y * cos),
+            x: centerX + (x * cos - y * sin),
+            y: centerY + (x * sin + y * cos),
         };
     };
 
@@ -644,32 +668,25 @@ export const getActionForCropHandle = (ctx: CanvasRenderingContext2D, x: number,
  * @param element
  */
 export const drawCropControls = (ctx: CanvasRenderingContext2D, element: ICanvasElement) => {
-    const config = element.config as IImageConfig;
-    const cropRect = config.cropConfig?.cropRect;
-
-    if (!config || !cropRect) return;
-
-    // 獲取元素在畫布上的實際邊界
-    const elementWidth = config.width || 0;
-    const elementHeight = config.height || 0;
-
-    // 剪裁框相對於畫布上元素的位置和大小
-    // 我們需要將相對於原始圖片的 cropRect 轉換為相對於畫布上顯示的元素尺寸
-    const originalImgWidth = config.img?.naturalWidth || elementWidth;
-    const originalImgHeight = config.img?.naturalHeight || elementHeight;
-
-    const scaleX = elementWidth / originalImgWidth;
-    const scaleY = elementHeight / originalImgHeight;
-
-    const displayCropX = cropRect.x * scaleX - elementWidth / 2;
-    const displayCropY = cropRect.y * scaleY - elementHeight / 2;
-    const displayCropWidth = cropRect.width * scaleX;
-    const displayCropHeight = cropRect.height * scaleY;
+    const displayInfo = getCropDisplayInfo(element);
+    if (!displayInfo) return null;
+    const {
+        displayCropX,
+        displayCropY,
+        displayCropWidth,
+        displayCropHeight,
+        centerX,
+        centerY,
+        angle,
+        elementWidth,
+        elementHeight,
+    } = displayInfo;
+    const config = element.config;
 
     ctx.save();
     // 變換到元素中心並旋轉，確保遮罩和控制項與圖片對齊
-    ctx.translate(config.x, config.y);
-    ctx.rotate(config.rotation || 0);
+    ctx.translate(centerX, centerY);
+    ctx.rotate(angle);
 
     // 1. 繪製半透明遮罩
     ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
@@ -708,9 +725,9 @@ export const drawCropControls = (ctx: CanvasRenderingContext2D, element: ICanvas
             // 繪製控制點時，需要從世界座標轉換回元素的本地座標
             const localX = p.x - config.x;
             const localY = p.y - config.y;
-            const angle = -(config.rotation || 0);
-            const rotatedX = localX * Math.cos(angle) - localY * Math.sin(angle);
-            const rotatedY = localX * Math.sin(angle) + localY * Math.cos(angle);
+            const invAngle = -(angle);
+            const rotatedX = localX * Math.cos(invAngle) - localY * Math.sin(invAngle);
+            const rotatedY = localX * Math.sin(invAngle) + localY * Math.cos(invAngle);
 
             ctx.beginPath();
             ctx.arc(rotatedX, rotatedY, 4, 0, 2 * Math.PI);
