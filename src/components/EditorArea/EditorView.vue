@@ -314,6 +314,9 @@ const handleContextMenuCommand = (action: string) => {
     case "sec":
       editorStore.clearSelection();
       break;
+    case "all":
+      editorStore.setSelectedElements(editorStore.elements);
+      break;
   }
 }
 // 關閉右鍵選單
@@ -772,11 +775,15 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh,
 }
 .rotation {
   position: fixed; /* 使用 fixed 定位，相對於視窗 */
+  display: flex;
   background-color: black;
   border: 1px solid #ccc;
   border-radius: 4px;
   z-index: 1000;
   padding: 1px 5px 3px 5px;
   opacity: 0.7;
+  min-width: 30px;
+  justify-content: center;
+  align-items: center;
 }
 </style>

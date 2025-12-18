@@ -27,6 +27,11 @@ const handleKeyDown = (event: KeyboardEvent) => {
       event.preventDefault();
       emit('ctrl-event', 'redo');
     }
+    // All: Ctrl+A
+    if (event.key.toLowerCase() === 'a') {
+      event.preventDefault();
+      emit('ctrl-event', 'all');
+    }
 
     return;
   }
