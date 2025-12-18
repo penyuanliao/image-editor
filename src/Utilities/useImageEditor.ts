@@ -339,7 +339,7 @@ export const drawImage = (
 }
 // --- 元素互動輔助函式 ---
 export const getElementBoundingBox = (ctx: CanvasRenderingContext2D, el: ICanvasElement) => {
-    if (!ctx || !el || !el.config.draggable) return null;
+    if (!ctx || !el) return null;
     let width: number = 0;
     let height: number = 0;
     let x: number = 0;

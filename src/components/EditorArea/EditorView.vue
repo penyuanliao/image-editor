@@ -119,7 +119,7 @@ onMounted(async () => {
       x: event.x,
       y: event.y
     });
-    contextMenu.visible = !!(event.element); // 如果沒有點擊到物件目前不顯示選單
+    contextMenu.visible = true;//!!(event.element); // 如果沒有點擊到物件目前不顯示選單
     contextMenu.x = event.x;
     contextMenu.y = event.y;
     contextMenu.element = event.element;
@@ -285,7 +285,7 @@ const saveImage = async () => {
 };
 
 // --- 右鍵選單方法 ---
-
+// 共用鍵盤快捷鍵參數
 const handleContextMenuCommand = (action: string) => {
   switch (action) {
     case "delete":
@@ -316,11 +316,11 @@ const handleContextMenuCommand = (action: string) => {
       break;
   }
 }
-
+// 關閉右鍵選單
 const closeContextMenu = () => {
   contextMenu.visible = false;
 };
-
+// 右鍵點擊刪除
 const deleteSelectedElement = () => {
   if (contextMenu.element) {
     editorStore.removeElements([contextMenu.element.id]);
@@ -427,14 +427,18 @@ const updateCanvasScale = () => {
 };
 
 // --- 鍵盤事件處理 ---
+// 鍵盤快捷鍵:刪除
 const handleDeleteSelected = () => {
   const selectedIds = editorStore.selectedElements.map(el => el.id);
   if (selectedIds.length > 0) {
     editorStore.removeElements(selectedIds);
+    if (editor.value.hoveredElement && selectedIds.includes(editor.value.hoveredElement?.id)) {
+      editor.value.hoveredElement = null;
+    }
     editor.value.render();
   }
 };
-
+// 鍵盤快捷鍵:移動
 const handleMoveSelected = ({ dx, dy }: { dx: number, dy: number }) => {
   if (editorStore.selectedElements.length > 0) {
     editorStore.selectedElements.forEach(el => {
@@ -444,7 +448,7 @@ const handleMoveSelected = ({ dx, dy }: { dx: number, dy: number }) => {
     editor.value.render();
   }
 };
-
+// 鍵盤快捷鍵:文字編輯
 const handleTextEditing = (type: string, action: string) => {
   if (editorStore.selectedElements.length > 0) {
     editorStore.selectedElements.forEach(el => {

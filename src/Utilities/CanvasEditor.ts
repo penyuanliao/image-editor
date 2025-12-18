@@ -348,7 +348,10 @@ export class CanvasEditor {
     // 重新繪製整個畫布（背景、圖片、裁切框）
     public render() {
         if (!this.ctx || !this.canvas) return;
-
+        // 檢查Hover框元件是否存在
+        let existHoveredElement: boolean = false;
+        // 檢查Hover框元件是否被選取
+        let isSelectedHoveredElement: boolean = false;
         const { ctx, canvas, cropBox, store } = this;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         // 1. 清除畫布
@@ -380,7 +383,7 @@ export class CanvasEditor {
             // 如果圖片正在剪裁，我們依然要繪製它，但之後會蓋上遮罩
             // 增加條件：如果正在縮放或旋轉，則強制繪製，忽略編輯狀態
             if (this.editingElement?.id === element.id && !isCroppingThisElement && !this.isResizing && !this.isRotating) return;
-
+            if (this.hoveredElement?.id === element.id) existHoveredElement = true;
             if (element.type === ElementTypesEnum.Text) {
                 drawText(ctx, element);
             } else if (element.type === ElementTypesEnum.SVG) {
@@ -401,6 +404,7 @@ export class CanvasEditor {
         // 5. 繪製控制項
         if (store.selectedElements.length > 0 && !this.editingElement) {
             store.selectedElements.forEach(selected => {
+                if (this.hoveredElement?.id === selected.id) isSelectedHoveredElement = true;
                 // 如果元素正在剪裁，則不繪製普通的控制項
                 if ((selected.config as IImageConfig).cropConfig?.isCropping) return;
 
@@ -408,8 +412,10 @@ export class CanvasEditor {
                 drawControls(ctx, selected, box, store.selectedElements.length > 1, this.isResizing);
             });
         }
+
+        if (!existHoveredElement) this.hoveredElement = null; //在3.繪製物件時候檢查
         // 5-2. 繪製Hovered顯示項目
-        if (this.hoveredElement) {
+        if (this.hoveredElement && !isSelectedHoveredElement) {
             const box = getElementBoundingBox(ctx, this.hoveredElement);
             drawViewer(ctx, box);
         }
@@ -518,7 +524,7 @@ export class CanvasEditor {
 
         const { x, y } = this.screenToWorld(event.offsetX, event.offsetY);
         const clickedElement = this.findElementAtPosition(x, y);
-        if (!clickedElement?.config.draggable) return;
+        if (clickedElement?.config.draggable === false) return;
         // 如果點擊到元素，就將其設為單獨選取
         if (clickedElement) {
             this.store.setSelectedElements([clickedElement]);
@@ -632,6 +638,7 @@ export class CanvasEditor {
                 if (!this.store.selectedElements.some(el => el.id === clickedElement.id)) {
                     this.store.setSelectedElements([clickedElement]);
                 }
+                if (!clickedElement.config.draggable) return;
                 // 開始拖曳元素
                 this.isDraggingElement = true;
                 this.dragStart.x = x;
@@ -1003,8 +1010,9 @@ export class CanvasEditor {
             }
         }
 
+        // 處理滑鼠游標
         const hoveredElement = this.findElementAtPosition(x, y);
-        if (hoveredElement) {
+        if (hoveredElement && hoveredElement.config.draggable) {
             this.canvas.style.cursor = 'move';
         } else if (this.isPointInCropBox(x, y)) {
             // 剪裁區拖曳
@@ -1013,6 +1021,7 @@ export class CanvasEditor {
         } else {
             this.canvas.style.cursor = 'default';
         }
+        // 紀錄目前的滑鼠位置元素
         if (hoveredElement !== this.hoveredElement) {
             this.hoveredElement = hoveredElement;
             this.render();
@@ -1070,6 +1079,7 @@ export class CanvasEditor {
     private handleMouseLeave(_: MouseEvent) {
         this.clear();
         // this.showPopOverMenu(false);
+        this.hoveredElement = null;
     }
     // 清除狀態
     public clear() {
@@ -1078,7 +1088,6 @@ export class CanvasEditor {
         this.isResizing = null;
         this.isCroppingAction = null;
         this.isRotating = false;
-        this.hoveredElement = null;
         if (this.canvas) {
             this.isSelectionDragging = false;
             this.selectionRect = null;
