@@ -56,7 +56,7 @@ const updateHorizontalThumb = () => {
   if (!trackX.value || !showHorizontalScrollbar.value || totalRangeX.value <= 0) {
     thumbLeft.value = 0;
     return;
-  };
+  }
   const trk = trackX.value;
   const visibleWidth = trk.clientWidth;
 
@@ -69,7 +69,7 @@ const updateVerticalThumb = () => {
   if (!trackY.value || !showVerticalScrollbar.value || totalRangeY.value <= 0) {
     thumbTop.value = 0;
     return;
-  };
+  }
   const trk = trackY.value;
   const visibleHeight = trk.clientHeight;
 

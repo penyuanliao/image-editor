@@ -10,7 +10,7 @@ import Symbols from "@/components/Basic/Symbols.vue";
 import {advancedDefaults, generalDefaults} from "@/config/settings.ts";
 import NCropControls from "@/components/EditorArea/NCropControls.vue";
 import NBaseScrollbar from "@/components/Basic/NBaseScrollbar.vue";
-import NContextMenu from "@/components/Basic/NContextMenu.vue";
+import NContextMenu from "@/components/EditorArea/NContextMenu.vue";
 
 const editorStore = useEditorStore();
 const emit = defineEmits(['element-selected']);
@@ -88,62 +88,62 @@ const popOverMenu = reactive({
   },
 });
 onMounted(async () => {
+
+  if (!canvas.value) return;
+
   const { viewport } = generalDefaults;
   const config = editorStore.stage.config as StageConfig;
   const width: number = config.width || viewport.width;
   const height: number = config.height || viewport.height;
   const color: string = config.color || viewport.color;
-
-  if (canvas.value) {
-    const windowSize: { width: number, height: number } = {
-      width: (uploaderContainer.value?.parentElement?.clientWidth || 800) - 40,
-      height: (uploaderContainer.value?.parentElement?.clientHeight || 600) - 40,
-    }
-    editor.value.viewport.width = windowSize.width;
-    editor.value.viewport.height = windowSize.height;
-    editor.value.setup(canvas.value, uploaderContainer.value);
-    if (wheelerRef.value?.parentElement && advancedDefaults.zoomEnabled) editor.value.setupZoomView(wheelerRef.value.parentElement as HTMLDivElement);
-    editor.value.textInput = textInput.value;
-    // 預設畫布大小
-    editor.value.updateViewportSize(width, height, color);
-    // 支援貼圖Ctrl+C和Ctrl+V
-    editor.value.enableCopyAndPasteSupport();
-    // 尺寸變更後需要重新繪製所有內容
-    editor.value.render();
-
-    // 設定右鍵選單的回呼函式
-    editor.value.onContextMenu = (event, wordPosition) => {
-
-      contextMenuPosition.value = DOMRect.fromRect({
-        x: event.x,
-        y: event.y
-      });
-      contextMenu.visible = !!(event.element);
-      contextMenu.x = event.x;
-      contextMenu.y = event.y;
-      contextMenu.element = event.element;
-      contextMenu.wordPosition = wordPosition;
-    };
-    // 設定PopOver選單的回呼函式
-    editor.value.onPopOverMenu = (event) => {
-      popOverMenu.visible = advancedDefaults.popupMenu && (event.visible || false);
-      if (popOverMenu.visible) {
-        const screenCoords = editor.value.worldToScreen(event.x, event.y);
-        popOverMenu.x = screenCoords.x + popOverMenu.offset.x;
-        popOverMenu.y = screenCoords.y + popOverMenu.offset.y;
-      }
-    };
-    // 設定文字編輯的回呼函式
-    editor.value.onStartEditText = (element) => {
-      editor.value.editingElement = element;
-      nextTick(() => {
-        minWidth.value = textInput.value?.offsetWidth || 0; // 記錄初始寬度
-        textInput.value?.focus();
-        updateTextareaSize(); // 初始設定大小
-      });
-    };
-    window.addEventListener('click', closeContextMenu);
+  const windowSize: { width: number, height: number } = {
+    width: (uploaderContainer.value?.parentElement?.clientWidth || 800) - 40,
+    height: (uploaderContainer.value?.parentElement?.clientHeight || 600) - 40,
   }
+  editor.value.viewport.width = windowSize.width;
+  editor.value.viewport.height = windowSize.height;
+  editor.value.setup(canvas.value, uploaderContainer.value);
+  if (wheelerRef.value?.parentElement && advancedDefaults.zoomEnabled) editor.value.setupZoomView(wheelerRef.value.parentElement as HTMLDivElement);
+  editor.value.textInput = textInput.value;
+  // 預設畫布大小
+  editor.value.updateViewportSize(width, height, color);
+  // 支援貼圖Ctrl+C和Ctrl+V
+  editor.value.enableCopyAndPasteSupport();
+  // 尺寸變更後需要重新繪製所有內容
+  editor.value.render();
+
+  // 設定右鍵選單的回呼函式
+  editor.value.onContextMenu = (event, wordPosition) => {
+    // 這邊目前拿來同步用
+    contextMenuPosition.value = DOMRect.fromRect({
+      x: event.x,
+      y: event.y
+    });
+    contextMenu.visible = !!(event.element); // 如果沒有點擊到物件目前不顯示選單
+    contextMenu.x = event.x;
+    contextMenu.y = event.y;
+    contextMenu.element = event.element;
+    contextMenu.wordPosition = wordPosition;
+  };
+  // 設定PopOver選單的回呼函式
+  editor.value.onPopOverMenu = (event) => {
+    popOverMenu.visible = advancedDefaults.popupMenu && (event.visible || false);
+    if (popOverMenu.visible) {
+      const screenCoords = editor.value.worldToScreen(event.x, event.y);
+      popOverMenu.x = screenCoords.x + popOverMenu.offset.x;
+      popOverMenu.y = screenCoords.y + popOverMenu.offset.y;
+    }
+  };
+  // 設定文字編輯的回呼函式
+  editor.value.onStartEditText = (element) => {
+    editor.value.editingElement = element;
+    nextTick(() => {
+      minWidth.value = textInput.value?.offsetWidth || 0; // 記錄初始寬度
+      textInput.value?.focus();
+      updateTextareaSize(); // 初始設定大小
+    });
+  };
+  window.addEventListener('click', closeContextMenu);
   window.addEventListener('resize', updateCanvasScale);
 });
 onUnmounted(() => {
@@ -301,7 +301,6 @@ const handleContextMenuCommand = (action: string) => {
       editor.value.copy();
       break;
     case "paste":
-      console.log('contextMenu.wordPosition', contextMenu.wordPosition);
       editor.value.paste(contextMenu.visible ? contextMenu.wordPosition : undefined);
       break;
     case "undo":
