@@ -35,6 +35,8 @@ export interface IAdvancedSettings {
   eachSideHandlesEnabled: boolean;
   // 啟用: 對角線拉伸
   pivotPointEnabled: boolean;
+  // 啟用: 元件增加Hovered
+  hoveredEnabled: boolean;
 }
 
 export const generalDefaults: IGeneralSettings = {
@@ -179,5 +181,6 @@ export const advancedDefaults: IAdvancedSettings = {
   zoomEnabled: false,
   undoRedoEnabled: false,
   eachSideHandlesEnabled: true,
-  pivotPointEnabled: true
+  pivotPointEnabled: true,
+  hoveredEnabled: false
 };

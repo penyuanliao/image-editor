@@ -1089,7 +1089,7 @@ export class CanvasEditor {
     }
     // 紀錄目前的滑鼠位置元素
     if (hoveredElement !== this.hoveredElement) {
-      this.hoveredElement = hoveredElement;
+      if (advancedDefaults.hoveredEnabled) this.hoveredElement = hoveredElement;
       this.render();
     }
   }

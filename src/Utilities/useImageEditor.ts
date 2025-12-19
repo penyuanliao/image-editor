@@ -11,6 +11,13 @@ import {
 import stageTheme from "@/styles/stageTheme.ts";
 import { advancedDefaults } from "@/config/settings.ts";
 
+// 初始化鎖定圖示 (lock.png)
+const lockIcon = new Image();
+const lockIconSVG = `
+<svg width="24" height="24" viewBox="0 0 0.72 0.72" xmlns="http://www.w3.org/2000/svg">
+    <path fill="white" d="M.51.27V.21a.15.15 0 0 0-.3 0v.06a.09.09 0 0 0-.09.09v.21a.09.09 0 0 0 .09.09h.3A.09.09 0 0 0 .6.57V.36A.09.09 0 0 0 .51.27M.27.21a.09.09 0 0 1 .18 0v.06H.27Zm.27.36A.03.03 0 0 1 .51.6h-.3A.03.03 0 0 1 .18.57V.36A.03.03 0 0 1 .21.33h.3a.03.03 0 0 1 .03.03Z"/></svg>`;
+lockIcon.src = `data:image/svg+xml;base64,${btoa(lockIconSVG)}`;
+
 /**
  * 把上傳的圖片繪製到底圖
  * @param canvasEl
@@ -599,6 +606,22 @@ export const drawViewer = (
     // ctx.setLineDash([6, 3]);
     ctx.strokeRect(box.x, box.y, box.width, box.height);
     ctx.setLineDash([]);
+
+    if (!element.config.draggable && lockIcon.complete && lockIcon.naturalWidth > 0) {
+      const iconSize = 24;
+      const iconBackgroundSize = iconSize + 4;
+      const iconRect = {
+        x: box.x,
+        y: box.y + (box.height)
+      }
+      // 背景色
+      ctx.beginPath();
+      ctx.roundRect(iconRect.x, iconRect.y - iconBackgroundSize, iconBackgroundSize, iconBackgroundSize, [0, 4, 0, 0]);
+      ctx.fillStyle = stageTheme.hoverLockColor;
+      ctx.fill();
+      // 圖示
+      ctx.drawImage(lockIcon, iconRect.x + 2, iconRect.y - iconSize - 2, iconSize, iconSize);
+    }
   }
 };
 /**
