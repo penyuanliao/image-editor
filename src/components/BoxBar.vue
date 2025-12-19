@@ -78,7 +78,6 @@ onMounted(() => {
   padding-top: 13px;
   align-items: center;
   gap: 5px;
-  padding-left: 12px;
 }
 .box-item {
   display: flex;
