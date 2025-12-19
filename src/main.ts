@@ -1,13 +1,13 @@
-import { createApp } from 'vue'
-import { createPinia } from 'pinia'
-import ElementPlus from 'element-plus'
+import { createApp } from "vue";
+import { createPinia } from "pinia";
+import ElementPlus from "element-plus";
 import VueKonva from "vue-konva";
-import ColorPickers from 'colorpickers';
-import './style.scss'
-import 'element-plus/dist/index.css'
-import 'element-plus/theme-chalk/dark/css-vars.css'
-import 'colorpickers/style.css'
-import App from './App.vue'
+import ColorPickers from "colorpickers";
+import "./style.scss";
+import "element-plus/dist/index.css";
+import "element-plus/theme-chalk/dark/css-vars.css";
+import "colorpickers/style.css";
+import App from "./App.vue";
 // import {createGtm} from "@gtm-support/vue-gtm";
 // import App from './AppKonva.vue'
 
@@ -24,4 +24,4 @@ app.use(ColorPickers);
 //     debug: import.meta.env.DEV
 // }))
 
-app.mount('#app')
+app.mount("#app");

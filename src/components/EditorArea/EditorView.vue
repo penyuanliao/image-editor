@@ -1,19 +1,24 @@
 <script setup lang="ts">
-import {computed, nextTick, onMounted, onUnmounted, reactive, ref, watch} from "vue";
-import {useEditorStore} from "@/store/editorStore.ts";
-import {CanvasEditor} from "@/Utilities/CanvasEditor.ts";
-import {type CroppedExportOptions, exportCroppedArea} from "@/Utilities/useCanvasExporter.ts";
-import {ElementTypesEnum, type ICanvasElement, type ITextConfig, type StageConfig} from "@/types.ts";
+import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from "vue";
+import { useEditorStore } from "@/store/editorStore.ts";
+import { CanvasEditor } from "@/Utilities/CanvasEditor.ts";
+import { type CroppedExportOptions, exportCroppedArea } from "@/Utilities/useCanvasExporter.ts";
+import {
+  ElementTypesEnum,
+  type ICanvasElement,
+  type ITextConfig,
+  type StageConfig
+} from "@/types.ts";
 import Popover from "./Popover.vue";
 import KeyboardController from "../Basic/KeyboardController.vue";
 import Symbols from "@/components/Basic/Symbols.vue";
-import {advancedDefaults, generalDefaults} from "@/config/settings.ts";
+import { advancedDefaults, generalDefaults } from "@/config/settings.ts";
 import NCropControls from "@/components/EditorArea/NCropControls.vue";
 import NBaseScrollbar from "@/components/Basic/NBaseScrollbar.vue";
 import NContextMenu from "@/components/EditorArea/NContextMenu.vue";
 
 const editorStore = useEditorStore();
-const emit = defineEmits(['element-selected']);
+const emit = defineEmits(["element-selected"]);
 
 const canvas = ref<HTMLCanvasElement | null>(null);
 const wheelerRef = ref<HTMLDivElement | null>(null);
@@ -41,19 +46,19 @@ const selectedElement = computed(() => {
 });
 
 const handleChange = (key: string, currentValue: number) => {
-  if (key === 'x') {
+  if (key === "x") {
     editor.value.cropBox.x = currentValue * editor.value.viewport.scale;
   }
-  if (key === 'y') {
+  if (key === "y") {
     editor.value.cropBox.y = currentValue * editor.value.viewport.scale;
   }
-  if (key === 'width') {
+  if (key === "width") {
     editor.value.cropBox.width = currentValue * editor.value.viewport.scale;
   }
-  if (key === 'height') {
+  if (key === "height") {
     editor.value.cropBox.height = currentValue * editor.value.viewport.scale;
   }
-}
+};
 
 // --- 互動狀態管理 ---
 const textInput = ref<HTMLInputElement | null>(null);
@@ -68,13 +73,13 @@ const contextMenu = reactive({
   x: 0,
   y: 0,
   element: null as ICanvasElement | null,
-  wordPosition: { x: 0, y: 0 },
+  wordPosition: { x: 0, y: 0 }
 });
 const contextMenuPosition = ref({
   top: 0,
   left: 0,
   bottom: 0,
-  right: 0,
+  right: 0
 } as DOMRect);
 
 // PopOver選單狀態
@@ -85,10 +90,9 @@ const popOverMenu = reactive({
   offset: {
     x: 0,
     y: -40
-  },
+  }
 });
 onMounted(async () => {
-
   if (!canvas.value) return;
 
   const { viewport } = generalDefaults;
@@ -96,14 +100,15 @@ onMounted(async () => {
   const width: number = config.width || viewport.width;
   const height: number = config.height || viewport.height;
   const color: string = config.color || viewport.color;
-  const windowSize: { width: number, height: number } = {
+  const windowSize: { width: number; height: number } = {
     width: (uploaderContainer.value?.parentElement?.clientWidth || 800) - 40,
-    height: (uploaderContainer.value?.parentElement?.clientHeight || 600) - 40,
-  }
+    height: (uploaderContainer.value?.parentElement?.clientHeight || 600) - 40
+  };
   editor.value.viewport.width = windowSize.width;
   editor.value.viewport.height = windowSize.height;
   editor.value.setup(canvas.value, uploaderContainer.value);
-  if (wheelerRef.value?.parentElement && advancedDefaults.zoomEnabled) editor.value.setupZoomView(wheelerRef.value.parentElement as HTMLDivElement);
+  if (wheelerRef.value?.parentElement && advancedDefaults.zoomEnabled)
+    editor.value.setupZoomView(wheelerRef.value.parentElement as HTMLDivElement);
   editor.value.textInput = textInput.value;
   // 預設畫布大小
   editor.value.updateViewportSize(width, height, color);
@@ -119,7 +124,7 @@ onMounted(async () => {
       x: event.x,
       y: event.y
     });
-    contextMenu.visible = true;//!!(event.element); // 如果沒有點擊到物件目前不顯示選單
+    contextMenu.visible = true; //!!(event.element); // 如果沒有點擊到物件目前不顯示選單
     contextMenu.x = event.x;
     contextMenu.y = event.y;
     contextMenu.element = event.element;
@@ -143,50 +148,72 @@ onMounted(async () => {
       updateTextareaSize(); // 初始設定大小
     });
   };
-  window.addEventListener('click', closeContextMenu);
-  window.addEventListener('resize', updateCanvasScale);
+  window.addEventListener("click", closeContextMenu);
+  window.addEventListener("resize", updateCanvasScale);
 });
 onUnmounted(() => {
   editor.value.destroy();
-  window.removeEventListener('click', closeContextMenu);
-  window.removeEventListener('resize', updateCanvasScale);
-})
+  window.removeEventListener("click", closeContextMenu);
+  window.removeEventListener("resize", updateCanvasScale);
+});
 
 // --- Event Emitters and Watchers ---
 // 選擇物件刷新畫面
-watch(() => editorStore.selectedElements, (newSelection) => {
-  // Deep copy to avoid downstream mutations affecting the original object
-  emit('element-selected', newSelection.length > 0 ? JSON.parse(JSON.stringify(newSelection)) : []);
-  editor.value.render();
-  // popOverMenu.visible = (newSelection.length === 1);
-}, { deep: true });
+watch(
+  () => editorStore.selectedElements,
+  (newSelection) => {
+    // Deep copy to avoid downstream mutations affecting the original object
+    emit(
+      "element-selected",
+      newSelection.length > 0 ? JSON.parse(JSON.stringify(newSelection)) : []
+    );
+    editor.value.render();
+    // popOverMenu.visible = (newSelection.length === 1);
+  },
+  { deep: true }
+);
 
 // 這邊檢查物件有異動就刷新畫面
-watch(() => editorStore.elements, () => {
-  editor.value.render();
-  updateCanvasScale();
-}, { deep: true });
-
-watch(() => editorStore.originalImage, () => {
-  if (editorStore.originalImage) {
-    editor.value.updateViewportSize(editorStore.originalImage.width, editorStore.originalImage.height);
-  }
-  editor.value.resetCropMarks();
-  editor.value.render(); // 進行初次繪製
-}, { deep: true });
-
-// 監聽裁切框的任何變更（來自拖曳或輸入框）
-watch(editor.value.cropBox, () => {
-  // 當 cropBox 變更時，先套用約束
-  const wasConstrained = editor.value.constrainCropBox();
-
-  // 如果值沒有被約束（表示值是有效的），則直接重繪
-  // 如果值被約束了，此函式會被再次觸發，屆時 wasConstrained 會是 false，然後再重繪
-  if (!wasConstrained) {
+watch(
+  () => editorStore.elements,
+  () => {
     editor.value.render();
     updateCanvasScale();
-  }
-}, { deep: true });
+  },
+  { deep: true }
+);
+
+watch(
+  () => editorStore.originalImage,
+  () => {
+    if (editorStore.originalImage) {
+      editor.value.updateViewportSize(
+        editorStore.originalImage.width,
+        editorStore.originalImage.height
+      );
+    }
+    editor.value.resetCropMarks();
+    editor.value.render(); // 進行初次繪製
+  },
+  { deep: true }
+);
+
+// 監聽裁切框的任何變更（來自拖曳或輸入框）
+watch(
+  editor.value.cropBox,
+  () => {
+    // 當 cropBox 變更時，先套用約束
+    const wasConstrained = editor.value.constrainCropBox();
+
+    // 如果值沒有被約束（表示值是有效的），則直接重繪
+    // 如果值被約束了，此函式會被再次觸發，屆時 wasConstrained 會是 false，然後再重繪
+    if (!wasConstrained) {
+      editor.value.render();
+      updateCanvasScale();
+    }
+  },
+  { deep: true }
+);
 
 // --- 文字編輯狀態 ---
 let minWidth = ref(0);
@@ -197,7 +224,7 @@ const updateTextareaSize = () => {
   if (!textarea || !editor.value.editingElement) return;
 
   // 為了準確計算，先重設高度
-  textarea.style.height = 'auto';
+  textarea.style.height = "auto";
   // 寬度設為 auto 以便計算 scrollWidth，但要確保它不小於初始寬度
   textarea.style.width = `${minWidth.value}px`;
   const config = selectedElement.value?.config as ITextConfig;
@@ -207,16 +234,16 @@ const updateTextareaSize = () => {
   // const scrollHeight = textarea.scrollHeight;
   const scrollWidth = textarea.scrollWidth;
   const w = Math.max(scrollWidth, minWidth.value);
-  const countLines: number = config.content.split('\n').length;
+  const countLines: number = config.content.split("\n").length;
   // console.log('countLines', countLines * (config._lineSpacing || 0), scrollHeight);
   textarea.style.height = `${countLines * (config._lineSpacing || 0) * scale}px`;
   textarea.style.width = `${w}px`;
   if (countLines > (config._countLines || 1)) {
-    const top: number = Number.parseFloat(textarea.style.top.replace('px', ''));
-    textarea.style.top =  `${top - ((config._lineSpacing || 0) / 2)}px`;
+    const top: number = Number.parseFloat(textarea.style.top.replace("px", ""));
+    textarea.style.top = `${top - (config._lineSpacing || 0) / 2}px`;
   } else if (countLines < (config._countLines || 1)) {
-    const top: number = Number.parseFloat(textarea.style.top.replace('px', ''));
-    textarea.style.top =  `${top + ((config._lineSpacing || 0) / 2)}px`;
+    const top: number = Number.parseFloat(textarea.style.top.replace("px", ""));
+    textarea.style.top = `${top + (config._lineSpacing || 0) / 2}px`;
   }
 };
 
@@ -225,8 +252,10 @@ const finishEditing = () => {
   if (isComposing.value) return;
   if (!editor.value.editingElement) return;
   // 如果編輯後文字為空，則移除該元素
-  if ((editor.value.editingElement.config as ITextConfig).content.trim() === '') {
-    editorStore.elements = editorStore.elements.filter(el => el.id !== editor.value.editingElement!.id);
+  if ((editor.value.editingElement.config as ITextConfig).content.trim() === "") {
+    editorStore.elements = editorStore.elements.filter(
+      (el) => el.id !== editor.value.editingElement!.id
+    );
   }
   minWidth.value = 0; // 重設
   editor.value.editingElement = null;
@@ -235,20 +264,21 @@ const finishEditing = () => {
 // 處理IME輸入問題
 const compositionStart = () => {
   isComposing.value = true;
-}
+};
 const compositionEnd = () => {
   isComposing.value = false;
   updateTextareaSize();
-}
+};
 const handleTextInput = () => {
   if (isComposing.value) return;
   updateTextareaSize();
-}
+};
 const textAreaSelected = (event: Event) => {
+  console.log("textAreaSelected");
   const target = event.target as HTMLTextAreaElement;
   const selectedText: string = target.value.substring(target.selectionStart, target.selectionEnd);
-  console.log('Text selected:', selectedText);
-}
+  console.log("Text selected:", selectedText);
+};
 //
 const preview = () => {
   // 計算比例
@@ -264,10 +294,10 @@ const preview = () => {
       height: cropBox.height
     },
     scaleFactor,
-    type: 'image/png',
+    type: "image/png",
     color: editor.value.viewport.color
   } as CroppedExportOptions);
-}
+};
 // 儲存裁切後的圖片
 const saveImage = async () => {
   const href = preview();
@@ -275,9 +305,11 @@ const saveImage = async () => {
   if (href) {
     editorStore.setPreviewImage(href);
     // 4. 將暫時畫布的內容轉換為圖片的 data URL 並觸發下載
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = href;
-    link.download = editorStore.pageName ? `${editorStore.pageName}.png` : `edited-image-${Date.now()}.png`; // 加上時間戳避免檔名重複
+    link.download = editorStore.pageName
+      ? `${editorStore.pageName}.png`
+      : `edited-image-${Date.now()}.png`; // 加上時間戳避免檔名重複
     document.body.appendChild(link); // Firefox 需要將 link 加入 DOM
     link.click();
     document.body.removeChild(link); // 清理 DOM
@@ -318,7 +350,7 @@ const handleContextMenuCommand = (action: string) => {
       editorStore.setSelectedElements(editorStore.elements);
       break;
   }
-}
+};
 // 關閉右鍵選單
 const closeContextMenu = () => {
   contextMenu.visible = false;
@@ -335,10 +367,8 @@ const handlePopOverMenuChange = (state: string) => {
   const multiple: boolean = editorStore.selectedElements.length > 1;
   switch (state) {
     case "left":
-      if (multiple)
-        editor.value.align("left", null);
-      else
-        editor.value.stageAlign("left", null);
+      if (multiple) editor.value.align("left", null);
+      else editor.value.stageAlign("left", null);
       break;
     case "center":
       if (multiple) {
@@ -366,7 +396,6 @@ const addElement = async (element: ICanvasElement) => {
 };
 // 更新在這邊處理
 const updateSelectedElement = (newProps: Partial<any>) => {
-
   if (newProps.type === ElementTypesEnum.Stage) {
     const config = newProps.config;
     editor.value.updateViewportSize(config.width, config.height, config.color);
@@ -376,7 +405,7 @@ const updateSelectedElement = (newProps: Partial<any>) => {
 
   // Now updates all selected elements
   if (editorStore.selectedElements.length === 0) return;
-  editorStore.selectedElements.forEach(element => {
+  editorStore.selectedElements.forEach((element) => {
     Object.assign(element.config, newProps);
   });
   editor.value.render();
@@ -387,17 +416,16 @@ const updateSelectedElement = (newProps: Partial<any>) => {
 };
 // 這邊處理對齊
 const alignSelectedElement = (horizontal: string, vertical: string) => {
-
   if (editorStore.selectedElements.length === 1) {
     editor.value.stageAlign(horizontal, vertical);
   } else {
     editor.value.align(horizontal, vertical);
   }
-}
+};
 // 更新畫面
 const refresh = () => {
   editor.value.render();
-}
+};
 // 更新畫布比例
 const updateCanvasScale = () => {
   if (wheelerRef.value && wheelerRef.value.parentElement && editorStore.viewTranslate.autoScale) {
@@ -405,19 +433,20 @@ const updateCanvasScale = () => {
     const scaleX = Math.min(1, clientWidth / editor.value.artboardSize.width);
     const scaleY = Math.min(1, clientHeight / editor.value.artboardSize.height);
     const scale = Math.min(scaleX, scaleY);
-    if (scale < 1)
-      editorStore.setScale(scale);
-    else
-      editorStore.setScale(1);
+    if (scale < 1) editorStore.setScale(scale);
+    else editorStore.setScale(1);
   }
   // 計算視窗大小
-  const windowSize: { width: number, height: number } = {
+  const windowSize: { width: number; height: number } = {
     width: (uploaderContainer.value?.parentElement?.clientWidth || 800) - 40,
-    height: (uploaderContainer.value?.parentElement?.clientHeight || 600) - 40,
-  }
+    height: (uploaderContainer.value?.parentElement?.clientHeight || 600) - 40
+  };
   const { width, height } = editorStore.stage.config as StageConfig;
   // 由小至大時候需要拉大canvas
-  if (windowSize.width > editor.value.viewport.width || windowSize.height > editor.value.viewport.height) {
+  if (
+    windowSize.width > editor.value.viewport.width ||
+    windowSize.height > editor.value.viewport.height
+  ) {
     const offsetX = (windowSize.width - editor.value.viewport.width) / 2;
     const offsetY = (windowSize.height - editor.value.viewport.height) / 2;
     editor.value.viewport.width = windowSize.width;
@@ -432,7 +461,7 @@ const updateCanvasScale = () => {
 // --- 鍵盤事件處理 ---
 // 鍵盤快捷鍵:刪除
 const handleDeleteSelected = () => {
-  const selectedIds = editorStore.selectedElements.map(el => el.id);
+  const selectedIds = editorStore.selectedElements.map((el) => el.id);
   if (selectedIds.length > 0) {
     editorStore.removeElements(selectedIds);
     if (editor.value.hoveredElement && selectedIds.includes(editor.value.hoveredElement?.id)) {
@@ -442,9 +471,9 @@ const handleDeleteSelected = () => {
   }
 };
 // 鍵盤快捷鍵:移動
-const handleMoveSelected = ({ dx, dy }: { dx: number, dy: number }) => {
+const handleMoveSelected = ({ dx, dy }: { dx: number; dy: number }) => {
   if (editorStore.selectedElements.length > 0) {
-    editorStore.selectedElements.forEach(el => {
+    editorStore.selectedElements.forEach((el) => {
       el.config.x += dx;
       el.config.y += dy;
     });
@@ -454,95 +483,120 @@ const handleMoveSelected = ({ dx, dy }: { dx: number, dy: number }) => {
 // 鍵盤快捷鍵:文字編輯
 const handleTextEditing = (type: string, action: string) => {
   if (editorStore.selectedElements.length > 0) {
-    editorStore.selectedElements.forEach(el => {
+    editorStore.selectedElements.forEach((el) => {
       if (type === el.type) {
-        if (action === 'bold') {
+        if (action === "bold") {
           const { fontWeight } = el.config as ITextConfig;
-          (el.config as ITextConfig).fontWeight = fontWeight === 'bold' ? 'normal' : 'bold';
+          (el.config as ITextConfig).fontWeight = fontWeight === "bold" ? "normal" : "bold";
         }
       }
     });
     editor.value.render();
   }
-}
-watch(() => editorStore.viewTranslate.x, () => {
-  editor.value.render();
-});
-watch(() => editorStore.viewTranslate.y, () => {
-  editor.value.render();
-});
-watch(() => editorStore.viewTranslate.scale, () => {
-  editor.value.render();
-});
+};
+watch(
+  () => editorStore.viewTranslate.x,
+  () => {
+    editor.value.render();
+  }
+);
+watch(
+  () => editorStore.viewTranslate.y,
+  () => {
+    editor.value.render();
+  }
+);
+watch(
+  () => editorStore.viewTranslate.scale,
+  () => {
+    editor.value.render();
+  }
+);
 
-defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh, updateCanvasScale, preview, saveImage });
-
+defineExpose({
+  addElement,
+  updateSelectedElement,
+  alignSelectedElement,
+  refresh,
+  updateCanvasScale,
+  preview,
+  saveImage
+});
 </script>
 
 <template>
-  <NBaseScrollbar ref="wheelerRef"
-                  v-bind:minX="editorStore.viewTranslate.minX"
-                  v-bind:maxX="editorStore.viewTranslate.maxX"
-                  v-bind:minY="editorStore.viewTranslate.minY"
-                  v-bind:maxY="editorStore.viewTranslate.maxY">
+  <NBaseScrollbar
+    ref="wheelerRef"
+    v-bind:minX="editorStore.viewTranslate.minX"
+    v-bind:maxX="editorStore.viewTranslate.maxX"
+    v-bind:minY="editorStore.viewTranslate.minY"
+    v-bind:maxY="editorStore.viewTranslate.maxY"
+  >
     <div class="editor-wrapper">
       <!-- 鍵盤控制器，用於處理快捷鍵 -->
       <KeyboardController
-          @delete-selected="handleDeleteSelected"
-          @move-selected="handleMoveSelected"
-          @text-editing="handleTextEditing"
-          @ctrl-event="handleContextMenuCommand"
+        @delete-selected="handleDeleteSelected"
+        @move-selected="handleMoveSelected"
+        @text-editing="handleTextEditing"
+        @ctrl-event="handleContextMenuCommand"
       />
-      <div
-          class="uploader-container"
-          ref="uploaderContainer">
+      <div class="uploader-container" ref="uploaderContainer">
         <canvas
           ref="canvas"
           :style="{
             opacity: editorStore.elements.length === 0 ? 0 : 1,
-            'pointer-events': editorStore.elements.length !== 0 ? 'auto' : 'none',
+            'pointer-events': editorStore.elements.length !== 0 ? 'auto' : 'none'
           }"
           :class="{
-           'editor-canvas': true,
-           'grid-white': generalDefaults.gridBackground === 'white',
-           'grid-black-white': generalDefaults.gridBackground === 'blackAndWhite',
+            'editor-canvas': true,
+            'grid-white': generalDefaults.gridBackground === 'white',
+            'grid-black-white': generalDefaults.gridBackground === 'blackAndWhite'
           }"
           class="editor-canvas grid"
         ></canvas>
         <textarea
-            v-if="editor.editingElement"
-            ref="textInput"
-            v-model="(editor.editingElement.config as ITextConfig).content"
-            :style="textInputStyle"
-            class="text-editor-input"
-            wrap="off"
-            @compositionend="compositionEnd"
-            @compositionstart="compositionStart"
-            @focusout="finishEditing"
-            @input="handleTextInput"
-            @select="textAreaSelected"
-            @keydown.enter.shift.prevent="finishEditing"
+          v-if="editor.editingElement"
+          ref="textInput"
+          v-model="(editor.editingElement.config as ITextConfig).content"
+          :style="textInputStyle"
+          class="text-editor-input"
+          wrap="off"
+          @compositionend="compositionEnd"
+          @compositionstart="compositionStart"
+          @focusout="finishEditing"
+          @input="handleTextInput"
+          @select="textAreaSelected"
+          @keydown.enter.shift.prevent="finishEditing"
         />
         <!-- 快速選單 -->
         <div
-            :style="{ transform: `translate(${popOverMenu.x}px, ${popOverMenu.y}px)`}"
-            class="pop-over-menu"
-            ref="popOverRef">
+          :style="{ transform: `translate(${popOverMenu.x}px, ${popOverMenu.y}px)` }"
+          class="pop-over-menu"
+          ref="popOverRef"
+        >
           <Popover
-              v-show="popOverMenu.visible && (selectedElement?.type === ElementTypesEnum.Image || editorStore.selectedElements.length > 1)"
-              @change="handlePopOverMenuChange"
-              @alignElement="alignSelectedElement"/>
+            v-show="
+              popOverMenu.visible &&
+              (selectedElement?.type === ElementTypesEnum.Image ||
+                editorStore.selectedElements.length > 1)
+            "
+            @change="handlePopOverMenuChange"
+            @alignElement="alignSelectedElement"
+          />
         </div>
-        <div class="upload-prompt-overlay" :style="{
-        opacity: editorStore.elements.length === 0 ? 1 : 0,
-        'pointer-events': editorStore.elements.length === 0 ? 'auto' : 'none',
-        width: `${ editor.artboardSize.width }px`,
-        height: `${ editor.artboardSize.height }px`,
-        top: `${(editor.viewport.height - editor.artboardSize.height) / 2}px`, // 計算垂直置中位置
-        left: `${(editor.viewport.width - editor.artboardSize.width) / 2}px`, // 計算水平置中位置
-      }">
+        <div
+          class="upload-prompt-overlay"
+          :style="{
+            opacity: editorStore.elements.length === 0 ? 1 : 0,
+            'pointer-events': editorStore.elements.length === 0 ? 'auto' : 'none',
+            width: `${editor.artboardSize.width}px`,
+            height: `${editor.artboardSize.height}px`,
+            top: `${(editor.viewport.height - editor.artboardSize.height) / 2}px`, // 計算垂直置中位置
+            left: `${(editor.viewport.width - editor.artboardSize.width) / 2}px` // 計算水平置中位置
+          }"
+        >
           <div class="prompt-content">
-            <div class="prompt-icon"><Symbols name="picture"/></div>
+            <div class="prompt-icon"><Symbols name="picture" /></div>
             <h1>开始产生影像</h1>
             <p>选择素材添加文字、效果和AI，线上编辑您的图片。</p>
           </div>
@@ -550,30 +604,30 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh,
       </div>
       <!-- 自訂右鍵選單 -->
       <NContextMenu
-          v-model:position="contextMenuPosition"
-          v-bind:lock="editorStore.selectedElement?.config.draggable"
-          :visible="contextMenu.visible"
-          :element="contextMenu.element"
-          @command="handleContextMenuCommand"/>
+        v-model:position="contextMenuPosition"
+        v-bind:lock="editorStore.selectedElement?.config.draggable"
+        :visible="contextMenu.visible"
+        :element="contextMenu.element"
+        @command="handleContextMenuCommand"
+      />
       <div class="actions-bar" v-if="editorStore.elements.length !== 0">
         <el-button class="save-button" @click="saveImage">
-          <el-icon size="20"><Symbols name="download"/></el-icon>
+          <el-icon size="20"><Symbols name="download" /></el-icon>
           <span>储存图片</span>
         </el-button>
         <NCropControls
-            :crop-box="editor.cropBox"
-            :viewport="editor.viewport"
-            :div-scale="editorStore.viewTranslate.scale"
-            @change="handleChange"
+          :crop-box="editor.cropBox"
+          :viewport="editor.viewport"
+          :div-scale="editorStore.viewTranslate.scale"
+          @change="handleChange"
         />
       </div>
-      <div v-if="editor.isRotating" class="rotation">{{ `${ editorStore.rotationInDegrees }°` }}</div>
+      <div v-if="editor.isRotating" class="rotation">{{ `${editorStore.rotationInDegrees}°` }}</div>
     </div>
   </NBaseScrollbar>
 </template>
 
 <style scoped lang="scss">
-
 @use "@/styles/theme";
 
 .editor-wrapper {
@@ -614,15 +668,19 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh,
 }
 .grid-black-white {
   background-color: #ccc;
-  background-image: linear-gradient(45deg, #fff 25%, transparent 25%, transparent 75%, #fff 75%, #fff),
-  linear-gradient(45deg, #fff 25%, transparent 25%, transparent 75%, #fff 75%, #fff);
+  background-image:
+    linear-gradient(45deg, #fff 25%, transparent 25%, transparent 75%, #fff 75%, #fff),
+    linear-gradient(45deg, #fff 25%, transparent 25%, transparent 75%, #fff 75%, #fff);
   background-size: 20px 20px;
-  background-position: 0 0, 10px 10px;
+  background-position:
+    0 0,
+    10px 10px;
 }
 .grid-white {
   background-color: #fff;
-  background-image: linear-gradient(to right, #eee 1px, transparent 1px),
-  linear-gradient(to bottom, #eee 1px, transparent 1px);
+  background-image:
+    linear-gradient(to right, #eee 1px, transparent 1px),
+    linear-gradient(to bottom, #eee 1px, transparent 1px);
   background-size: 20px 20px; /* 每個格子的尺寸 */
 }
 
@@ -636,7 +694,7 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh,
   justify-content: center;
   align-items: center;
   pointer-events: none;
-  background-color: #D9D9D9;
+  background-color: #d9d9d9;
   transition: opacity 0.3s;
   border-radius: 20px;
   /* 1. 將此元素定義為一個尺寸查詢容器，'size' 允許查詢寬度和高度 */
@@ -703,13 +761,12 @@ defineExpose({ addElement, updateSelectedElement, alignSelectedElement, refresh,
   cursor: default;
 }
 
-
 .save-button {
   width: 146px;
   height: 50px;
   padding: 10px 20px;
   border: none;
-  background-color: #78EFB2;
+  background-color: #78efb2;
   border-radius: 40px;
   cursor: pointer;
   transition: background-color 0.2s;

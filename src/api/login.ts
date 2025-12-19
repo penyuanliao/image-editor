@@ -1,5 +1,4 @@
-
-import { API_ENDPOINTS } from './endpoints';
+import { API_ENDPOINTS } from "./endpoints";
 
 export interface LoginResponseResult {
   status: boolean;
@@ -13,16 +12,20 @@ export interface UserInfo {
 }
 
 // 3. 建立一個專門用來擷取資料的函式
-export const apiLogin = async (data: { sid: string, code: string, user: string }): Promise<LoginResponseResult> => {
+export const apiLogin = async (data: {
+  sid: string;
+  code: string;
+  user: string;
+}): Promise<LoginResponseResult> => {
   const response = await fetch(API_ENDPOINTS.LOGIN, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json"
     },
     body: JSON.stringify(data)
   });
   if (!response.ok) {
-    throw new Error('Failed to fetch Login');
+    throw new Error("Failed to fetch Login");
   }
   return response.json();
 };

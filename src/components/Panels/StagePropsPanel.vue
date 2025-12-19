@@ -1,29 +1,28 @@
 <script setup lang="ts">
-import {useEditorStore} from "@/store/editorStore.ts";
-import type {StageConfig} from "@/types.ts";
-import {ColorPicker} from "colorpickers";
+import { useEditorStore } from "@/store/editorStore.ts";
+import type { StageConfig } from "@/types.ts";
+import { ColorPicker } from "colorpickers";
 import NPanelButton from "@/components/Basic/NPanelButton.vue";
 import Gallery from "@/components/Gallery/Gallery.vue";
-import {onMounted, ref} from "vue";
-import {appearanceDefaults} from "@/config/settings.ts";
+import { onMounted, ref } from "vue";
+import { appearanceDefaults } from "@/config/settings.ts";
 
 const store = useEditorStore();
 
-const emit = defineEmits(['update-element']);
+const emit = defineEmits(["update-element"]);
 
 const stageViews = ref(appearanceDefaults.StandardStageSizes);
 
-const selected = ref<number|null>(null);
+const selected = ref<number | null>(null);
 
 const applyStageHandle = () => {
-  emit('update-element', store.stage);
-}
+  emit("update-element", store.stage);
+};
 const handleStageChange = (value: { width: number; height: number }) => {
-
   store.stage.config.width = value.width;
   store.stage.config.height = value.height;
   applyStageHandle();
-}
+};
 
 onMounted(() => {
   for (let i = 0; i <= stageViews.value.length; i++) {
@@ -36,30 +35,42 @@ onMounted(() => {
       }
     }
   }
-})
-
+});
 </script>
 
 <template>
   <div class="stage-props-container props-panel">
     <div class="properties">
-
       <div class="ctrl">
         <span>寬：</span>
-        <el-input-number class="el-input" v-model="(store.stage.config as StageConfig).width" :controls="false" style="width: 100%">
+        <el-input-number
+          class="el-input"
+          v-model="(store.stage.config as StageConfig).width"
+          :controls="false"
+          style="width: 100%"
+        >
           <template #suffix>px</template>
         </el-input-number>
       </div>
       <div class="ctrl">
         <span>高：</span>
-        <el-input-number class="el-input" v-model="(store.stage.config as StageConfig).height" :controls="false" style="width: 100%">
+        <el-input-number
+          class="el-input"
+          v-model="(store.stage.config as StageConfig).height"
+          :controls="false"
+          style="width: 100%"
+        >
           <template #suffix>px</template>
         </el-input-number>
       </div>
       <div class="ctrl once-line">
         <span>背景顏色：</span>
         <div class="color-picker-square">
-          <ColorPicker use-type="pure" format="hex4" v-model:pureColor="(store.stage.config as StageConfig).color"/>
+          <ColorPicker
+            use-type="pure"
+            format="hex4"
+            v-model:pureColor="(store.stage.config as StageConfig).color"
+          />
         </div>
       </div>
       <div class="ctrl once-line">
@@ -69,7 +80,12 @@ onMounted(() => {
     </div>
     <div class="additional">
       <NPanelButton @pointerup="applyStageHandle">设定</NPanelButton>
-      <Gallery label="預設尺寸" :data="stageViews" v-model:selected="selected" @itemClick="handleStageChange"/>
+      <Gallery
+        label="預設尺寸"
+        :data="stageViews"
+        v-model:selected="selected"
+        @itemClick="handleStageChange"
+      />
     </div>
   </div>
 </template>

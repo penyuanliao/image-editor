@@ -1,23 +1,22 @@
 <script setup lang="ts">
-
 import { computed } from "vue";
-import {Close, Search} from "@element-plus/icons-vue";
+import { Close, Search } from "@element-plus/icons-vue";
 
 const props = defineProps({
   input: {
     type: String,
-    default: ''
+    default: ""
   }
 });
 
-const emit = defineEmits(['update:input', 'change']);
+const emit = defineEmits(["update:input", "change"]);
 
 const inputValue = computed({
   get() {
     return props.input;
   },
   set(value) {
-    emit('update:input', value);
+    emit("update:input", value);
   }
 });
 </script>
@@ -25,13 +24,13 @@ const inputValue = computed({
 <template>
   <div class="search-input">
     <el-input
-        v-model="inputValue"
-        class="source-search-input"
-        placeholder="搜尋素材"
-        :clear-icon="Close"
-        clearable
-        @change="emit('change', inputValue)"
-        @clear="emit('change', '')"
+      v-model="inputValue"
+      class="source-search-input"
+      placeholder="搜尋素材"
+      :clear-icon="Close"
+      clearable
+      @change="emit('change', inputValue)"
+      @clear="emit('change', '')"
     >
       <template v-slot:suffix>
         <div class="submit-btn">

@@ -2,33 +2,29 @@
 import { ref } from "vue";
 import { Search, Close } from "@element-plus/icons-vue";
 
-const props = defineProps(['title', 'searchEnabled', 'inputValue', 'padding']);
-const emits = defineEmits(['update:input']);
+const props = defineProps(["title", "searchEnabled", "inputValue", "padding"]);
+const emits = defineEmits(["update:input"]);
 const searchEnabled = ref<boolean>(props.searchEnabled !== false);
 const input = ref<String>(props.inputValue);
 
 const onSearchIconClick = () => {
-  console.log('onSearchIconClick', input.value);
-  emits('update:input', input.value);
-}
-
+  console.log("onSearchIconClick", input.value);
+  emits("update:input", input.value);
+};
 </script>
 
 <template>
-  <div
-      class="panel-container"
-      :style="`--panel-padding: ${props.padding || '30px 35px 0 32px'};`"
-  >
+  <div class="panel-container" :style="`--panel-padding: ${props.padding || '30px 35px 0 32px'};`">
     <h2 v-if="props.title" class="heading">
-      {{ props.title || '选择素材' }}
+      {{ props.title || "选择素材" }}
     </h2>
     <el-input
-        v-if="searchEnabled"
-        v-model="input"
-        class="source-search-input"
-        placeholder="搜尋素材"
-        :clear-icon="Close"
-        clearable
+      v-if="searchEnabled"
+      v-model="input"
+      class="source-search-input"
+      placeholder="搜尋素材"
+      :clear-icon="Close"
+      clearable
     >
       <template v-slot:suffix>
         <div class="submit-btn" @click="onSearchIconClick">
@@ -45,7 +41,6 @@ const onSearchIconClick = () => {
 </template>
 
 <style scoped lang="scss">
-
 @use "../../styles/theme";
 .panel-container {
   display: flex;
@@ -78,8 +73,6 @@ const onSearchIconClick = () => {
   border: 1px solid theme.$border-color-base;
   pointer-events: none;
 }
-
-
 
 .source-search-input {
   width: 262px;
@@ -160,6 +153,4 @@ const onSearchIconClick = () => {
     justify-content: space-between;
   }
 }
-
-
 </style>

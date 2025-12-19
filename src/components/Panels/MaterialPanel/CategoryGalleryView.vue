@@ -1,23 +1,22 @@
 <script setup lang="ts">
-
 import { type IGalleryItem } from "@/store/useMaterialsStore.ts";
-import {computed, type PropType} from "vue";
+import { computed, type PropType } from "vue";
 import NImage from "@/components/Basic/NImage.vue";
 import NThreeDotsLoading from "@/components/Basic/NThreeDotsLoading.vue";
 
 const props = defineProps({
-  'data': {
+  data: {
     type: Array as PropType<IGalleryItem[]>,
     required: true,
     default: () => []
   },
-  'loading': {
+  loading: {
     type: Boolean,
     default: false
   }
 });
 
-const emit = defineEmits(['change']);
+const emit = defineEmits(["change"]);
 
 const itemsPerRow: number = 3;
 
@@ -32,9 +31,8 @@ const groupRows = computed(() => {
 });
 
 const handleChange = (group: IGalleryItem) => {
-  emit('change', group);
-}
-
+  emit("change", group);
+};
 </script>
 
 <template>
@@ -42,12 +40,12 @@ const handleChange = (group: IGalleryItem) => {
     <el-row v-for="(row, rowIndex) in groupRows" :key="rowIndex" class="row" :gutter="20">
       <el-col v-for="group in row" :key="group.id" :span="8">
         <div class="image-item ep-bg-purple" @click="handleChange(group)">
-          <NImage :src="group.src" fit="contain"/>
+          <NImage :src="group.src" fit="contain" />
         </div>
       </el-col>
     </el-row>
     <div class="page-loading">
-      <NThreeDotsLoading v-if="props.loading"/>
+      <NThreeDotsLoading v-if="props.loading" />
     </div>
   </div>
 </template>
@@ -93,7 +91,6 @@ const handleChange = (group: IGalleryItem) => {
   &:hover {
     background-color: rgba(80, 80, 80, 0.6);
   }
-
 }
 .title {
   border-radius: 4px;
@@ -103,7 +100,6 @@ const handleChange = (group: IGalleryItem) => {
   display: flex;
   justify-content: flex-end;
   padding-right: 10px;
-
 }
 .page-loading {
   width: 100%;
@@ -112,7 +108,5 @@ const handleChange = (group: IGalleryItem) => {
   display: flex;
   align-items: center;
   justify-content: center;
-
 }
-
 </style>

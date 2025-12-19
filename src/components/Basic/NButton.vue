@@ -1,42 +1,45 @@
 <script setup lang="ts">
-
 import Symbols from "@/components/Basic/Symbols.vue";
 
 const props = defineProps(["tip", "size", "icon", "text", "width", "height", "disabled"]);
-
 </script>
 
 <template>
   <div :class="{ disabled: props.disabled }">
-    <el-tooltip
-        v-if="props.tip"
-        :content="props.tip"
-        placement="top">
-      <el-button class="el-btn" :disabled="props.disabled" :style="{
-        width: `${props.width ? props.width + 'px' : '100%'} `,
-        height: `${props.width ? props.height + 'px' : '100%'} `,
-      }">
+    <el-tooltip v-if="props.tip" :content="props.tip" placement="top">
+      <el-button
+        class="el-btn"
+        :disabled="props.disabled"
+        :style="{
+          width: `${props.width ? props.width + 'px' : '100%'} `,
+          height: `${props.width ? props.height + 'px' : '100%'} `
+        }"
+      >
         <el-icon v-if="props.icon" :size="props.size">
-          <Symbols :name="props.icon"/>
+          <Symbols :name="props.icon" />
         </el-icon>
-        <slot v-else-if="$slots.icon" name="icon"/>
+        <slot v-else-if="$slots.icon" name="icon" />
         <span v-if="props.text" class="text">{{ props.text }}</span>
-        <slot v-else-if="$slots.default" name="default"/>
+        <slot v-else-if="$slots.default" name="default" />
       </el-button>
     </el-tooltip>
-    <el-button v-else class="el-btn" :disabled="props.disabled" :style="{
+    <el-button
+      v-else
+      class="el-btn"
+      :disabled="props.disabled"
+      :style="{
         width: `${props.width ? props.width + 'px' : '100%'} `,
-        height: `${props.width ? props.height + 'px' : '100%'} `,
-      }">
+        height: `${props.width ? props.height + 'px' : '100%'} `
+      }"
+    >
       <el-icon v-if="props.icon" :size="props.size">
-        <Symbols :name="props.icon"/>
+        <Symbols :name="props.icon" />
       </el-icon>
-      <slot v-else-if="$slots.icon" name="icon"/>
+      <slot v-else-if="$slots.icon" name="icon" />
       <span v-if="props.text" class="text">{{ props.text }}</span>
-      <slot v-else-if="$slots.default" name="default"/>
+      <slot v-else-if="$slots.default" name="default" />
     </el-button>
   </div>
-
 </template>
 
 <style scoped lang="scss">
@@ -49,7 +52,7 @@ const props = defineProps(["tip", "size", "icon", "text", "width", "height", "di
   border-radius: 4px;
 
   &:hover {
-    background-color: #EEEEEE;
+    background-color: #eeeeee;
     color: #3a3a3a;
   }
 

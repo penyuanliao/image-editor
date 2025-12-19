@@ -1,22 +1,22 @@
 <script setup lang="ts">
-import {computed, onMounted, onUnmounted, ref, watch, nextTick} from 'vue';
-import {ElementTypesEnum, type ICanvasElement, BoxBarTypes} from "./types";
+import { computed, onMounted, onUnmounted, ref, watch, nextTick } from "vue";
+import { ElementTypesEnum, type ICanvasElement, BoxBarTypes } from "./types";
 import BoxBar from "./components/BoxBar.vue";
 import TextPanel from "./components/Panels/TextPanel.vue";
 import UploadPanel from "./components/Panels/UploadPanel.vue";
 import LayersPanel from "./components/Panels/LayersPanel.vue";
 import DropZone from "./components/Basic/DropZone.vue"; // 引入新的 DropZone 元件
-import {useEditorStore} from "./store/editorStore.ts";
+import { useEditorStore } from "./store/editorStore.ts";
 import ImagePropsPanel from "./components/Panels/ImagePropsPanel.vue";
 import EditorView from "./components/EditorArea/EditorView.vue";
-import {processFile} from "./Utilities/FileProcessor.ts";
-import {CreateImageElement} from "./Utilities/useCreateCanvasElement.ts";
+import { processFile } from "./Utilities/FileProcessor.ts";
+import { CreateImageElement } from "./Utilities/useCreateCanvasElement.ts";
 import StagePropsPanel from "./components/Panels/StagePropsPanel.vue";
 import NNavbar from "@/components/Basic/NNavbar.vue";
 import NavigationController from "@/components/Panels/MaterialPanel/NavigationController.vue";
 import AuthenticationError from "@/components/Views/AuthenticationError.vue";
 import NLoading from "@/components/Views/NLoading.vue";
-import {useAuthStore} from "@/store/useAuthStore.ts";
+import { useAuthStore } from "@/store/useAuthStore.ts";
 
 const editorStore = useEditorStore();
 
@@ -29,7 +29,7 @@ const selected = ref<string>();
 // 系統版本
 const version = __APP_VERSION__;
 // 載入狀態
-const state = ref<'loading' | 'completed' | 'denied'>('loading');
+const state = ref<"loading" | "completed" | "denied">("loading");
 
 const panelMaxHeight = ref(window.innerHeight - 80 - 22);
 
@@ -43,7 +43,7 @@ const handleAddElement = (element: any) => {
 };
 
 const boxItemClickHandle = (value: string) => {
-  if (selected.value === value) selected.value = '';
+  if (selected.value === value) selected.value = "";
   else selected.value = value;
 };
 
@@ -57,12 +57,12 @@ const handleUpdateElement = (newProps: Partial<ICanvasElement>) => {
   editor.value?.updateSelectedElement(newProps);
 };
 const handleAlignElement = (hAlign: string, vAlign: string) => {
-  console.log('alignSelectedElement', hAlign, vAlign);
+  console.log("alignSelectedElement", hAlign, vAlign);
   editor.value?.alignSelectedElement(hAlign, vAlign);
-}
+};
 const handleRefresh = () => {
   editor.value?.refresh();
-}
+};
 
 const selectedElement = computed(() => editorStore.selectedElement);
 
@@ -83,12 +83,15 @@ const handleFilesDropped = async (files: FileList) => {
 
 const handlePointerUp = (event: PointerEvent) => {
   event.preventDefault();
-  if (editorStore.selectedElement?.type !== ElementTypesEnum.Stage &&
-      editorStore.selectedElements && editorStore.selectedElements.length !== 0) {
+  if (
+    editorStore.selectedElement?.type !== ElementTypesEnum.Stage &&
+    editorStore.selectedElements &&
+    editorStore.selectedElements.length !== 0
+  ) {
     editorStore.saveHistory();
     editorStore.clearSelection();
   }
-}
+};
 
 const updatePanelHeight = () => {
   panelMaxHeight.value = window.innerHeight - 80 - 22; // 80 for navbar, 22 for content padding-top
@@ -96,27 +99,27 @@ const updatePanelHeight = () => {
 // ---- Style ---- //
 const styleSidebar = computed(() => {
   return {
-    width: selected.value !== '' ? '420px' : '85px',
-  }
+    width: selected.value !== "" ? "420px" : "85px"
+  };
 });
 
 const contentStyle = computed(() => {
   return {
-    '--panel-max-height': `${panelMaxHeight.value}px`
-  }
+    "--panel-max-height": `${panelMaxHeight.value}px`
+  };
 });
 
 onMounted(async () => {
-  window.addEventListener('resize', updatePanelHeight);
+  window.addEventListener("resize", updatePanelHeight);
   editorStore.defaultPropsPanel();
   await authStore.checkLogin();
   // console.log('is-login:', authStore.isLogin());
   // state.value = (!authStore.isLogin()) ? 'denied' : 'completed';
-  state.value = 'completed';
+  state.value = "completed";
 });
 
 onUnmounted(() => {
-  window.removeEventListener('resize', updatePanelHeight);
+  window.removeEventListener("resize", updatePanelHeight);
 });
 
 watch(selected, async () => {
@@ -125,61 +128,56 @@ watch(selected, async () => {
   // 然後再呼叫 updateCanvasScale，此時它會讀取到正確的 editor-area 寬度
   setTimeout(() => editor.value?.updateCanvasScale(), 200);
 });
-
 </script>
 
 <template>
-  <NLoading v-if="state === 'loading'"/>
-  <AuthenticationError v-if="state === 'denied'"/>
+  <NLoading v-if="state === 'loading'" />
+  <AuthenticationError v-if="state === 'denied'" />
   <!-- 使用 DropZone 元件並監聽 files-dropped 事件 -->
-  <DropZone v-if="state==='completed'" class="drop-zone-wrapper" @files-dropped="handleFilesDropped">
+  <DropZone
+    v-if="state === 'completed'"
+    class="drop-zone-wrapper"
+    @files-dropped="handleFilesDropped"
+  >
     <div class="main-container">
-      <NNavbar/>
+      <NNavbar />
       <div class="content" :style="contentStyle">
-        <div
-            class="sidebar"
-            :style="styleSidebar">
-          <BoxBar @boxItemClick="boxItemClickHandle"/>
+        <div class="sidebar" :style="styleSidebar">
+          <BoxBar @boxItemClick="boxItemClickHandle" />
           <div class="sidebar-content">
             <TextPanel
-                v-if="selected === BoxBarTypes.text"
-                :controlEnabled="false"
-                @add-element="handleAddElement"
-                @update-element="handleUpdateElement"
+              v-if="selected === BoxBarTypes.text"
+              :controlEnabled="false"
+              @add-element="handleAddElement"
+              @update-element="handleUpdateElement"
             />
             <NavigationController
-                v-show="selected === BoxBarTypes.sticker"
-                @add-element="handleAddElement"
+              v-show="selected === BoxBarTypes.sticker"
+              @add-element="handleAddElement"
             />
-            <UploadPanel
-                v-if="selected === BoxBarTypes.upload"
-                @add-element="handleAddElement"
-            />
+            <UploadPanel v-if="selected === BoxBarTypes.upload" @add-element="handleAddElement" />
           </div>
         </div>
         <div class="editor-area" @pointerup.self="handlePointerUp">
-          <EditorView
-              ref="editor"
-              @element-selected="handleElementSelected"
-          />
-          <LayersPanel class="layers-scroll scroll-bar-hidden"/>
+          <EditorView ref="editor" @element-selected="handleElementSelected" />
+          <LayersPanel class="layers-scroll scroll-bar-hidden" />
         </div>
 
         <div class="panel-properties props-panel">
           <StagePropsPanel
-              v-if="selectedElement?.type === ElementTypesEnum.Stage"
-              @update-element="handleUpdateElement"
+            v-if="selectedElement?.type === ElementTypesEnum.Stage"
+            @update-element="handleUpdateElement"
           />
           <TextPanel
-              v-if="selectedElement?.type === ElementTypesEnum.Text"
-              :controlEnabled="true"
-              @add-element="handleAddElement"
-              @update-element="handleUpdateElement"
+            v-if="selectedElement?.type === ElementTypesEnum.Text"
+            :controlEnabled="true"
+            @add-element="handleAddElement"
+            @update-element="handleUpdateElement"
           />
           <ImagePropsPanel
-              v-if="selectedElement?.type === ElementTypesEnum.Image"
-              @align-element="handleAlignElement"
-              @refresh="handleRefresh"
+            v-if="selectedElement?.type === ElementTypesEnum.Image"
+            @align-element="handleAlignElement"
+            @refresh="handleRefresh"
           />
         </div>
       </div>
@@ -189,7 +187,7 @@ watch(selected, async () => {
 </template>
 
 <style scoped lang="scss">
-@use 'styles/theme';
+@use "styles/theme";
 
 .main-container {
   display: flex;
@@ -207,7 +205,7 @@ watch(selected, async () => {
   display: flex;
   min-width: 85px;
   overflow: hidden;
-  box-shadow: 0 3px 3px 0 #D9D9D9;
+  box-shadow: 0 3px 3px 0 #d9d9d9;
   background-color: theme.$primary-color;
   border-top-left-radius: 20px;
   border-top-right-radius: 20px;
@@ -228,7 +226,6 @@ watch(selected, async () => {
   position: relative;
   min-height: 0;
   padding-top: 22px;
-
 }
 
 .editor-area {
@@ -240,7 +237,6 @@ watch(selected, async () => {
   align-items: center;
   overflow: hidden; /* 如果編輯器太大，允許滾動 */
   flex-shrink: 0;
-
 }
 
 .drop-zone-wrapper {
@@ -276,7 +272,7 @@ watch(selected, async () => {
   background-color: theme.$primary-color;
   border-top-left-radius: 20px;
   border-top-right-radius: 20px;
-  box-shadow: -1px 3px 3px 0 #D9D9D9;
+  box-shadow: -1px 3px 3px 0 #d9d9d9;
 }
 
 .app-version {
@@ -287,5 +283,4 @@ watch(selected, async () => {
   color: #aaa;
   z-index: 1000; /* 確保在最上層 */
 }
-
 </style>

@@ -2,14 +2,14 @@
 import { ref } from "vue";
 import { UploadFilled } from "@element-plus/icons-vue";
 import { useEditorStore } from "@/store/editorStore.ts";
-import {CreateImageElement} from "@/Utilities/useCreateCanvasElement.ts";
+import { CreateImageElement } from "@/Utilities/useCreateCanvasElement.ts";
 import NPanel from "../Basic/NPanel.vue";
 import NPanelButton from "@/components/Basic/NPanelButton.vue";
 import { generalDefaults } from "@/config/settings.ts";
-import {processFile} from "@/Utilities/FileProcessor.ts";
-import type {IUploadedImage} from "@/types.ts";
+import { processFile } from "@/Utilities/FileProcessor.ts";
+import type { IUploadedImage } from "@/types.ts";
 
-const emit = defineEmits<{ (e: 'add-element', action: any): void }>();
+const emit = defineEmits<{ (e: "add-element", action: any): void }>();
 
 const editorStore = useEditorStore();
 const fileInput = ref<HTMLInputElement | null>(null);
@@ -27,18 +27,17 @@ const handleFileChange = async (event: Event) => {
 const handleAddingElement = ({ name, image, imageUrl, base64 }: IUploadedImage) => {
   // editorStore.addElement(editorStore.createStickerElement(img));
   const element = CreateImageElement({
-    name: name || '新圖片',
+    name: name || "新圖片",
     image,
     imageUrl,
-    base64,
-  })
-  emit('add-element', element);
-}
+    base64
+  });
+  emit("add-element", element);
+};
 
 const triggerFileInput = () => {
   fileInput.value?.click();
 };
-
 </script>
 
 <template>
@@ -60,11 +59,11 @@ const triggerFileInput = () => {
     <section class="upload-panel-section">
       <div class="upload-panel-list">
         <div
-            v-for="(info, index) in editorStore.imageList"
-            :key="index"
-            class="upload-panel-item"
-            :style="{ backgroundImage: `url(${info.image.src})` }"
-            @click="handleAddingElement(info)"
+          v-for="(info, index) in editorStore.imageList"
+          :key="index"
+          class="upload-panel-item"
+          :style="{ backgroundImage: `url(${info.image.src})` }"
+          @click="handleAddingElement(info)"
         ></div>
       </div>
     </section>

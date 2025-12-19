@@ -3,24 +3,22 @@
 // 任何 el-button 支援但未在此處宣告的屬性，Vue 會自動將它們放入 $attrs 並傳遞給根元素。
 const props = defineProps({
   disabled: Boolean,
-  loading: Boolean,
+  loading: Boolean
 });
-
 </script>
 
 <template>
   <el-button class="submit-btn" v-bind="props">
     <template v-if="$slots.default" #default>
-      <span><slot/></span>
+      <span><slot /></span>
     </template>
     <template v-if="$slots.loading" #loading>
-      <slot name="loading"/>
+      <slot name="loading" />
     </template>
     <template v-if="$slots.icon" #icon>
-      <slot name="icon"/>
+      <slot name="icon" />
     </template>
   </el-button>
-
 </template>
 
 <style scoped lang="scss">

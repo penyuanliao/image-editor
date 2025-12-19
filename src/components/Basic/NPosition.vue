@@ -1,31 +1,24 @@
 <script setup lang="ts" xmlns="http://www.w3.org/1999/html">
-
 import Symbols from "@/components/Basic/Symbols.vue";
-import {ref} from "vue";
-import {advancedDefaults} from "@/config/settings.ts";
+import { ref } from "vue";
+import { advancedDefaults } from "@/config/settings.ts";
 import NButton from "@/components/Basic/NButton.vue";
-const { flipEnabled } = defineProps(['flipEnabled'])
-const emits = defineEmits(['change']);
+const { flipEnabled } = defineProps(["flipEnabled"]);
+const emits = defineEmits(["change"]);
 
 const alignEnabled = ref<boolean>(advancedDefaults.alignEnabled);
 
 const onClickHandle = (value: string) => {
-  emits('change', value);
-}
-
+  emits("change", value);
+};
 </script>
 
 <template>
-  <el-dropdown
-      trigger="click"
-      :hide-on-click="false"
-      :show-arrow="false"
-      placement="bottom-start"
-  >
-    <slot v-if="$slots.default"/>
+  <el-dropdown trigger="click" :hide-on-click="false" :show-arrow="false" placement="bottom-start">
+    <slot v-if="$slots.default" />
     <NButton v-else class="position-btn" text="位置">
       <template #icon>
-        <el-icon size="20"><Symbols name="align-left"/></el-icon>
+        <el-icon size="20"><Symbols name="align-left" /></el-icon>
       </template>
     </NButton>
     <template #dropdown>
@@ -35,44 +28,44 @@ const onClickHandle = (value: string) => {
           <div v-if="alignEnabled" class="row">
             <div class="col">
               <div class="item" @pointerup="onClickHandle('top')">
-                <div><Symbols name="align-top"/></div>
+                <div><Symbols name="align-top" /></div>
                 <div>頂端</div>
               </div>
               <div class="item" @pointerup="onClickHandle('middle')">
-                <div><Symbols name="align-middle"/></div>
+                <div><Symbols name="align-middle" /></div>
                 <span>中間</span>
               </div>
               <div class="item" @pointerup="onClickHandle('bottom')">
-                <div><Symbols name="align-bottom"/></div>
+                <div><Symbols name="align-bottom" /></div>
                 <span>底部</span>
               </div>
             </div>
             <div class="col">
               <div class="item" @pointerup="onClickHandle('left')">
-                <div><Symbols name="align-left"/></div>
+                <div><Symbols name="align-left" /></div>
                 <div>左邊</div>
               </div>
               <div class="item" @pointerup="onClickHandle('center')">
-                <div><Symbols name="align-center"/></div>
+                <div><Symbols name="align-center" /></div>
                 <span>置中</span>
               </div>
               <div class="item" @pointerup="onClickHandle('right')">
-                <div><Symbols name="align-right"/></div>
+                <div><Symbols name="align-right" /></div>
                 <span>右邊</span>
               </div>
             </div>
           </div>
-          <el-divider v-if="alignEnabled && flipEnabled !== false"/>
+          <el-divider v-if="alignEnabled && flipEnabled !== false" />
           <div class="row" v-if="flipEnabled !== false">
             <div class="item" @pointerup="onClickHandle('flip-horizontal')">
               <div class="icon">
-                <Symbols name="flip-horizontal"/>
+                <Symbols name="flip-horizontal" />
               </div>
               <span>水平翻轉</span>
             </div>
             <div class="item" @pointerup="onClickHandle('flip-vertical')">
               <div class="icon">
-                <Symbols name="flip-vertical"/>
+                <Symbols name="flip-vertical" />
               </div>
               <span>垂直翻轉</span>
             </div>
@@ -127,7 +120,7 @@ const onClickHandle = (value: string) => {
   }
   span {
     padding-left: 4px;
-    padding-right: 4px;;
+    padding-right: 4px;
   }
   div {
     position: relative;
@@ -161,5 +154,4 @@ const onClickHandle = (value: string) => {
 .group :deep(.el-divider) {
   margin: 10px 0;
 }
-
 </style>

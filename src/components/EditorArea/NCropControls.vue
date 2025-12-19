@@ -1,8 +1,16 @@
 <script setup lang="ts">
-import {computed, ref} from "vue";
+import { computed, ref } from "vue";
 
 const emit = defineEmits(["change"]);
-const props = defineProps(["cropBox", "viewport", "divScale", "update:cropBox", "update:scale", "update:viewport", "update:divScale"]);
+const props = defineProps([
+  "cropBox",
+  "viewport",
+  "divScale",
+  "update:cropBox",
+  "update:scale",
+  "update:viewport",
+  "update:divScale"
+]);
 
 const visible = ref<boolean>(false);
 
@@ -14,42 +22,71 @@ const displayCropBox = computed(() => {
   return {
     x: Math.round(props.cropBox.x * scaleFactor),
     y: Math.round(props.cropBox.y * scaleFactor),
-    width: Math.min(Math.round(props.cropBox.width * scaleFactor * 100) / 100, props.viewport.originalWidth),
-    height: Math.min(Math.round(props.cropBox.height * scaleFactor * 100) / 100, props.viewport.originalHeight)
+    width: Math.min(
+      Math.round(props.cropBox.width * scaleFactor * 100) / 100,
+      props.viewport.originalWidth
+    ),
+    height: Math.min(
+      Math.round(props.cropBox.height * scaleFactor * 100) / 100,
+      props.viewport.originalHeight
+    )
   };
 });
 
 const zoom = computed(() => {
   return props.divScale * props.viewport.scale;
-})
+});
 
 const handleChange = (key: string, currentValue: number) => {
   emit("change", key, currentValue);
-}
-
+};
 </script>
 
 <template>
   <div class="crop-controls">
     <div class="input-group" v-if="visible">
       <label for="crop-x">X:</label>
-      <input id="crop-x" type="number" v-model.number="displayCropBox.x"
-             @change="(e: Event) => handleChange('x', parseInt((e.target as HTMLInputElement)?.value) || 0)"/>
+      <input
+        id="crop-x"
+        type="number"
+        v-model.number="displayCropBox.x"
+        @change="
+          (e: Event) => handleChange('x', parseInt((e.target as HTMLInputElement)?.value) || 0)
+        "
+      />
     </div>
     <div class="input-group" v-if="visible">
       <label for="crop-y">Y:</label>
-      <input id="crop-y" type="number" v-model.number="displayCropBox.y"
-             @change="(e: Event) => handleChange('y', parseInt((e.target as HTMLInputElement)?.value) || 0)"/>
+      <input
+        id="crop-y"
+        type="number"
+        v-model.number="displayCropBox.y"
+        @change="
+          (e: Event) => handleChange('y', parseInt((e.target as HTMLInputElement)?.value) || 0)
+        "
+      />
     </div>
     <div class="input-group" v-if="visible">
       <label for="crop-width">寬:</label>
-      <input id="crop-width" type="number" v-model.number="displayCropBox.width"
-             @change="(e: Event) => handleChange('width', parseInt((e.target as HTMLInputElement)?.value) || 0)"/>
+      <input
+        id="crop-width"
+        type="number"
+        v-model.number="displayCropBox.width"
+        @change="
+          (e: Event) => handleChange('width', parseInt((e.target as HTMLInputElement)?.value) || 0)
+        "
+      />
     </div>
     <div class="input-group" v-if="visible">
       <label for="crop-height">高:</label>
-      <input id="crop-height" type="number" v-model.number="displayCropBox.height"
-             @change="(e: Event) => handleChange('height', parseInt((e.target as HTMLInputElement)?.value) || 0)"/>
+      <input
+        id="crop-height"
+        type="number"
+        v-model.number="displayCropBox.height"
+        @change="
+          (e: Event) => handleChange('height', parseInt((e.target as HTMLInputElement)?.value) || 0)
+        "
+      />
     </div>
     <div class="input-group">
       <span>{{ `${viewport.originalWidth} x ${viewport.originalHeight}` }}</span>
@@ -104,8 +141,7 @@ const handleChange = (key: string, currentValue: number) => {
   margin: 0;
 }
 
-.input-group input[type=number] {
+.input-group input[type="number"] {
   -moz-appearance: textfield;
 }
-
 </style>

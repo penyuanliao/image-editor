@@ -1,7 +1,7 @@
 /**
  * @file API endpoints, types, and functions for materials.
  */
-import { API_ENDPOINTS } from './endpoints';
+import { API_ENDPOINTS } from "./endpoints";
 
 export interface ResponseResult {
   status: boolean;
@@ -27,15 +27,17 @@ export interface ResMaterialsData {
 }
 
 // 3. 建立一個專門用來擷取資料的函式
-export const apiGetMaterials = async (options?: { authorization?: string }): Promise<ResponseResult> => {
+export const apiGetMaterials = async (options?: {
+  authorization?: string;
+}): Promise<ResponseResult> => {
   const response = await fetch(API_ENDPOINTS.GET_MATERIALS, {
-    method: 'GET',
+    method: "GET",
     headers: {
-      Authorization: options?.authorization || ''
+      Authorization: options?.authorization || ""
     }
   });
   if (!response.ok) {
-    throw new Error('Failed to fetch materials');
+    throw new Error("Failed to fetch materials");
   }
   return response.json();
 };

@@ -1,21 +1,21 @@
 <script setup lang="ts">
-import {computed, onMounted, ref, watch} from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import gsap from "gsap";
 import CategoriesGroupView from "@/components/Panels/MaterialPanel/CategoriesGroupView.vue";
 import CategoriesView from "@/components/Panels/MaterialPanel/CategoriesView.vue";
 import CategoryGalleryView from "@/components/Panels/MaterialPanel/CategoryGalleryView.vue";
-import {useMaterialsStore} from "@/store/useMaterialsStore.ts";
-import {ElementTypesEnum} from "@/types.ts";
+import { useMaterialsStore } from "@/store/useMaterialsStore.ts";
+import { ElementTypesEnum } from "@/types.ts";
 import NSearchButton from "@/components/Basic/NSearchButton.vue";
 const materialsStore = useMaterialsStore();
 
-const emit = defineEmits<{ (e: 'add-element', action: any): void }>();
+const emit = defineEmits<{ (e: "add-element", action: any): void }>();
 // 目前頁面控制流程
 const NAV_CTRL_STEPS = {
   GROUP_VIEW: 0,
   CATEGORY_VIEW: 1,
-  GALLERY_VIEW: 2,
-}
+  GALLERY_VIEW: 2
+};
 
 const contentWrapper = ref<HTMLDivElement | null>(null);
 
@@ -23,11 +23,11 @@ const galleryViewRef = ref<HTMLDivElement>();
 // 目前頁面
 const currentStep = ref(NAV_CTRL_STEPS.GROUP_VIEW);
 // 群組標題
-const title = ref<string>('');
+const title = ref<string>("");
 // 分類名稱
-const categoryName = ref<string>('');
+const categoryName = ref<string>("");
 // 搜尋字串
-const input = ref<string>('');
+const input = ref<string>("");
 
 const materialCategories = computed(() => materialsStore.materials);
 
@@ -35,20 +35,25 @@ const handleViewClick = (step: number) => {
   currentStep.value = step;
 };
 
-const handleMoreClick = ({ index, name }: { index: number, name: string}) => {
+const handleMoreClick = ({ index, name }: { index: number; name: string }) => {
   materialsStore.selectedCategoryId = index;
   currentStep.value = NAV_CTRL_STEPS.GALLERY_VIEW;
   categoryName.value = name;
-}
+};
 
-const handleCategoriesGroupChange = (value: { id: number, name: string, index: number }) => {
+const handleCategoriesGroupChange = (value: { id: number; name: string; index: number }) => {
   title.value = value.name;
   currentStep.value = NAV_CTRL_STEPS.CATEGORY_VIEW;
   materialsStore.selectedMaterialGroup.value = value.index;
 };
 
-const handleImageChange = (value: { id: number, src: string, name: string, imageGenMode: number }) => {
-  emit('add-element', {
+const handleImageChange = (value: {
+  id: number;
+  src: string;
+  name: string;
+  imageGenMode: number;
+}) => {
+  emit("add-element", {
     type: ElementTypesEnum.Image,
     config: {
       url: value.src,
@@ -56,9 +61,10 @@ const handleImageChange = (value: { id: number, src: string, name: string, image
       x: 0,
       y: 0,
       imageGenMode: value.imageGenMode
-    }, name: value.name
+    },
+    name: value.name
   });
-}
+};
 const handleInputChange = (value: string) => {
   materialsStore.searchValue = value;
 };
@@ -73,11 +79,9 @@ onMounted(async () => {
       // TODO: 未來分頁模式從這邊檢查
     });
   }
-
 });
 
 watch(currentStep, (newIndex) => {
-
   if (contentWrapper.value) {
     const viewWidth = contentWrapper.value.children[0]?.clientWidth || 0;
     gsap.to(contentWrapper.value, {
@@ -98,9 +102,9 @@ watch(currentStep, (newIndex) => {
     <div v-if="!materialsStore.searchValue" class="content-wrapper" ref="contentWrapper">
       <section class="view scroll-bar-hidden">
         <div class="content">
-          <NSearchButton v-model:input="input" @change="handleInputChange"/>
+          <NSearchButton v-model:input="input" @change="handleInputChange" />
           <p>請選擇分類</p>
-          <CategoriesGroupView @change="handleCategoriesGroupChange"/>
+          <CategoriesGroupView @change="handleCategoriesGroupChange" />
         </div>
       </section>
       <section class="view scroll-bar-hidden">
@@ -110,11 +114,12 @@ watch(currentStep, (newIndex) => {
           </template>
         </el-page-header>
         <div class="content">
-          <NSearchButton v-model:input="input"/>
+          <NSearchButton v-model:input="input" />
           <CategoriesView
-              v-bind:data="materialCategories"
-              @change="handleImageChange"
-              @more="handleMoreClick" />
+            v-bind:data="materialCategories"
+            @change="handleImageChange"
+            @more="handleMoreClick"
+          />
         </div>
       </section>
       <section ref="galleryViewRef" class="view scroll-bar-hidden">
@@ -124,15 +129,18 @@ watch(currentStep, (newIndex) => {
           </template>
         </el-page-header>
         <div class="content">
-          <NSearchButton v-model:input="input"/>
-          <CategoryGalleryView v-bind:data="materialsStore.categoryImages" @change="handleImageChange"/>
+          <NSearchButton v-model:input="input" />
+          <CategoryGalleryView
+            v-bind:data="materialsStore.categoryImages"
+            @change="handleImageChange"
+          />
         </div>
       </section>
     </div>
     <div v-else class="filter-wrapper">
       <section class="view content">
-        <NSearchButton v-model:input="input" @change="handleInputChange"/>
-        <CategoryGalleryView v-bind:data="materialsStore.filtered" @change="handleImageChange"/>
+        <NSearchButton v-model:input="input" @change="handleInputChange" />
+        <CategoryGalleryView v-bind:data="materialsStore.filtered" @change="handleImageChange" />
       </section>
     </div>
   </div>
@@ -190,6 +198,4 @@ watch(currentStep, (newIndex) => {
     }
   }
 }
-
-
 </style>

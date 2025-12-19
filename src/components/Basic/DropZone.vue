@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref } from "vue";
 
-const emit = defineEmits(['files-dropped']);
+const emit = defineEmits(["files-dropped"]);
 
 const isDraggingOver = ref(false);
 
 const handleDragOver = (event: DragEvent) => {
   // 檢查拖曳的物件中是否包含檔案
-  const hasFiles = event.dataTransfer?.types.includes('Files');
+  const hasFiles = event.dataTransfer?.types.includes("Files");
   if (!hasFiles) {
     return; // 如果不是檔案，則不處理
   }
@@ -25,7 +25,7 @@ const handleDrop = (event: DragEvent) => {
   isDraggingOver.value = false;
   const files = event.dataTransfer?.files;
   if (files && files.length > 0) {
-    emit('files-dropped', files);
+    emit("files-dropped", files);
   }
 };
 </script>
@@ -52,5 +52,4 @@ const handleDrop = (event: DragEvent) => {
 .drop-zone.dragging-over {
   background-color: rgba(64, 158, 255, 0.1); /* 拖曳時的背景色 */
 }
-
 </style>

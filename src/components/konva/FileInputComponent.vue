@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { processFile } from "../../Utilities/FileProcessor.ts";
-import {UploadFilled} from "@element-plus/icons-vue";
-import {ref} from "vue";
-import type {IUploadedImage} from "@/types.ts";
-const props = defineProps(["images"])
-const emits = defineEmits(["update:images", "change"])
-const fileInput = ref<HTMLInputElement|null>(null);
+import { processFile } from "@/Utilities/FileProcessor.ts";
+import { UploadFilled } from "@element-plus/icons-vue";
+import { ref } from "vue";
+import type { IUploadedImage } from "@/types.ts";
+const props = defineProps(["images"]);
+const emits = defineEmits(["update:images", "change"]);
+const fileInput = ref<HTMLInputElement | null>(null);
 
 const handleFileChange = async (event: Event) => {
   const target = event.target as HTMLInputElement;
@@ -15,8 +15,8 @@ const handleFileChange = async (event: Event) => {
       const info = await processFile(file);
       list.push(info);
     }
-    emits('update:images', list);
-    emits('change', list);
+    emits("update:images", list);
+    emits("change", list);
   }
 };
 const triggerFileInput = () => {
@@ -25,23 +25,18 @@ const triggerFileInput = () => {
 </script>
 
 <template>
-  <el-button
-      class="upload-button"
-      type="primary"
-      @click="triggerFileInput">
+  <el-button class="upload-button" type="primary" @click="triggerFileInput">
     <input
-        type="file"
-        ref="fileInput"
-        @change="handleFileChange"
-        multiple
-        accept="image/*"
-        hidden
+      type="file"
+      ref="fileInput"
+      @change="handleFileChange"
+      multiple
+      accept="image/*"
+      hidden
     />
     <el-icon class="el-icon--left"><UploadFilled /></el-icon>
     上傳圖片
   </el-button>
 </template>
 
-<style scoped>
-
-</style>
+<style scoped></style>

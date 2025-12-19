@@ -1,7 +1,7 @@
 /**
  * @file API endpoints, types, and functions for materials.
  */
-import { API_ENDPOINTS } from './endpoints';
+import { API_ENDPOINTS } from "./endpoints";
 
 export interface ImageGenerateResult {
   status: boolean;
@@ -19,17 +19,20 @@ export interface AIGenRequest {
 }
 
 // 3. 建立一個專門用來擷取資料的函式
-export const apiImageGenerate = async (body: string, options?: { authorization?: string }): Promise<ImageGenerateResult> => {
+export const apiImageGenerate = async (
+  body: string,
+  options?: { authorization?: string }
+): Promise<ImageGenerateResult> => {
   const response = await fetch(API_ENDPOINTS.IMAGE_GENERATE, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
-      Authorization: options?.authorization || ''
+      "Content-Type": "application/json",
+      Authorization: options?.authorization || ""
     },
     body
   });
   if (!response.ok) {
-    throw new Error('Failed to fetch image generate.');
+    throw new Error("Failed to fetch image generate.");
   }
   return response.json();
 };

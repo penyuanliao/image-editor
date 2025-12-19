@@ -1,18 +1,31 @@
 $primary-color: white;
-$secondary-color: #F15624;
+$secondary-color: #f15624;
 $badge-color: red;
 $text-color: black;
-$text-color-active: #F15624;
+$text-color-active: #f15624;
 $icon-color: white;
 
-$border-color-base: #DFDFDF;
+$border-color-base: #dfdfdf;
 $panel-background-color: white;
-$shadow-color: #D9D9D9;
-$button-text-color: #F15624;
-$font-family: "Noto Sans SC", 'Montserrat', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif;
-$navbar-btn-bg-color: #EEEEEE;
+$shadow-color: #d9d9d9;
+$button-text-color: #f15624;
+$font-family:
+  "Noto Sans SC",
+  "Montserrat",
+  -apple-system,
+  BlinkMacSystemFont,
+  "Helvetica Neue",
+  Helvetica,
+  Arial,
+  sans-serif;
+$navbar-btn-bg-color: #eeeeee;
 
-div, span, p, a, h1, h2 {
+div,
+span,
+p,
+a,
+h1,
+h2 {
   font-family: $font-family;
   user-select: none;
 }
@@ -30,7 +43,6 @@ h2 {
   line-height: 100%;
   user-select: none;
 }
-
 
 .scroll-bar {
   &::-webkit-scrollbar {
@@ -62,7 +74,7 @@ h2 {
   }
 }
 .theme-orange {
-  background: #F15624 !important;
+  background: #f15624 !important;
   .n-calendar-wrap {
     background-color: rgba(217, 217, 217, 0.1);
     border: rgba(255, 255, 255, 0.3) 1px solid;
@@ -100,7 +112,9 @@ h2 {
   border-radius: 5px;
   box-sizing: border-box;
   border: 2px solid $border-color-base;
-  box-shadow: 0 1px 5px rgba(39,59,69,.05),0 1px 2px rgba(39,59,69,.05);
+  box-shadow:
+    0 1px 5px rgba(39, 59, 69, 0.05),
+    0 1px 2px rgba(39, 59, 69, 0.05);
   background-color: #f15624;
 }
 .color-picker-rectangle :deep(.vc-color-wrap) {
@@ -109,7 +123,9 @@ h2 {
   border-radius: 5px;
   box-sizing: border-box;
   border: 2px solid $border-color-base;
-  box-shadow: 0 1px 5px rgba(39,59,69,.05),0 1px 2px rgba(39,59,69,.05);
+  box-shadow:
+    0 1px 5px rgba(39, 59, 69, 0.05),
+    0 1px 2px rgba(39, 59, 69, 0.05);
   background-color: #f15624;
 }
 
@@ -134,7 +150,7 @@ h2 {
 :deep(.el-dropdown-menu__item) {
   &:not(.is-disabled):hover,
   &:not(.is-disabled):focus {
-    background-color: #EEEEEE;
+    background-color: #eeeeee;
     color: $text-color;
   }
   &:not(.is-disabled) {
@@ -199,7 +215,7 @@ h2 {
 
   // 使用偽元素創建掃光效果
   &::after {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     right: 0;
@@ -207,11 +223,11 @@ h2 {
     left: 0;
     transform: translateX(-100%);
     background-image: linear-gradient(
-                    90deg,
-                    rgba(255, 255, 255, 0) 0,
-                    rgba(255, 255, 255, 0.1) 20%,
-                    rgba(255, 255, 255, 0.3) 60%,
-                    rgba(255, 255, 255, 0)
+      90deg,
+      rgba(255, 255, 255, 0) 0,
+      rgba(255, 255, 255, 0.1) 20%,
+      rgba(255, 255, 255, 0.3) 60%,
+      rgba(255, 255, 255, 0)
     );
     animation: shimmer 2s infinite;
   }

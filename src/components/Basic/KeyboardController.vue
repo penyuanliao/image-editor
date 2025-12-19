@@ -1,78 +1,79 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted } from 'vue';
+import { onMounted, onUnmounted } from "vue";
 
-const emit = defineEmits(['delete-selected', 'move-selected', 'text-editing', 'ctrl-event']);
+const emit = defineEmits(["delete-selected", "move-selected", "text-editing", "ctrl-event"]);
 
 const handleKeyDown = (event: KeyboardEvent) => {
   const target = event.target as HTMLElement;
 
   // 如果焦點在輸入框或可編輯區域，則忽略快捷鍵，避免干擾打字
-  if (['INPUT', 'TEXTAREA'].includes(target.tagName) || target.isContentEditable) {
+  if (["INPUT", "TEXTAREA"].includes(target.tagName) || target.isContentEditable) {
     return;
   }
 
   // 處理組合鍵 (如 Ctrl+B)
-  if (event.ctrlKey || event.metaKey) { // metaKey 對應 Mac 的 Command 鍵
-    if (event.key.toLowerCase() === 'b') {
+  if (event.ctrlKey || event.metaKey) {
+    // metaKey 對應 Mac 的 Command 鍵
+    if (event.key.toLowerCase() === "b") {
       event.preventDefault(); // 防止瀏覽器預設的粗體行為
-      emit('text-editing', 'text', 'bold');
+      emit("text-editing", "text", "bold");
     }
     // Undo: Ctrl+Z or Cmd+Z
-    if (!event.shiftKey && event.key.toLowerCase() === 'z') {
+    if (!event.shiftKey && event.key.toLowerCase() === "z") {
       event.preventDefault();
-      emit('ctrl-event', 'undo');
+      emit("ctrl-event", "undo");
     }
     // Redo: Ctrl+Y or Cmd+Shift+Z
-    if (event.key.toLowerCase() === 'y' || (event.shiftKey && event.key.toLowerCase() === 'z')) {
+    if (event.key.toLowerCase() === "y" || (event.shiftKey && event.key.toLowerCase() === "z")) {
       event.preventDefault();
-      emit('ctrl-event', 'redo');
+      emit("ctrl-event", "redo");
     }
     // All: Ctrl+A
-    if (event.key.toLowerCase() === 'a') {
+    if (event.key.toLowerCase() === "a") {
       event.preventDefault();
-      emit('ctrl-event', 'all');
+      emit("ctrl-event", "all");
     }
 
     return;
   }
   // 根據按下的按鍵執行不同操作
   switch (event.key) {
-    case 'Delete':
-    case 'Backspace':
+    case "Delete":
+    case "Backspace":
       event.preventDefault(); // 防止在某些瀏覽器上觸發返回上一頁
-      emit('delete-selected');
+      emit("delete-selected");
       break;
-    case 'ArrowUp':
+    case "ArrowUp":
       event.preventDefault();
-      emit('move-selected', { dx: 0, dy: -1 });
+      emit("move-selected", { dx: 0, dy: -1 });
       break;
-    case 'ArrowDown':
+    case "ArrowDown":
       event.preventDefault();
-      emit('move-selected', { dx: 0, dy: 1 });
+      emit("move-selected", { dx: 0, dy: 1 });
       break;
-    case 'ArrowLeft':
+    case "ArrowLeft":
       event.preventDefault();
-      emit('move-selected', { dx: -1, dy: 0 });
+      emit("move-selected", { dx: -1, dy: 0 });
       break;
-    case 'ArrowRight':
+    case "ArrowRight":
       event.preventDefault();
-      emit('move-selected', { dx: 1, dy: 0 });
+      emit("move-selected", { dx: 1, dy: 0 });
       break;
-    case 'Escape':
+    case "Escape":
       event.preventDefault();
-      emit('ctrl-event', 'esc');
+      emit("ctrl-event", "esc");
       break;
   }
 };
 
 // 在元件掛載時新增監聽器
 onMounted(() => {
-  window.addEventListener('keydown', handleKeyDown);
+  window.addEventListener("keydown", handleKeyDown);
 });
 
 // 在元件卸載時移除監聽器，防止記憶體洩漏
 onUnmounted(() => {
-  window.removeEventListener('keydown', handleKeyDown);
+  window.removeEventListener("keydown", handleKeyDown);
 });
 </script>
 

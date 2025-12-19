@@ -1,55 +1,53 @@
 <script setup lang="ts">
-
 import Symbols from "./Basic/Symbols.vue";
-import {onMounted, ref} from "vue";
-import {BoxBarTypes} from "../types.ts";
-import {appearanceDefaults} from "@/config/settings.ts";
+import { onMounted, ref } from "vue";
+import { BoxBarTypes } from "../types.ts";
+import { appearanceDefaults } from "@/config/settings.ts";
 
 const selected = ref<number>(0);
-const buttonGroup: { icon: string, text: string, key: string }[] = [
+const buttonGroup: { icon: string; text: string; key: string }[] = [
   {
-    icon: 'sticker',
-    key: 'sticker',
-    text: '素材'
+    icon: "sticker",
+    key: "sticker",
+    text: "素材"
   },
   {
-    icon: 'text',
-    key: 'text',
-    text: '文字'
+    icon: "text",
+    key: "text",
+    text: "文字"
   },
   {
-    icon: 'upload',
-    key: 'upload',
-    text: '上傳'
+    icon: "upload",
+    key: "upload",
+    text: "上傳"
   }
 ];
 
-const emit = defineEmits(['box-item-click']);
+const emit = defineEmits(["box-item-click"]);
 
 const handleClick = (index: number) => {
   selected.value = index;
-  const key: string = buttonGroup[index]?.key || '';
-  emit('box-item-click', BoxBarTypes[key] || '');
+  const key: string = buttonGroup[index]?.key || "";
+  emit("box-item-click", BoxBarTypes[key] || "");
 };
 
 onMounted(() => {
-  selected.value = buttonGroup.findIndex(({key}) => key === appearanceDefaults.boxBarSelected);
+  selected.value = buttonGroup.findIndex(({ key }) => key === appearanceDefaults.boxBarSelected);
   handleClick(selected.value);
 });
-
 </script>
 
 <template>
   <div class="box-bar-container">
     <div class="box-bar-group">
       <div
-          v-for="(btn, index) in buttonGroup"
-          :key="index"
-          :class="{
+        v-for="(btn, index) in buttonGroup"
+        :key="index"
+        :class="{
           'box-item': true,
-          'active': index === selected
+          active: index === selected
         }"
-          @click="handleClick(index)"
+        @click="handleClick(index)"
       >
         <div class="box-item-icon">
           <Symbols :name="btn.icon" />
@@ -63,7 +61,7 @@ onMounted(() => {
 </template>
 
 <style scoped lang="scss">
-@use '../styles/theme';
+@use "../styles/theme";
 
 .box-bar-container {
   width: 85px;
@@ -111,5 +109,4 @@ onMounted(() => {
     font-size: 12px;
   }
 }
-
 </style>

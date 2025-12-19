@@ -1,19 +1,17 @@
 <script setup lang="ts">
-
 import { ref, onMounted, onUpdated, onUnmounted } from "vue";
 
-const props = defineProps(['options', 'selected', "update:options"]);
+const props = defineProps(["options", "selected", "update:options"]);
 
+const selected = ref<String>(props.selected);
 
-const selected = ref<String>(props.selected)
-
-const emits = defineEmits(['update:selected', 'change']);
+const emits = defineEmits(["update:selected", "change"]);
 
 const onChangeHandle = (tag: string) => {
   selected.value = tag;
-  emits('update:selected', tag);
-  emits('change', tag);
-}
+  emits("update:selected", tag);
+  emits("change", tag);
+};
 
 const tagGroupRef = ref<HTMLElement | null>(null);
 const showPrev = ref(false);
@@ -29,7 +27,7 @@ const updateButtons = () => {
 
 onMounted(() => {
   if (tagGroupRef.value) {
-    tagGroupRef.value.addEventListener('scroll', updateButtons);
+    tagGroupRef.value.addEventListener("scroll", updateButtons);
     updateButtons();
   }
 });
@@ -40,47 +38,70 @@ onUpdated(() => {
 
 onUnmounted(() => {
   if (tagGroupRef.value) {
-    tagGroupRef.value.removeEventListener('scroll', updateButtons);
+    tagGroupRef.value.removeEventListener("scroll", updateButtons);
   }
 });
 
 const prev = () => {
   if (tagGroupRef.value) {
-    tagGroupRef.value.scrollBy({ left: -100, behavior: 'smooth' });
+    tagGroupRef.value.scrollBy({ left: -100, behavior: "smooth" });
   }
 };
 
 const next = () => {
   if (tagGroupRef.value) {
-    tagGroupRef.value.scrollBy({ left: 100, behavior: 'smooth' });
+    tagGroupRef.value.scrollBy({ left: 100, behavior: "smooth" });
   }
 };
-
 </script>
 
 <template>
   <div class="tag-control">
     <div class="tag-group" ref="tagGroupRef">
       <div
-          v-for="(tag, index) in props.options"
-          :key="`tag-${index}`"
-          :class="{
-              'tag-item': true,
-              'active': selected === tag
-            }"
-          @pointerup="onChangeHandle(tag)"
+        v-for="(tag, index) in props.options"
+        :key="`tag-${index}`"
+        :class="{
+          'tag-item': true,
+          active: selected === tag
+        }"
+        @pointerup="onChangeHandle(tag)"
       >
         {{ tag }}
       </div>
     </div>
     <div class="tag-ctrl-btn prev" @click="prev" v-if="showPrev">
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M10 12L6 8L10 4" stroke="black" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 16 16"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M10 12L6 8L10 4"
+          stroke="black"
+          stroke-width="1.2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
       </svg>
     </div>
     <div class="tag-ctrl-btn next" @click="next" v-if="showNext">
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M6 12L10 8L6 4" stroke="black" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 16 16"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M6 12L10 8L6 4"
+          stroke="black"
+          stroke-width="1.2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
       </svg>
     </div>
   </div>
@@ -107,7 +128,7 @@ const next = () => {
     align-items: center;
     cursor: pointer;
     background-color: white;
-    box-shadow: 0 3px 4px 0 #3F3F401A;
+    box-shadow: 0 3px 4px 0 #3f3f401a;
     &:active {
       scale: 0.95;
     }
@@ -149,11 +170,11 @@ const next = () => {
     font-weight: 400;
     cursor: pointer;
     &.active {
-      background-color: #FFC3B0;
+      background-color: #ffc3b0;
       border-color: transparent;
     }
     &:hover {
-      background-color: #FFC3B0;
+      background-color: #ffc3b0;
       border-color: transparent;
       color: white;
     }

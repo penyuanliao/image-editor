@@ -1,27 +1,26 @@
 <script setup lang="ts">
-
-const props = defineProps([ "label", "data", "selected"]);
-const emits = defineEmits(['item-click', "update:selected"]);
+const props = defineProps(["label", "data", "selected"]);
+const emits = defineEmits(["item-click", "update:selected"]);
 
 const onItemClickHandle = (value: any, index: number) => {
-  emits('update:selected', index);
-  emits('item-click', value);
-}
-
+  emits("update:selected", index);
+  emits("item-click", value);
+};
 </script>
 
 <template>
   <div class="gallery">
     <span class="label">{{ props.label }}></span>
     <div class="image-wrapper">
-      <slot v-if="$slots.default"/>
+      <slot v-if="$slots.default" />
       <div
-          v-else
-          v-for="(item, index) in props.data"
-          :key="index"
-          class="image-grid"
-          @click="onItemClickHandle(item.value, index)">
-        <img v-if="item.url" :src="item.url" alt=""/>
+        v-else
+        v-for="(item, index) in props.data"
+        :key="index"
+        class="image-grid"
+        @click="onItemClickHandle(item.value, index)"
+      >
+        <img v-if="item.url" :src="item.url" alt="" />
         <div class="content" :class="{ selected: index === selected }">
           <span v-if="item.title">{{ item.title }}</span>
           <span v-if="item.content">{{ item.content }}</span>
@@ -82,6 +81,6 @@ const onItemClickHandle = (value: any, index: number) => {
 }
 .selected {
   border: 2px solid theme.$secondary-color;
-  border-radius:  5px;
+  border-radius: 5px;
 }
 </style>

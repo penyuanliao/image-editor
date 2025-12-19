@@ -52,12 +52,10 @@ const zoomOut = () => {
     border: none;
     background-color: transparent;
   }
-
 }
 .zoom-value {
   padding: 0 10px;
   text-align: center;
   width: 50px; // 確保寬度足夠顯示百分比
 }
-
 </style>

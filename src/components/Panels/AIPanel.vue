@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import {computed, ref, watch} from "vue";
-import {useAIGenStore} from "@/store/useAIGenStore.ts";
-import {useEditorStore} from "@/store/editorStore.ts";
-import type {IImageConfig} from "@/types.ts";
-import {processBase64, processUrlToBase64} from "@/Utilities/FileProcessor.ts";
-import {appearanceDefaults} from "@/config/settings.ts";
+import { computed, ref, watch } from "vue";
+import { useAIGenStore } from "@/store/useAIGenStore.ts";
+import { useEditorStore } from "@/store/editorStore.ts";
+import type { IImageConfig } from "@/types.ts";
+import { processBase64, processUrlToBase64 } from "@/Utilities/FileProcessor.ts";
+import { appearanceDefaults } from "@/config/settings.ts";
 import { AlertMessage } from "@/Utilities/AlertMessage.ts";
 import NPanelButton from "@/components/Basic/NPanelButton.vue";
 import Symbols from "@/components/Basic/Symbols.vue";
@@ -13,38 +13,44 @@ import Symbols from "@/components/Basic/Symbols.vue";
 const aiGenStore = useAIGenStore();
 const editorStore = useEditorStore();
 
-const emit = defineEmits(['refresh']);
+const emit = defineEmits(["refresh"]);
 
-const originalImage = ref<{ image?: HTMLImageElement, base64?: string, id: string, blob?: Blob } | null>(null);
-const prompt = ref<string>('');
-const activeName = ref('mod1');
+const originalImage = ref<{
+  image?: HTMLImageElement;
+  base64?: string;
+  id: string;
+  blob?: Blob;
+} | null>(null);
+const prompt = ref<string>("");
+const activeName = ref("mod1");
 
 const styles = computed(() => {
   const list = [];
-  if (originalImage.value) list.push({
-    name: '原始圖片',
-    value: -2,
-    key: 'original',
-    url: originalImage.value.image?.src
-  });
+  if (originalImage.value)
+    list.push({
+      name: "原始圖片",
+      value: -2,
+      key: "original",
+      url: originalImage.value.image?.src
+    });
 
   return [...list, ...appearanceDefaults.AIStyles];
-})
+});
 
 const selectedStyle = ref<number>(-1);
 
 const selectStyle = (style: number) => {
   selectedStyle.value = style;
   if (selectedStyle.value !== 0) {
-    prompt.value = '';
+    prompt.value = "";
   }
 };
 
 const tabsChangeHandle = () => {
-  if (activeName.value === 'mod3') {
+  if (activeName.value === "mod3") {
     selectedStyle.value = 0;
   }
-}
+};
 
 const setupOriginalImage = () => {
   if (editorStore.selectedElement) {
@@ -57,13 +63,15 @@ const setupOriginalImage = () => {
   } else {
     originalImage.value = null;
   }
-}
-watch(() => editorStore.selectedElement, () => {
-  setupOriginalImage();
-})
+};
+watch(
+  () => editorStore.selectedElement,
+  () => {
+    setupOriginalImage();
+  }
+);
 
 const onSubmit = async () => {
-
   if (!editorStore.selectedElement) return;
 
   const elementId = editorStore.selectedElement?.id;
@@ -73,8 +81,11 @@ const onSubmit = async () => {
   }
 
   if (selectedStyle.value === -2) {
-    editorStore.replaceSelectedElementImage(elementId, originalImage.value?.image as HTMLImageElement);
-    emit('refresh');
+    editorStore.replaceSelectedElementImage(
+      elementId,
+      originalImage.value?.image as HTMLImageElement
+    );
+    emit("refresh");
     return;
   }
   if (selectedStyle.value === -1) {
@@ -97,11 +108,11 @@ const onSubmit = async () => {
   if (config) {
     const materialId = config.id || -1;
     let image: HTMLImageElement = config.img as HTMLImageElement;
-    let base64: string = '';
+    let base64: string = "";
     let result;
     if (materialId <= 0) {
-      if ((!config.img || !config.base64)) {
-        const load = await processUrlToBase64(config.url || '');
+      if (!config.img || !config.base64) {
+        const load = await processUrlToBase64(config.url || "");
         image = load.image;
         base64 = load.base64;
       } else {
@@ -125,19 +136,19 @@ const onSubmit = async () => {
       editorStore.addImage({
         imageUrl: genImage.src,
         image: genImage, // 儲存圖片物件
-        name: 'AI生成圖片',
+        name: "AI生成圖片",
         base64: result.image
       });
       const newId = editorStore.replaceSelectedElementImage(elementId, genImage, result.image);
       if (newId) aiGenStore.setOriginalImage(newId, source);
       console.log(newId);
-      emit('refresh');
+      emit("refresh");
       setupOriginalImage();
     } else {
-      await AlertMessage(aiGenStore.error || 'AI生成');
+      await AlertMessage(aiGenStore.error || "AI生成");
     }
   }
-}
+};
 </script>
 
 <template>
@@ -152,18 +163,18 @@ const onSubmit = async () => {
     <div class="ai-select-stylize">
       <el-tabs v-model="activeName" @tab-change="tabsChangeHandle">
         <el-tab-pane label="物件转变" name="mod1">
-          <div class="stylize" :style="{ 'pointer-events': aiGenStore.isLoading ? 'none' : 'auto' }">
+          <div
+            class="stylize"
+            :style="{ 'pointer-events': aiGenStore.isLoading ? 'none' : 'auto' }"
+          >
             <div
-                v-for="style in styles"
-                :key="style.key"
-                class="item"
-                @click="selectStyle(style.value)"
+              v-for="style in styles"
+              :key="style.key"
+              class="item"
+              @click="selectStyle(style.value)"
             >
-              <div
-                  class="image"
-                  :class="{ selected: selectedStyle === style.value }"
-              >
-                <img :src="style.url" alt=""/>
+              <div class="image" :class="{ selected: selectedStyle === style.value }">
+                <img :src="style.url" alt="" />
               </div>
               <span>{{ style.name }}</span>
             </div>
@@ -177,25 +188,27 @@ const onSubmit = async () => {
         <el-tab-pane label="自订生成" name="mod3">
           <div class="prompt-content">
             <textarea
-                class="prompt-textarea"
-                type="textarea"
-                :rows="14"
-                placeholder="请输入您想产生的图片主题或描述(例如: 金色龙、轮盘、3D吉祥物...)"
-                v-model="prompt"
+              class="prompt-textarea"
+              type="textarea"
+              :rows="14"
+              placeholder="请输入您想产生的图片主题或描述(例如: 金色龙、轮盘、3D吉祥物...)"
+              v-model="prompt"
             />
           </div>
         </el-tab-pane>
       </el-tabs>
     </div>
-    <NPanelButton :loading="aiGenStore.isLoading"
-                  :disabled="selectedStyle === -1 || selectedStyle === 0 && prompt.trim().length === 0"
-                  @click="onSubmit">
+    <NPanelButton
+      :loading="aiGenStore.isLoading"
+      :disabled="selectedStyle === -1 || (selectedStyle === 0 && prompt.trim().length === 0)"
+      @click="onSubmit"
+    >
       <template #default>
-        {{ selectedStyle === -2 ? '還原' : '生成' }}
+        {{ selectedStyle === -2 ? "還原" : "生成" }}
       </template>
       <template #icon>
         <el-icon size="22" :style="{ 'padding-right': '10px' }">
-          <Symbols name="magic"/>
+          <Symbols name="magic" />
         </el-icon>
       </template>
     </NPanelButton>
@@ -203,7 +216,6 @@ const onSubmit = async () => {
 </template>
 
 <style scoped lang="scss">
-
 @use "@/styles/theme";
 
 .images-gallery-container {
@@ -318,7 +330,7 @@ const onSubmit = async () => {
     }
 
     &:after {
-      content: '';
+      content: "";
       width: 100%;
       height: 100%;
       position: absolute;

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Konva from "konva";
-import {ref, reactive, onMounted, computed} from "vue";
-import {useKImgEditorStore} from "./store/kImgEditorStore.ts";
+import { ref, reactive, onMounted, computed } from "vue";
+import { useKImgEditorStore } from "./store/kImgEditorStore.ts";
 import FileInputComponent from "./components/konva/FileInputComponent.vue";
 import Popover from "./components/EditorArea/Popover.vue";
 
@@ -19,11 +19,11 @@ const cropRectRef = ref(); // 裁切框的 ref
 const cropRect = reactive({
   ...store.artboardSize,
   // 增加 fill, stroke 等視覺屬性，方便管理
-  fill: 'transparent',
-  stroke: 'white',
+  fill: "transparent",
+  stroke: "white",
   strokeWidth: 2,
   x: store.artboardOffset.x,
-  y: store.artboardOffset.y,
+  y: store.artboardOffset.y
 });
 
 const toggleCropMode = () => {
@@ -32,7 +32,7 @@ const toggleCropMode = () => {
 
 // 限制物件拖曳範圍的函式
 // @ts-ignore
-const dragRangeBoundFunc = function (pos: { x: number, y: number }) {
+const dragRangeBoundFunc = function (pos: { x: number; y: number }) {
   // @ts-ignore
   const node = this as Konva.Node;
   const box = node.getClientRect({ skipTransform: true }); // 獲取物件原始的邊界框
@@ -52,45 +52,45 @@ const dragRangeBoundFunc = function (pos: { x: number, y: number }) {
 
 // 1. 建立一個 elements 陣列來管理所有物件
 store.addElement({
-  id: 'text1',
-  type: 'text',
+  id: "text1",
+  type: "text",
   config: {
     // 輸入文字
-    text: '這是中文字',
+    text: "這是中文字",
     // 選擇字體
-    fontFamily: 'Arial',
+    fontFamily: "Arial",
     x: 400,
     y: 150,
     fontSize: 24,
     // 1. 告訴 Konva 優先使用線性漸層
-    fillPriority: 'linear-gradient',
+    fillPriority: "linear-gradient",
     fillLinearGradientStartPoint: {
       x: -97, // 讓漸層從文字左側開始
       y: 0
     },
     fillLinearGradientEndPoint: {
       x: 97, // 漸層長度為 100px
-      y: 0   // y=0 使其成為水平漸層
+      y: 0 // y=0 使其成為水平漸層
     },
-    fillLinearGradientColorStops: [0, 'red', 1, 'yellow'],
+    fillLinearGradientColorStops: [0, "red", 1, "yellow"],
 
     shadowEnabled: true,
-    shadowColor: 'black',
+    shadowColor: "black",
     shadowBlur: 5,
     shadowOffsetX: 2,
     shadowOffsetY: 2,
     shadowOpacity: 0.5,
 
     draggable: true,
-    name: 'selectable-object',
+    name: "selectable-object",
     dragBoundFunc: dragRangeBoundFunc
   }
 });
 
 const loadImage = async () => {
-  return new Promise<HTMLImageElement | null | undefined>(resolve => {
+  return new Promise<HTMLImageElement | null | undefined>((resolve) => {
     const image = new Image();
-    image.src = 'https://konvajs.org/assets/darth-vader.jpg';
+    image.src = "https://konvajs.org/assets/darth-vader.jpg";
     image.onload = () => resolve(image);
   });
 };
@@ -114,13 +114,12 @@ const handleTransformEnd = (e: Konva.KonvaEventObject<any>, element: any) => {
   element.config.height = Math.max(5, node.height() * scaleY);
 };
 
-
 const selection = reactive({
   x1: 0,
   y1: 0,
   x2: 0,
   y2: 0,
-  visible: false,
+  visible: false
 });
 
 const handleStageMouseMove = (e: Konva.KonvaEventObject<MouseEvent>) => {
@@ -138,8 +137,8 @@ const handleStageMouseUp = (e: Konva.KonvaEventObject<MouseEvent>) => {
   if (!stage) return;
 
   // 移除事件監聽
-  stage.off('mousemove', handleStageMouseMove);
-  stage.off('mouseup', handleStageMouseUp);
+  stage.off("mousemove", handleStageMouseMove);
+  stage.off("mouseup", handleStageMouseUp);
 
   if (!selection.visible) return;
   selection.visible = false;
@@ -148,9 +147,9 @@ const handleStageMouseUp = (e: Konva.KonvaEventObject<MouseEvent>) => {
   if (!transformerNode) return;
 
   const box = selectionRectRef.value.getNode().getClientRect();
-  const selectedNodes = stage.find('.selectable-object').filter((shape: any) =>
-      Konva.Util.haveIntersection(box, shape.getClientRect())
-  );
+  const selectedNodes = stage
+    .find(".selectable-object")
+    .filter((shape: any) => Konva.Util.haveIntersection(box, shape.getClientRect()));
 
   transformerNode.nodes(selectedNodes);
 };
@@ -160,8 +159,8 @@ const selectionRectConfig = computed(() => ({
   y: Math.min(selection.y1, selection.y2),
   width: Math.abs(selection.x2 - selection.x1),
   height: Math.abs(selection.y2 - selection.y1),
-  fill: 'rgba(0, 161, 255, 0.3)',
-  visible: selection.visible,
+  fill: "rgba(0, 161, 255, 0.3)",
+  visible: selection.visible
 }));
 
 const handleStageMouseDown = (e: Konva.KonvaEventObject<PointerEvent>) => {
@@ -183,8 +182,8 @@ const handleStageMouseDown = (e: Konva.KonvaEventObject<PointerEvent>) => {
     selection.x2 = pos.x;
     selection.y2 = pos.y;
     selection.visible = true;
-    stage.on('mousemove', handleStageMouseMove);
-    stage.on('mouseup', handleStageMouseUp);
+    stage.on("mousemove", handleStageMouseMove);
+    stage.on("mouseup", handleStageMouseUp);
     return;
   }
 
@@ -192,14 +191,14 @@ const handleStageMouseDown = (e: Konva.KonvaEventObject<PointerEvent>) => {
   if (!transformerNode) return;
 
   // 2. 點擊到 Transformer 控制點，不做任何事
-  const clickedOnTransformer = e.target.getParent()?.className === 'Transformer'
+  const clickedOnTransformer = e.target.getParent()?.className === "Transformer";
   if (clickedOnTransformer) {
     return;
   }
 
   // 3. 點擊到可選取的物件
   const targetNode = e.target;
-  if (targetNode.hasName('selectable-object')) {
+  if (targetNode.hasName("selectable-object")) {
     const isSelected = transformerNode.nodes().indexOf(targetNode) >= 0;
     const metaPressed = e.evt.shiftKey || e.evt.ctrlKey || e.evt.metaKey;
     console.log(`targetNode ${targetNode.getPosition().x}, ${targetNode.getPosition().y}`);
@@ -223,12 +222,12 @@ const handleResizer = () => {
   if (container.value && container.value.$el) {
     store.setup(container.value.$el.clientWidth, container.value.$el.clientHeight);
   }
-}
+};
 // 調整大小
 const setupResizer = () => {
-  window.addEventListener('resize', handleResizer);
+  window.addEventListener("resize", handleResizer);
   handleResizer();
-}
+};
 
 onMounted(async () => {
   setupResizer();
@@ -237,8 +236,8 @@ onMounted(async () => {
 
   const newImage = await loadImage();
   store.addElement({
-    id: 'image1',
-    type: 'image',
+    id: "image1",
+    type: "image",
     config: {
       image: newImage,
       x: 80,
@@ -246,14 +245,14 @@ onMounted(async () => {
       width: newImage?.width,
       height: newImage?.height,
       draggable: true,
-      name: 'selectable-object',
-      dragBoundFunc: dragRangeBoundFunc, // 應用拖曳限制
+      name: "selectable-object",
+      dragBoundFunc: dragRangeBoundFunc // 應用拖曳限制
     }
-  })
-})
+  });
+});
 const handleButton = () => {
   store.setArtBoardSize(1920, 720);
-}
+};
 const handleExport = () => {
   const stage = stageRef.value?.getNode();
   const backgroundNode = workspaceRef.value?.getNode();
@@ -269,7 +268,7 @@ const handleExport = () => {
     x: store.artboardOffset.x,
     y: store.artboardOffset.y,
     width: store.artboardSize.width,
-    height: store.artboardSize.height,
+    height: store.artboardSize.height
   } as Konva.NodeConfig;
   // 在匯出前，隱藏不必要的元素
   backgroundNode.visible(false); // 隱藏灰色背景
@@ -292,27 +291,25 @@ const handleExport = () => {
   }
 
   // 建立檔名
-  const fileName = isCropping.value ? 'canvas-image-cropped.png' : 'canvas-image-transparent.png';
+  const fileName = isCropping.value ? "canvas-image-cropped.png" : "canvas-image-transparent.png";
 
   // 建立臨時連結並觸發下載
-  const link = document.createElement('a');
+  const link = document.createElement("a");
   link.download = fileName;
   link.href = dataURL;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-
 };
 const handleFileInputChange = (list: HTMLImageElement[]) => {
   store.backgroundImage = list[0] as HTMLImageElement | null;
-}
+};
 
 // 當裁切框被拖曳結束時，更新其位置
 const handleCropDragEnd = (e: Konva.KonvaEventObject<DragEvent>) => {
   cropRect.x = e.target.x();
   cropRect.y = e.target.y();
 };
-
 </script>
 
 <template>
@@ -322,42 +319,52 @@ const handleCropDragEnd = (e: Konva.KonvaEventObject<DragEvent>) => {
         <div class="controls">
           <div>
             畫布寬度:
-            <el-input-number v-model="store.stageConfig.width" :min="100" size="small"></el-input-number>
+            <el-input-number
+              v-model="store.stageConfig.width"
+              :min="100"
+              size="small"
+            ></el-input-number>
             畫布高度:
-            <el-input-number v-model="store.stageConfig.height" :min="100" size="small"></el-input-number>
+            <el-input-number
+              v-model="store.stageConfig.height"
+              :min="100"
+              size="small"
+            ></el-input-number>
           </div>
           <div class="crop-controls">
-            <el-button @click="toggleCropMode" :type="isCropping ? 'success' : ''">{{
-                isCropping ? '停用裁切' : '啟用裁切'
-              }}
+            <el-button @click="toggleCropMode" :type="isCropping ? 'success' : ''"
+              >{{ isCropping ? "停用裁切" : "啟用裁切" }}
             </el-button>
-            <span v-if="isCropping">裁切寬度: <el-input-number v-model="cropRect.width" :min="10"
-                                                               size="small"></el-input-number></span>
-            <span v-if="isCropping">裁切高度: <el-input-number v-model="cropRect.height" :min="10"
-                                                               size="small"></el-input-number></span>
+            <span v-if="isCropping"
+              >裁切寬度:
+              <el-input-number v-model="cropRect.width" :min="10" size="small"></el-input-number
+            ></span>
+            <span v-if="isCropping"
+              >裁切高度:
+              <el-input-number v-model="cropRect.height" :min="10" size="small"></el-input-number
+            ></span>
           </div>
-          <FileInputComponent v-model:images="store.imageList" @change="handleFileInputChange"/>
+          <FileInputComponent v-model:images="store.imageList" @change="handleFileInputChange" />
           <el-button type="primary" @click="handleExport">匯出圖片 (透明背景)</el-button>
           <el-button type="primary" @click="handleButton">設定大小</el-button>
-          <Popover/>
+          <Popover />
         </div>
       </el-header>
       <el-container class="box">
         <el-aside class="sidebar-left-container">sidebar-right-container</el-aside>
         <el-main class="main-container" ref="container">
           <v-stage
-              class="stage"
-              :config="store.stageConfig"
-              ref="stageRef"
-              @mousedown="handleStageMouseDown">
+            class="stage"
+            :config="store.stageConfig"
+            ref="stageRef"
+            @mousedown="handleStageMouseDown"
+          >
             <!-- 背景層 -->
             <v-layer name="workspace-layer">
               <!-- 灰色背景，填滿整個 Stage -->
-              <v-rect ref="workspaceRef" :config="store.workspaceConfig"/>
+              <v-rect ref="workspaceRef" :config="store.workspaceConfig" />
               <!-- 畫板 -->
-              <v-image
-                  :config="store.artboardBackgroundConfig"
-              />
+              <v-image :config="store.artboardBackgroundConfig" />
             </v-layer>
             <!-- 互動層 -->
             <v-layer name="interactive-layer" :config="store.artboardOffset">
@@ -365,14 +372,14 @@ const handleCropDragEnd = (e: Konva.KonvaEventObject<DragEvent>) => {
               <v-group :config="store.artboardClipConfig">
                 <template v-for="element in store.elements" :key="element.id">
                   <v-image
-                      v-if="element.type === 'image'"
-                      :config="{ ...element.config }"
-                      @transformend="(e: any) => handleTransformEnd(e, element)"
+                    v-if="element.type === 'image'"
+                    :config="{ ...element.config }"
+                    @transformend="(e: any) => handleTransformEnd(e, element)"
                   />
                   <v-text
-                      v-if="element.type === 'text'"
-                      :config="element.config"
-                      @transformend="(e: any) => handleTransformEnd(e, element)"
+                    v-if="element.type === 'text'"
+                    :config="element.config"
+                    @transformend="(e: any) => handleTransformEnd(e, element)"
                   />
                 </template>
               </v-group>
@@ -382,50 +389,54 @@ const handleCropDragEnd = (e: Konva.KonvaEventObject<DragEvent>) => {
               <!-- 1. 裁切功能群組 -->
               <v-group v-if="isCropping">
                 <v-shape
-                    :config="{
-                listening: false, // 這個遮罩不回應滑鼠事件
-                sceneFunc: (context: CanvasRenderingContext2D) => {
-                  // 先畫一個覆蓋整個畫布的半透明灰色矩形
-                  context.beginPath();
-                  context.rect(0, 0, store.stageConfig.width || 0, store.stageConfig.height || 0);
-                  context.fillStyle = 'rgba(0, 0, 0, 0.6)';
+                  :config="{
+                    listening: false, // 這個遮罩不回應滑鼠事件
+                    sceneFunc: (context: CanvasRenderingContext2D) => {
+                      // 先畫一個覆蓋整個畫布的半透明灰色矩形
+                      context.beginPath();
+                      context.rect(
+                        0,
+                        0,
+                        store.stageConfig.width || 0,
+                        store.stageConfig.height || 0
+                      );
+                      context.fillStyle = 'rgba(0, 0, 0, 0.6)';
 
-                  // 接著定義內矩形 (裁切區)
-                  context.rect(cropRect.x, cropRect.y, cropRect.width, cropRect.height);
+                      // 接著定義內矩形 (裁切區)
+                      context.rect(cropRect.x, cropRect.y, cropRect.width, cropRect.height);
 
-                  // 使用 evenodd 填充規則來產生挖洞效果
-                  context.fill('evenodd');
-                }
-              }"
+                      // 使用 evenodd 填充規則來產生挖洞效果
+                      context.fill('evenodd');
+                    }
+                  }"
                 />
                 <v-rect
-                    ref="cropRectRef"
-                    :config="{
-                ...cropRect,
-                fill: 'transparent', // 中間必須是透明的，才能看到下面的內容
-                stroke: 'white',
-                strokeWidth: 2,
-                draggable: true
-              }" @dragend="handleCropDragEnd"/>
+                  ref="cropRectRef"
+                  :config="{
+                    ...cropRect,
+                    fill: 'transparent', // 中間必須是透明的，才能看到下面的內容
+                    stroke: 'white',
+                    strokeWidth: 2,
+                    draggable: true
+                  }"
+                  @dragend="handleCropDragEnd"
+                />
               </v-group>
               <!-- 2. 用於框選的矩形 -->
-              <v-rect
-                  ref="selectionRectRef"
-                  :config="selectionRectConfig"/>
+              <v-rect ref="selectionRectRef" :config="selectionRectConfig" />
               <!-- 用於編輯框選的 Transformer -->
               <v-transformer
-                  ref="transformerRef"
-                  :config="{
-              rotateAnchorOffset: 25,
-              boundBoxFunc: boundBoxFunc
-            }"
+                ref="transformerRef"
+                :config="{
+                  rotateAnchorOffset: 25,
+                  boundBoxFunc: boundBoxFunc
+                }"
               />
             </v-layer>
           </v-stage>
         </el-main>
         <el-aside class="sidebar-right-container">sidebar-right-container</el-aside>
       </el-container>
-
     </el-container>
   </div>
 </template>
@@ -474,5 +485,4 @@ const handleCropDragEnd = (e: Konva.KonvaEventObject<DragEvent>) => {
 .sidebar-right-container {
   border: 1px #f15624 dashed;
 }
-
 </style>

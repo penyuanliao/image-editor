@@ -1,16 +1,15 @@
 <script setup lang="ts">
-import {Picture} from "@element-plus/icons-vue";
-
+import { Picture } from "@element-plus/icons-vue";
 </script>
 
 <template>
   <el-image v-bind="$attrs" lazy>
     <template #placeholder>
-      <div class="skeleton"/>
+      <div class="skeleton" />
     </template>
     <template #error>
       <div class="image-error">
-        <el-icon size="24"><Picture/></el-icon>
+        <el-icon size="24"><Picture /></el-icon>
       </div>
     </template>
   </el-image>
@@ -30,7 +29,7 @@ import {Picture} from "@element-plus/icons-vue";
   overflow: hidden;
 
   &::after {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: -100%;

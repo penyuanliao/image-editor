@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import {ref, watch, onMounted, computed, nextTick} from "vue";
-import {ElementTypesEnum} from "@/types.ts";
-import {useEditorStore} from "@/store/editorStore.ts";
+import { ref, watch, onMounted, computed, nextTick } from "vue";
+import { ElementTypesEnum } from "@/types.ts";
+import { useEditorStore } from "@/store/editorStore.ts";
 
-const emit = defineEmits(['updateScroll']);
+const emit = defineEmits(["updateScroll"]);
 const editorStore = useEditorStore();
 
 // 延伸寬度不包含本體
@@ -11,7 +11,7 @@ const props = defineProps({
   minX: { type: Number, default: 0 },
   maxX: { type: Number, required: true },
   minY: { type: Number, default: 0 },
-  maxY: { type: Number, required: true },
+  maxY: { type: Number, required: true }
 });
 
 // Initialize at (0,0) which is the center due to CSS centering
@@ -19,9 +19,9 @@ const translateX = ref(0);
 const translateY = ref(0);
 
 // Refs for tracks
-const viewport = ref<HTMLDivElement|null>(null);
-const trackX = ref<HTMLDivElement|null>(null);
-const trackY = ref<HTMLDivElement|null>(null);
+const viewport = ref<HTMLDivElement | null>(null);
+const trackX = ref<HTMLDivElement | null>(null);
+const trackY = ref<HTMLDivElement | null>(null);
 
 // Horizontal thumb state
 const thumbWidth = ref(20);
@@ -60,7 +60,10 @@ const updateHorizontalThumb = () => {
   const trk = trackX.value;
   const visibleWidth = trk.clientWidth;
 
-  thumbWidth.value = Math.max(30, (visibleWidth / (totalRangeX.value + visibleWidth)) * visibleWidth);
+  thumbWidth.value = Math.max(
+    30,
+    (visibleWidth / (totalRangeX.value + visibleWidth)) * visibleWidth
+  );
   const ratioX = (translateX.value - props.minX) / totalRangeX.value;
   thumbLeft.value = ratioX * (visibleWidth - thumbWidth.value);
 };
@@ -73,7 +76,10 @@ const updateVerticalThumb = () => {
   const trk = trackY.value;
   const visibleHeight = trk.clientHeight;
 
-  thumbHeight.value = Math.max(30, (visibleHeight / (totalRangeY.value + visibleHeight)) * visibleHeight);
+  thumbHeight.value = Math.max(
+    30,
+    (visibleHeight / (totalRangeY.value + visibleHeight)) * visibleHeight
+  );
   const ratioY = (translateY.value - props.minY) / totalRangeY.value;
   thumbTop.value = ratioY * (visibleHeight - thumbHeight.value);
 };
@@ -132,10 +138,7 @@ const onThumbMoveX = (e: MouseEvent) => {
   if (!isDraggingX) return;
   const visibleWidth = trackX.value?.clientWidth || 1;
   const diff = e.clientX - dragStartX;
-  const newLeft = Math.min(
-    Math.max(startThumbLeft + diff, 0),
-    visibleWidth - thumbWidth.value
-  );
+  const newLeft = Math.min(Math.max(startThumbLeft + diff, 0), visibleWidth - thumbWidth.value);
   thumbLeft.value = newLeft;
   const ratio = newLeft / (visibleWidth - thumbWidth.value);
   translateX.value = props.minX + ratio * totalRangeX.value;
@@ -161,10 +164,7 @@ const onThumbMoveY = (e: MouseEvent) => {
   if (!isDraggingY) return;
   const visibleHeight = trackY.value?.clientHeight || 1;
   const diff = e.clientY - dragStartY;
-  const newTop = Math.min(
-    Math.max(startThumbTop + diff, 0),
-    visibleHeight - thumbHeight.value
-  );
+  const newTop = Math.min(Math.max(startThumbTop + diff, 0), visibleHeight - thumbHeight.value);
   thumbTop.value = newTop;
   const ratio = newTop / (visibleHeight - thumbHeight.value);
   translateY.value = props.minY + ratio * totalRangeY.value;
@@ -195,36 +195,43 @@ const scrollTo = (x: number, y: number) => {
 
 const handlePointerUp = (event: PointerEvent) => {
   event.preventDefault();
-  if (editorStore.selectedElement?.type !== ElementTypesEnum.Stage &&
-      editorStore.selectedElements && editorStore.selectedElements.length !== 0) {
+  if (
+    editorStore.selectedElement?.type !== ElementTypesEnum.Stage &&
+    editorStore.selectedElements &&
+    editorStore.selectedElements.length !== 0
+  ) {
     editorStore.saveHistory();
     editorStore.clearSelection();
   }
-}
+};
 const handleUpdateScroll = (x: number, y: number) => {
-  emit('updateScroll',{ x, y });
-}
+  emit("updateScroll", { x, y });
+};
 
 onMounted(() => {
   if (viewport.value) {
-    viewport.value.addEventListener('wheel', onWheel, { passive: false });
+    viewport.value.addEventListener("wheel", onWheel, { passive: false });
   }
   parentElement.value = container.value?.parentElement || null;
   updateThumbs();
 });
 
-watch(() => [props.minX, props.maxX, props.minY, props.maxY], async () => {
-  // console.log(`minX=%s, maxX=%s, minY=%s, maxY=%s`, props.minX, props.maxX, props.minY, props.maxY);
-  // 當滾動範圍變化時，確保目前的 translate 值仍在新的範圍內
-  translateX.value = Math.min(Math.max(translateX.value, props.minX), props.maxX);
-  translateY.value = Math.min(Math.max(translateY.value, props.minY), props.maxY);
-  editorStore.viewTranslate.x = translateX.value;
-  editorStore.viewTranslate.y = translateY.value;
+watch(
+  () => [props.minX, props.maxX, props.minY, props.maxY],
+  async () => {
+    // console.log(`minX=%s, maxX=%s, minY=%s, maxY=%s`, props.minX, props.maxX, props.minY, props.maxY);
+    // 當滾動範圍變化時，確保目前的 translate 值仍在新的範圍內
+    translateX.value = Math.min(Math.max(translateX.value, props.minX), props.maxX);
+    translateY.value = Math.min(Math.max(translateY.value, props.minY), props.maxY);
+    editorStore.viewTranslate.x = translateX.value;
+    editorStore.viewTranslate.y = translateY.value;
 
-  // 等待 DOM 更新 (v-if 可能會新增/移除滾動條)
-  await nextTick();
-  updateThumbs(); // 在 DOM 更新後再計算滾動條狀態
-}, { flush: 'post' });
+    // 等待 DOM 更新 (v-if 可能會新增/移除滾動條)
+    await nextTick();
+    updateThumbs(); // 在 DOM 更新後再計算滾動條狀態
+  },
+  { flush: "post" }
+);
 
 // Expose public API
 defineExpose({
@@ -234,32 +241,29 @@ defineExpose({
   translateY,
   parentElement
 });
-
 </script>
 
 <template>
   <div class="container" ref="container">
     <div class="main-area">
       <div class="viewport" ref="viewport" @pointerup.self="handlePointerUp">
-        <div
-            class="content"
-        >
+        <div class="content">
           <slot />
         </div>
       </div>
       <div class="track-y" @mousedown="onTrackClickY" ref="trackY" v-if="showVerticalScrollbar">
         <div
-            class="thumb-y"
-            :style="{ height: thumbHeight + 'px', top: thumbTop + 'px' }"
-            @mousedown.stop="onThumbDownY"
+          class="thumb-y"
+          :style="{ height: thumbHeight + 'px', top: thumbTop + 'px' }"
+          @mousedown.stop="onThumbDownY"
         ></div>
       </div>
     </div>
     <div class="track-x" @mousedown="onTrackClickX" ref="trackX" v-if="showHorizontalScrollbar">
       <div
-          class="thumb-x"
-          :style="{ width: thumbWidth + 'px', left: thumbLeft + 'px' }"
-          @mousedown.stop="onThumbDownX"
+        class="thumb-x"
+        :style="{ width: thumbWidth + 'px', left: thumbLeft + 'px' }"
+        @mousedown.stop="onThumbDownX"
       ></div>
     </div>
   </div>

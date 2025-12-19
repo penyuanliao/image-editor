@@ -1,8 +1,7 @@
 <script setup lang="ts">
-
-import {htmlTheme} from "@/styles/stageTheme.ts";
+import { htmlTheme } from "@/styles/stageTheme.ts";
 import UndoRedo from "@/components/EditorArea/UndoRedo.vue";
-import {advancedDefaults} from "@/config/settings.ts";
+import { advancedDefaults } from "@/config/settings.ts";
 import NZoomControl from "@/components/Basic/NZoomControl.vue";
 import Symbols from "@/components/Basic/Symbols.vue";
 
@@ -12,8 +11,7 @@ const props = defineProps({
     default: 0
   }
 });
-const emit = defineEmits(['update:progressValue']);
-
+const emit = defineEmits(["update:progressValue"]);
 </script>
 
 <template>
@@ -24,23 +22,24 @@ const emit = defineEmits(['update:progressValue']);
       v-model:percentage="props.progressValue"
       :show-text="false"
       :stroke-width="1"
-      :color="htmlTheme.progressBarColor"/>
-    <img src="@/assets/icons/bbin.svg" height="38" alt="Logo" class="logo">
+      :color="htmlTheme.progressBarColor"
+    />
+    <img src="@/assets/icons/bbin.svg" height="38" alt="Logo" class="logo" />
     <div class="navbar-action">
       <div class="layers-btn">
         <el-icon class="icon" size="24">
-          <Symbols name="layer-btn"/>
+          <Symbols name="layer-btn" />
         </el-icon>
         <span class="text">图层</span>
       </div>
-      <UndoRedo v-if="advancedDefaults.undoRedoEnabled"/>
-      <NZoomControl v-if="advancedDefaults.zoomEnabled"/>
+      <UndoRedo v-if="advancedDefaults.undoRedoEnabled" />
+      <NZoomControl v-if="advancedDefaults.zoomEnabled" />
     </div>
   </div>
 </template>
 
 <style scoped lang="scss">
-@use '@/styles/theme';
+@use "@/styles/theme";
 
 .navbar {
   width: 100%;
@@ -70,7 +69,7 @@ const emit = defineEmits(['update:progressValue']);
   max-height: 56px;
   top: 50%;
   transform: translateY(-50%);
-  right: calc(330px + 14px);
+  right: calc(340px + 14px);
   align-items: center;
 }
 .layers-btn {

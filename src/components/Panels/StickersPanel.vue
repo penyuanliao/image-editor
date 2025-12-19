@@ -1,42 +1,43 @@
 <script setup lang="ts">
-import {computed, nextTick, onMounted, onUnmounted, ref, watch} from "vue";
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { Search, Close } from "@element-plus/icons-vue";
-import {useEditorStore} from "@/store/editorStore.ts";
-import {ElementTypesEnum} from "@/types.ts";
+import { useEditorStore } from "@/store/editorStore.ts";
+import { ElementTypesEnum } from "@/types.ts";
 import NCarousel from "../Basic/NCarousel.vue";
-import {type IGallery, useMaterialsStore} from "@/store/useMaterialsStore.ts";
+import { type IGallery, useMaterialsStore } from "@/store/useMaterialsStore.ts";
 
 const editorStore = useEditorStore();
-const materialsStore = useMaterialsStore()
+const materialsStore = useMaterialsStore();
 
-const emit = defineEmits<{ (e: 'add-element', action: any): void }>();
-const placeholderImage = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
-const input = ref<string>('');
-const selectTag = ref('全部');
+const emit = defineEmits<{ (e: "add-element", action: any): void }>();
+const placeholderImage =
+  "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+const input = ref<string>("");
+const selectTag = ref("全部");
 // 用來過濾資料的 computed
 const filteredGallery = computed<IGallery[]>(() => {
-  const searchValue: string = input.value || '';
+  const searchValue: string = input.value || "";
   let result: IGallery[];
-  if (selectTag.value === '全部') {
+  if (selectTag.value === "全部") {
     result = materialsStore.materials;
-    materialsStore.materials.forEach(group => {
+    materialsStore.materials.forEach((group) => {
       group.visible = true;
-      group.items.forEach(item => {
+      group.items.forEach((item) => {
         item.visible = true;
       });
     });
   } else {
-    materialsStore.materials.forEach(group => {
-      group.visible = (group.category === selectTag.value) && group.items.length > 0;
+    materialsStore.materials.forEach((group) => {
+      group.visible = group.category === selectTag.value && group.items.length > 0;
     });
     result = materialsStore.materials;
   }
-  if (searchValue !== '') {
-    materialsStore.materials.forEach(group => {
+  if (searchValue !== "") {
+    materialsStore.materials.forEach((group) => {
       group.items.forEach((item) => {
         item.visible = item.name.toLowerCase().includes(searchValue.toLowerCase());
       });
-      group.visible = (group.category === selectTag.value) && group.items.length > 0;
+      group.visible = group.category === selectTag.value && group.items.length > 0;
     });
     result = materialsStore.materials;
   }
@@ -44,14 +45,13 @@ const filteredGallery = computed<IGallery[]>(() => {
 });
 // 上傳的圖片
 const customizedGallery = computed(() => {
-
-  const list: { src: string, name: string, id: number }[] = [];
+  const list: { src: string; name: string; id: number }[] = [];
   editorStore.imageList.forEach(({ image }) => {
     list.push({
       src: image.src,
       id: -1,
-      name: image.src.split('/').pop() || ''
-    })
+      name: image.src.split("/").pop() || ""
+    });
   });
   return list;
 });
@@ -64,32 +64,33 @@ const tagOptions = computed(() => {
   return options;
 });
 
-
 const imageRefs = ref<Record<number, any>>([]);
 const observer = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
+  entries.forEach(
+    (entry) => {
+      if (!entry.isIntersecting) return;
 
-    if (!entry.isIntersecting) return;
+      const el = entry.target as HTMLImageElement;
+      const src = el.dataset.src;
 
-    const el = entry.target as HTMLImageElement;
-    const src = el.dataset.src
+      if (src) {
+        // 載入圖片
+        const tempImg = new Image();
+        tempImg.src = src;
 
-    if (src) {
-      // 載入圖片
-      const tempImg = new Image();
-      tempImg.src = src;
-
-      tempImg.onload = () => {
-        el.src = src;
-        el.removeAttribute("data-src");
-        // 圖片載入成功後，移除父元素的 skeleton class
-        el.parentElement?.classList.remove('skeleton');
-        // 不再觀察這個元素
-        observer.unobserve(el);
+        tempImg.onload = () => {
+          el.src = src;
+          el.removeAttribute("data-src");
+          // 圖片載入成功後，移除父元素的 skeleton class
+          el.parentElement?.classList.remove("skeleton");
+          // 不再觀察這個元素
+          observer.unobserve(el);
+        };
       }
-    }
-  }, { threshold: 0.5 });
-})
+    },
+    { threshold: 0.5 }
+  );
+});
 
 onMounted(async () => {
   await materialsStore.getMaterials();
@@ -106,40 +107,44 @@ onUnmounted(() => {
   }
 });
 
-watch(() => filteredGallery, (data) => {
-  nextTick(() => {
-    data.value.forEach((item) => {
-      if (imageRefs.value[item.id]) observer.observe(imageRefs.value[item.id]);
-    })
-  })
-}, { deep: true });
+watch(
+  () => filteredGallery,
+  (data) => {
+    nextTick(() => {
+      data.value.forEach((item) => {
+        if (imageRefs.value[item.id]) observer.observe(imageRefs.value[item.id]);
+      });
+    });
+  },
+  { deep: true }
+);
 
-const onStickerClick = (item: { id: number, src: string, name: string }) => {
-  emit('add-element', {
+const onStickerClick = (item: { id: number; src: string; name: string }) => {
+  emit("add-element", {
     type: ElementTypesEnum.Image,
     config: {
       url: item.src,
       id: item.id,
       x: 0,
-      y: 0,
-    }, name: item.name
+      y: 0
+    },
+    name: item.name
   });
 };
 const onSearchIconClick = () => {
-  console.log('onSearchIconClick', input.value);
-}
-
+  console.log("onSearchIconClick", input.value);
+};
 </script>
 
 <template>
   <div class="images-gallery-container">
     <h2 class="heading">选择素材</h2>
     <el-input
-        v-model="input"
-        class="source-search-input"
-        placeholder="搜尋素材"
-        :clear-icon="Close"
-        clearable
+      v-model="input"
+      class="source-search-input"
+      placeholder="搜尋素材"
+      :clear-icon="Close"
+      clearable
     >
       <template v-slot:suffix>
         <div class="submit-btn" @click="onSearchIconClick">
@@ -150,31 +155,34 @@ const onSearchIconClick = () => {
       </template>
     </el-input>
     <div class="categories">
-      <NCarousel v-model:options="tagOptions" v-model:selected="selectTag"/>
+      <NCarousel v-model:options="tagOptions" v-model:selected="selectTag" />
       <span class="label">自訂素材</span>
       <div v-if="customizedGallery.length > 0" class="category-items">
         <div
-            v-for="(item) in customizedGallery"
-            :key="item.id"
-            class="image"
-            @click="onStickerClick(item)">
-          <img :src="item.src" alt=""/>
+          v-for="item in customizedGallery"
+          :key="item.id"
+          class="image"
+          @click="onStickerClick(item)"
+        >
+          <img :src="item.src" alt="" />
         </div>
       </div>
-      <template v-for="(group) in filteredGallery">
+      <template v-for="group in filteredGallery">
         <span class="label">{{ group.category }}</span>
         <div class="category-items" :style="{ display: group.visible ? 'flex' : 'none' }">
           <div
-              v-for="(item, index) in group.items"
-              :key="index"
-              class="image skeleton"
-              :style="{ display: item.visible ? 'flex' : 'none' }"
-              @click="onStickerClick(item)">
+            v-for="(item, index) in group.items"
+            :key="index"
+            class="image skeleton"
+            :style="{ display: item.visible ? 'flex' : 'none' }"
+            @click="onStickerClick(item)"
+          >
             <img
-                :src="placeholderImage"
-                :ref="(el) => imageRefs[item.id] = el"
-                :data-src="item.src" :alt="item.name"
-                :title="item.name"
+              :src="placeholderImage"
+              :ref="(el) => (imageRefs[item.id] = el)"
+              :data-src="item.src"
+              :alt="item.name"
+              :title="item.name"
             />
           </div>
         </div>
@@ -184,7 +192,6 @@ const onSearchIconClick = () => {
 </template>
 
 <style scoped lang="scss">
-
 @use "../../styles/theme";
 .images-gallery-container {
   display: flex;
@@ -217,8 +224,6 @@ const onSearchIconClick = () => {
   border: 1px solid theme.$border-color-base;
   pointer-events: none;
 }
-
-
 
 .source-search-input {
   width: 262px;
@@ -268,30 +273,30 @@ const onSearchIconClick = () => {
     flex-shrink: 0;
     display: none;
   }
-    .skeleton {
-      position: relative;
-      overflow: hidden; // 隱藏偽元素超出容器的部分
-      background-color: rgba(80, 80, 80, 0.3); // 骨架屏的底色
+  .skeleton {
+    position: relative;
+    overflow: hidden; // 隱藏偽元素超出容器的部分
+    background-color: rgba(80, 80, 80, 0.3); // 骨架屏的底色
 
-      // 使用偽元素創建掃光效果
-      &::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        left: 0;
-        transform: translateX(-100%);
-        background-image: linear-gradient(
-            90deg,
-            rgba(255, 255, 255, 0) 0,
-            rgba(255, 255, 255, 0.1) 20%,
-            rgba(255, 255, 255, 0.3) 60%,
-            rgba(255, 255, 255, 0)
-        );
-        animation: shimmer 2s infinite;
-      }
+    // 使用偽元素創建掃光效果
+    &::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      transform: translateX(-100%);
+      background-image: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0) 0,
+        rgba(255, 255, 255, 0.1) 20%,
+        rgba(255, 255, 255, 0.3) 60%,
+        rgba(255, 255, 255, 0)
+      );
+      animation: shimmer 2s infinite;
     }
+  }
   .image {
     width: 80px;
     height: 80px;
@@ -333,6 +338,4 @@ const onSearchIconClick = () => {
     transform: translateX(100%);
   }
 }
-
-
 </style>

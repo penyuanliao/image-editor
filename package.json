@@ -7,7 +7,8 @@
     "dev": "vite --mode dev",
     "build": "npm version patch --no-git-tag-version && vue-tsc -b && vite build",
     "release": "npm version major --no-git-tag-version && vue-tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "format": "prettier --write ./src"
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.2",
@@ -30,7 +31,12 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.1",
+    "@vue/eslint-config-prettier": "^10.2.0",
     "@vue/tsconfig": "^0.8.1",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "prettier": "^3.7.4",
     "sass-embedded": "^1.93.2",
     "typescript": "~5.8.3",
     "vite": "^7.1.7",

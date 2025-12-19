@@ -1,9 +1,9 @@
-import {type ConfigEnv, defineConfig, type ViteDevServer} from 'vite'
-import vue from '@vitejs/plugin-vue'
-import path from 'path'
-import fs from 'fs'
-import type { IncomingMessage, ServerResponse } from 'http'
-import pkg from './package.json'
+import { type ConfigEnv, defineConfig, type ViteDevServer } from "vite";
+import vue from "@vitejs/plugin-vue";
+import path from "path";
+import fs from "fs";
+import type { IncomingMessage, ServerResponse } from "http";
+import pkg from "./package.json";
 import { proxyConfig } from "./src/config/proxy.ts";
 import { API_ENDPOINTS } from "./src/api/endpoints.ts";
 
@@ -12,70 +12,77 @@ export default defineConfig((configEnv: ConfigEnv) => {
   function serverPlugin() {
     if (!isDev) return;
     return {
-      name: 'mock-api-server',
+      name: "mock-api-server",
       configureServer(server: ViteDevServer) {
-        server.middlewares.use(async (req: IncomingMessage, res: ServerResponse, next: () => void) => {
-          if (req.url === API_ENDPOINTS.GET_MATERIALS) {
-            const filePath = path.resolve(__dirname, './src/test/material.json');
-            const json = fs.readFileSync(filePath, 'utf-8');
-            await new Promise(resolve => setTimeout(resolve, Math.random() * 1000)); // 模擬網路延遲
-            res.setHeader('Content-Type', 'application/json');
-            res.end(json);
-            return;
-          }
-          if (req.url === API_ENDPOINTS.LOGIN) {
-            const user: { sid: string, code: string, user: string } = await new Promise((resolve, reject) => {
-              let rawData = '';
-              req.on('data', (chunk) =>  {
-                rawData += chunk.toString();
-              });
-              req.on('end', () => {
-                try {
-                  resolve(JSON.parse(rawData));
-                } catch (error) {
-                  reject(error);
+        server.middlewares.use(
+          async (req: IncomingMessage, res: ServerResponse, next: () => void) => {
+            if (req.url === API_ENDPOINTS.GET_MATERIALS) {
+              const filePath = path.resolve(__dirname, "./src/test/material.json");
+              const json = fs.readFileSync(filePath, "utf-8");
+              await new Promise((resolve) => setTimeout(resolve, Math.random() * 1000)); // 模擬網路延遲
+              res.setHeader("Content-Type", "application/json");
+              res.end(json);
+              return;
+            }
+            if (req.url === API_ENDPOINTS.LOGIN) {
+              const user: { sid: string; code: string; user: string } = await new Promise(
+                (resolve, reject) => {
+                  let rawData = "";
+                  req.on("data", (chunk) => {
+                    rawData += chunk.toString();
+                  });
+                  req.on("end", () => {
+                    try {
+                      resolve(JSON.parse(rawData));
+                    } catch (error) {
+                      reject(error);
+                    }
+                  });
                 }
-              });
-            });
-            const file: string = (user.code !== "esball") ? "./src/test/loginSuccessful.json" : "./src/test/loginFailure.json"
-            const filePath = path.resolve(__dirname, file);
-            const json = fs.readFileSync(filePath, 'utf-8');
-            await new Promise(resolve => setTimeout(resolve, Math.random() * 5000)); // 模擬網路延遲
-            res.setHeader('Content-Type', 'application/json');
-            res.end(json);
-          }
+              );
+              const file: string =
+                user.code !== "esball"
+                  ? "./src/test/loginSuccessful.json"
+                  : "./src/test/loginFailure.json";
+              const filePath = path.resolve(__dirname, file);
+              const json = fs.readFileSync(filePath, "utf-8");
+              await new Promise((resolve) => setTimeout(resolve, Math.random() * 5000)); // 模擬網路延遲
+              res.setHeader("Content-Type", "application/json");
+              res.end(json);
+            }
 
-          // if (req.url === API_ENDPOINTS.IMAGE_GENERATE && req.method === 'POST') {
-          //   // 模擬一個成功的 AI 圖片生成回應
-          //   await new Promise(resolve => setTimeout(resolve, 1000)); // 模擬網路延遲
-          //   const response = {
-          //     status: true,
-          //     // 回傳一個 1x1 的透明像素作為假圖片
-          //     image: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='
-          //   };
-          //   res.setHeader('Content-Type', 'application/json');
-          //   res.end(JSON.stringify(response));
-          //   return;
-          // }
-          next();
-        });
+            // if (req.url === API_ENDPOINTS.IMAGE_GENERATE && req.method === 'POST') {
+            //   // 模擬一個成功的 AI 圖片生成回應
+            //   await new Promise(resolve => setTimeout(resolve, 1000)); // 模擬網路延遲
+            //   const response = {
+            //     status: true,
+            //     // 回傳一個 1x1 的透明像素作為假圖片
+            //     image: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='
+            //   };
+            //   res.setHeader('Content-Type', 'application/json');
+            //   res.end(JSON.stringify(response));
+            //   return;
+            // }
+            next();
+          }
+        );
       }
-    }
+    };
   }
   return {
-    base: './',
+    base: "./",
     plugins: [vue(), serverPlugin()],
     resolve: {
       alias: {
-        "@": path.resolve(__dirname, './src'),
+        "@": path.resolve(__dirname, "./src")
       }
     },
     define: {
-      '__APP_VERSION__': JSON.stringify(pkg.version),
+      __APP_VERSION__: JSON.stringify(pkg.version)
     },
     server: {
       host: true,
       proxy: isDev ? proxyConfig : undefined
-    },
+    }
   };
-})
+});

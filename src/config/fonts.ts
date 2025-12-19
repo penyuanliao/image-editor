@@ -24,37 +24,37 @@
 // ];
 
 export const availableFonts: string[] = [
-    'Arial',
-    'Verdana',
-    'Georgia',
-    'Times New Roman',
-    'Courier New',
-    'Impact',
-    'Comic Sans MS',
-    'Microsoft JhengHei', // 微軟正黑體
-    'PingFang TC', // 蘋方-繁
-    'Noto Sans TC', // 思源黑體
-    'KaiTi', // 標楷體
-    "字魂扁桃体",
-    "锐字潮牌驰光黑-闪-超粗",
-    "方正兰亭中粗黑_GBK",
-    "锐字锐线怒放黑",
-    "方正兰亭粗黑_GBK",
-    "新綜藝體W9-GB",
-    "方正综艺简体",
-    "方正正大黑简体",
-    "荆南波波黑",
-    "方正新综艺简体字",
-    "腾祥凌黑简",
-    "腾祥嘉丽超粗圆简",
-    "方正汉真广标简体",
-    "微软雅黑Light",
-    "方正兰亭粗黑简体",
-    "方正正准黑FZZZHUNHJW",
-    "汉仪瑞虎宋W",
-    "方正粗活意简体",
-    "方正兰亭粗黑",
-    "腾祥细潮黑简",
-    "上首水滴体",
-    "漢儀雅酷黑",
-]
+  "Arial",
+  "Verdana",
+  "Georgia",
+  "Times New Roman",
+  "Courier New",
+  "Impact",
+  "Comic Sans MS",
+  "Microsoft JhengHei", // 微軟正黑體
+  "PingFang TC", // 蘋方-繁
+  "Noto Sans TC", // 思源黑體
+  "KaiTi", // 標楷體
+  "字魂扁桃体",
+  "锐字潮牌驰光黑-闪-超粗",
+  "方正兰亭中粗黑_GBK",
+  "锐字锐线怒放黑",
+  "方正兰亭粗黑_GBK",
+  "新綜藝體W9-GB",
+  "方正综艺简体",
+  "方正正大黑简体",
+  "荆南波波黑",
+  "方正新综艺简体字",
+  "腾祥凌黑简",
+  "腾祥嘉丽超粗圆简",
+  "方正汉真广标简体",
+  "微软雅黑Light",
+  "方正兰亭粗黑简体",
+  "方正正准黑FZZZHUNHJW",
+  "汉仪瑞虎宋W",
+  "方正粗活意简体",
+  "方正兰亭粗黑",
+  "腾祥细潮黑简",
+  "上首水滴体",
+  "漢儀雅酷黑"
+];

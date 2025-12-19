@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import Symbols from "../Basic/Symbols.vue";
-import {computed, nextTick, onMounted, onUpdated, reactive, ref} from "vue";
-import {useEditorStore} from "@/store/editorStore.ts";
-import type {DropdownInstance} from "element-plus";
+import { computed, nextTick, onMounted, onUpdated, reactive, ref } from "vue";
+import { useEditorStore } from "@/store/editorStore.ts";
+import type { DropdownInstance } from "element-plus";
 import NButton from "@/components/Basic/NButton.vue";
 import NPosition from "@/components/Basic/NPosition.vue";
-import {advancedDefaults} from "@/config/settings.ts";
+import { advancedDefaults } from "@/config/settings.ts";
 import NRotation from "@/components/Basic/NRotation.vue";
 
 const editorStore = useEditorStore();
 
-const emit = defineEmits(['change', 'alignElement']);
+const emit = defineEmits(["change", "alignElement"]);
 
 const popoverRef = ref<HTMLDivElement | null>(null);
 const controls = ref<HTMLDivElement | null>(null);
@@ -21,7 +21,7 @@ const hasTop = computed(() => editorStore.selectedIndex === editorStore.elements
 const hasBottom = computed(() => editorStore.selectedIndex === 0);
 
 const popoverMenu = reactive({
-  route: 'image',
+  route: "image",
   menus: [
     /*    {
           event: 'left',
@@ -39,9 +39,9 @@ const popoverMenu = reactive({
           title: '靠左對齊'
         },*/
     {
-      event: 'delete',
-      icon: 'delete',
-      title: '刪除'
+      event: "delete",
+      icon: "delete",
+      title: "刪除"
     }
   ]
 });
@@ -49,30 +49,28 @@ const popoverMenu = reactive({
 const handleMoveLayer = (value: "up" | "down" | "top" | "bottom") => {
   if (!editorStore.selectedElement) return;
   switch (value) {
-    case 'up':
+    case "up":
       editorStore.moveForwardElement(editorStore.selectedElement.id);
       break;
-    case 'down':
+    case "down":
       editorStore.moveBackwardElement(editorStore.selectedElement.id);
       break;
-    case 'top':
+    case "top":
       editorStore.moveTopElement(editorStore.selectedElement.id);
       break;
-    case 'bottom':
+    case "bottom":
       editorStore.moveBottomElement(editorStore.selectedElement.id);
       break;
-
   }
-}
+};
 const handlePositionChange = (value: string) => {
-
-  if (value === 'flip-horizontal') {
+  if (value === "flip-horizontal") {
     editorStore.flipHorizontal();
-  } else if (value === 'flip-vertical') {
+  } else if (value === "flip-vertical") {
     editorStore.flipVertical();
   } else {
-    const horizontally: string[] = ['left', 'center', 'right'];
-    const vertically: string[] = ['top', 'middle', 'bottom'];
+    const horizontally: string[] = ["left", "center", "right"];
+    const vertically: string[] = ["top", "middle", "bottom"];
     let horizontal = null;
     let vertical = null;
     if (horizontally.includes(value)) {
@@ -82,70 +80,67 @@ const handlePositionChange = (value: string) => {
       vertical = value;
     }
     if (horizontal || vertical) {
-      emit('alignElement', horizontal, vertical);
+      emit("alignElement", horizontal, vertical);
     }
   }
-}
-
+};
 
 const updatePosition = () => {
   nextTick(() => {
     const element = popoverRef.value as HTMLDivElement;
     if (!element) return;
     // const e = controls.value as HTMLDivElement;
-    element.style.left = `${(-1 * element.offsetWidth / 2)}px`;
-    element.style.top = `${-1 * element.offsetHeight / 2}px`
-  })
-}
+    element.style.left = `${(-1 * element.offsetWidth) / 2}px`;
+    element.style.top = `${(-1 * element.offsetHeight) / 2}px`;
+  });
+};
 
 onMounted(updatePosition);
-onUpdated(updatePosition)
+onUpdated(updatePosition);
 
 const handleOnClick = (value: string) => {
-  emit('change', value);
-}
-
+  emit("change", value);
+};
 </script>
 
 <template>
   <div class="popover" ref="popoverRef">
     <div class="button-group" ref="controls">
-      <el-tooltip
-          content="圖層"
-          placement="top">
+      <el-tooltip content="圖層" placement="top">
         <el-dropdown
-            ref="moveLayerDropdown"
-            placement="bottom-start"
-            trigger="click"
-            :showArrow="false">
+          ref="moveLayerDropdown"
+          placement="bottom-start"
+          trigger="click"
+          :showArrow="false"
+        >
           <el-button class="el-btn">
             <el-icon size="20">
-              <Symbols name="layers"/>
+              <Symbols name="layers" />
             </el-icon>
           </el-button>
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item :disabled="hasTop" @pointerup="handleMoveLayer('top')">
                 <el-icon size="20">
-                  <Symbols name="layers-top"/>
+                  <Symbols name="layers-top" />
                 </el-icon>
                 <span>移至頂層</span>
               </el-dropdown-item>
               <el-dropdown-item :disabled="hasTop" @pointerup="handleMoveLayer('up')">
                 <el-icon size="20">
-                  <Symbols name="layers-up"/>
+                  <Symbols name="layers-up" />
                 </el-icon>
                 <span>上移一層</span>
               </el-dropdown-item>
               <el-dropdown-item :disabled="hasBottom" @pointerup="handleMoveLayer('down')">
                 <el-icon size="20">
-                  <Symbols name="layers-down"/>
+                  <Symbols name="layers-down" />
                 </el-icon>
                 <span>下移一層</span>
               </el-dropdown-item>
               <el-dropdown-item :disabled="hasBottom" @pointerup="handleMoveLayer('bottom')">
                 <el-icon size="20">
-                  <Symbols name="layers-bottom"/>
+                  <Symbols name="layers-bottom" />
                 </el-icon>
                 <span>移至底層</span>
               </el-dropdown-item>
@@ -153,14 +148,25 @@ const handleOnClick = (value: string) => {
           </template>
         </el-dropdown>
       </el-tooltip>
-      <NPosition :flipEnabled="false" v-if="advancedDefaults.alignEnabled" @change="handlePositionChange">
+      <NPosition
+        :flipEnabled="false"
+        v-if="advancedDefaults.alignEnabled"
+        @change="handlePositionChange"
+      >
         <NButton icon="align-left" size="20" tip="對齊" width="24" height="24"></NButton>
       </NPosition>
-      <NRotation/>
+      <NRotation />
       <template v-for="item in popoverMenu.menus">
-        <NButton :tip="item.title" size="20" width="24" height="24" :icon="item.icon" @click="handleOnClick(item.event)"/>
+        <NButton
+          :tip="item.title"
+          size="20"
+          width="24"
+          height="24"
+          :icon="item.icon"
+          @click="handleOnClick(item.event)"
+        />
       </template>
-      <slot/>
+      <slot />
     </div>
   </div>
 </template>
@@ -174,7 +180,9 @@ const handleOnClick = (value: string) => {
   width: fit-content;
   height: 36px;
   background-color: white;
-  box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.2), 0 2px 6px 0 rgba(0, 0, 0, 0.19);
+  box-shadow:
+    0 1px 4px 0 rgba(0, 0, 0, 0.2),
+    0 2px 6px 0 rgba(0, 0, 0, 0.19);
   border-radius: 8px;
   z-index: 100;
   padding: 0 6px;
@@ -216,7 +224,7 @@ const handleOnClick = (value: string) => {
     box-sizing: border-box;
 
     &:hover {
-      background-color: #EEEEEE;
+      background-color: #eeeeee;
     }
   }
 }
@@ -230,7 +238,7 @@ const handleOnClick = (value: string) => {
   border-radius: 4px;
 
   &:hover {
-    background-color: #EEEEEE;
+    background-color: #eeeeee;
     color: #3a3a3a;
   }
 
@@ -242,7 +250,4 @@ const handleOnClick = (value: string) => {
     outline: none;
   }
 }
-
-
-
 </style>
