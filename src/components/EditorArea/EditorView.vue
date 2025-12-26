@@ -626,7 +626,7 @@ defineExpose({
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  //justify-content: center;
+  justify-content: center;
   align-items: center;
   flex-shrink: 0;
   position: relative;
