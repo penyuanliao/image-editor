@@ -262,11 +262,11 @@ const finishEditing = () => {
   editor.value.render();
 };
 //
-const preview = () => {
+const preview = async (blob: boolean = false) => {
   // 計算比例
   const scaleFactor = 1 / editor.value.artboardSize.scale;
   // 輸出圖片的 URL
-  return exportCroppedArea({
+  return await exportCroppedArea({
     store: editorStore,
     editorCanvas: canvas.value,
     cropBox: {
@@ -277,12 +277,15 @@ const preview = () => {
     },
     scaleFactor,
     type: "image/png",
-    color: editor.value.viewport.color
+    color: editor.value.viewport.color,
+    blob
   } as CroppedExportOptions);
 };
 // 儲存裁切後的圖片
 const saveImage = async () => {
-  const href = preview();
+  const href = await preview() as string;
+  const b = await preview(true);
+  console.log(b);
   // editorStore.saveConfirm = true;
   if (href) {
     editorStore.setPreviewImage(href);
@@ -640,6 +643,7 @@ defineExpose({
   width: 800px;
   height: 600px;
   //max-height: 600px;
+  flex-shrink: 0;
 
   min-height: 50px; /* 避免過度縮小 */
   //transition: all 0.3s ease;
