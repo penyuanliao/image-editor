@@ -37,6 +37,8 @@ export interface IAdvancedSettings {
   pivotPointEnabled: boolean;
   // 啟用: 元件增加Hovered
   hoveredEnabled: boolean;
+  // 啟用: 多選文字顏色
+  textMultiColorEnabled: boolean;
 }
 
 export const generalDefaults: IGeneralSettings = {
@@ -171,7 +173,7 @@ export const appearanceDefaults = {
       value: { width: 360, height: 300 }
     }
   ],
-  boxBarSelected: BoxBarTypes.sticker
+  boxBarSelected: BoxBarTypes.image,
 };
 
 export const advancedDefaults: IAdvancedSettings = {
@@ -182,5 +184,6 @@ export const advancedDefaults: IAdvancedSettings = {
   undoRedoEnabled: false,
   eachSideHandlesEnabled: true,
   pivotPointEnabled: true,
-  hoveredEnabled: false
+  hoveredEnabled: false,
+  textMultiColorEnabled: false,
 };

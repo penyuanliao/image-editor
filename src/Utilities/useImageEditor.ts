@@ -260,9 +260,9 @@ export const drawMultiText = (ctx: CanvasRenderingContext2D, element: ICanvasEle
         // ctx.fillStyle = stageTheme.borderColor;
         // ctx.fillRect(currentX, currentLineY - fontSize * lineHeight/2, segmentWidth, fontSize * lineHeight);
         // ENDED: 選取文字繪製背景顏色
-        console.log(
-          `text: ${segment.text} x: ${currentX} segmentMetrics: ${segmentWidth} max: ${ctx.measureText("新增内文文本").width}`
-        );
+        // console.log(
+        //   `text: ${segment.text} x: ${currentX} segmentMetrics: ${segmentWidth} max: ${ctx.measureText("新增内文文本").width}`
+        // );
 
         ctx.fillStyle = segment.color;
         if (config.textAlign === "center") {

@@ -1,35 +1,55 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, type PropType, reactive, ref, nextTick } from "vue";
-import type {ITextSegment} from "@/types.ts";
+import {onMounted, onUnmounted, type PropType, reactive, ref, nextTick, computed} from "vue";
+import type { ITextSegment } from "@/types.ts";
+import {get} from "axios";
 
-const props = defineProps({
-  element: Object as PropType<any>
-});
-
-// const textElement = reactive(props.element);
 const defaultText = {
   text: " ",
   color: "black"
 };
+
+const props = defineProps({
+  content: {
+    type: String,
+    default: ""
+  },
+  textSegments: {
+    type: Array as PropType<ITextSegment[]>,
+    default: undefined
+  }
+
+});
+const emit = defineEmits([
+  "update:content",
+  "update:textSegments",
+  "change",
+  "finish"
+]);
+
 const textEditableRef = ref<HTMLDivElement>();
 
-const text = ref<string>("繁體字\nEnglish");
-
-
-const textSegments = ref<ITextSegment[]>([
-  {
-    text: "繁體字",
-    color: "#cc66ff"
+const text = computed({
+  get: () => {
+    return props.content;
   },
-  {
-    text: "English",
-    color: "#3366ff"
-  },
-  {
-    text: "日文",
-    color: "rgba(241,86,36,0.5)"
+  set: (value) => {
+    emit("update:content", value);
   }
-]);
+});
+const textSegments = computed({
+  get: () => {
+    return props.textSegments || [{
+      text: props.content,
+      color: "black"
+    }];
+  },
+  set: (value) => {
+    emit("update:textSegments", value);
+  }
+});
+const isEmpty = computed(() => {
+  return textSegments.value.length === 1 && textSegments.value[0]?.text === " ";
+});
 
 // 記錄目前的選取狀態
 const currentSelection = reactive({
@@ -115,8 +135,6 @@ const handleSelectionChange = () => {
     currentSelection.end = end;
     currentSelection.text = selection.toString();
   }
-  console.log(`tree:
-  ${JSON.stringify(textSegments.value, null, '\t')}`);
 };
 // 取得全域偏移量
 const getGlobalOffset = (index: number, offset: number) => {
@@ -292,6 +310,7 @@ const handleCompositionStart = () => {
 const handleCompositionEnd = (event: CompositionEvent) => {
   isComposing.value = false;
   handleInput(event);
+  emit("change")
 };
 // 輸入文字時處理邏輯
 const handleInput = (_: Event) => {
@@ -321,9 +340,8 @@ const handleInput = (_: Event) => {
   container.childNodes.forEach((node) => {
     if (node.nodeType === Node.ELEMENT_NODE) {
       const el = node as HTMLElement;
-      console.log(`el.tagName: ${ _.target }`);
       if (el.tagName === "SPAN") {
-        newSegments.push({ text: el.innerText, color: el.style.color || "black" });
+        newSegments.push({ text: isEmpty.value ? el.innerText.trim() : el.innerText, color: el.style.color || "black" });
       } else if (el.innerText) {
         newSegments.push({ text: el.innerText, color: "black" });
       }
@@ -334,10 +352,11 @@ const handleInput = (_: Event) => {
 
   const filtered = newSegments.filter((s) => s.text.length > 0);
   textSegments.value = filtered.length > 0 ? filtered : [{ text: "", color: "black" }];
-
+  text.value = getText();
   // 3. 還原游標
   nextTick(() => {
     setSelectionByGlobalOffsets(savedGlobalOffset, savedGlobalOffset);
+    emit("change");
   });
 };
 
@@ -440,7 +459,7 @@ const handleKeydown = async (event: KeyboardEvent) => {
     const newSegments = [...textSegments.value];
 
     if (startIndex === endIndex) {
-      const segment = newSegments[startIndex];
+      const segment = newSegments[startIndex] as ITextSegment;
       if (!segment) return;
       const pre = segment.text.substring(0, startOffset);
       const post = segment.text.substring(endOffset);
@@ -451,8 +470,8 @@ const handleKeydown = async (event: KeyboardEvent) => {
       };
     } else {
       // 處理跨越多個 segments 的情況
-      const startSeg = newSegments[startIndex];
-      const endSeg = newSegments[endIndex];
+      const startSeg = newSegments[startIndex] as ITextSegment;
+      const endSeg = newSegments[endIndex] as ITextSegment;
       const startPre = startSeg?.text.substring(0, startOffset) || "";
       const endPost = endSeg?.text.substring(endOffset) || "";
 
@@ -469,6 +488,9 @@ const handleKeydown = async (event: KeyboardEvent) => {
     await nextTick();
     const newCursorPos = globalStart + 1;
     setSelectionByGlobalOffsets(newCursorPos, newCursorPos);
+    text.value = getText();
+    emit("change", "enter");
+
   } else if (event.key === "Backspace" || event.key === "Delete") {
     event.preventDefault();
 
@@ -490,6 +512,8 @@ const handleKeydown = async (event: KeyboardEvent) => {
         if (deleteStart > 0) {
           deleteStart--; // 刪除游標前一個字元
         } else {
+          text.value = getText();
+          emit("change", "back");
           return; // 已經在最前面，無法刪除
         }
       } else {
@@ -498,6 +522,8 @@ const handleKeydown = async (event: KeyboardEvent) => {
         if (deleteEnd < totalLen) {
           deleteEnd++; // 刪除游標後一個字元
         } else {
+          text.value = getText();
+          emit("change", "back");
           return; // 已經在最後面，無法刪除
         }
       }
@@ -533,7 +559,7 @@ const handleKeydown = async (event: KeyboardEvent) => {
 
     // 3. 若結果為空，保持一個空的 segment 以維持編輯器運作
     if (newSegments.length === 0) {
-      newSegments.push({ text: " ", color: "black" });
+      newSegments.push(defaultText);
     }
 
     textSegments.value = newSegments;
@@ -541,13 +567,30 @@ const handleKeydown = async (event: KeyboardEvent) => {
     // 4. 還原游標位置
     await nextTick();
     setSelectionByGlobalOffsets(deleteStart, deleteStart);
+    console.log('getText()',JSON.stringify( { d: getText() }));
+    text.value = getText();
+    emit("change", "back");
   }
+};
+const finishEditing = () => {
+  if (isComposing.value) return;
+  text.value = getText();
+  emit("finish");
+}
+const focus = () => {
+  textEditableRef.value?.focus();
 };
 
 // 暴露方法給父元件使用
 defineExpose({
   applyColorToSelection,
-  getText
+  getText,
+  focus,
+  get input() { return textEditableRef.value },
+  get offsetWidth() { return textEditableRef.value?.offsetWidth || 0; },
+  get offsetHeight() { return textEditableRef.value?.offsetHeight || 0; },
+  get scrollWidth() { return textEditableRef.value?.scrollWidth || 0; },
+  get scrollHeight() { return textEditableRef.value?.scrollHeight || 0; },
 });
 
 onMounted(() => {
@@ -559,16 +602,17 @@ onUnmounted(() => {
 </script>
 
 <template>
-<div class="text-editable-container">
-  <div 
-    ref="textEditableRef" 
-    class="text-editable" 
-    contenteditable="true" 
-    @keydown="handleKeydown"
-    @input="handleInput"
-    @compositionstart="handleCompositionStart"
-    @compositionend="handleCompositionEnd"
-    @paste="handlePaste"
+  <div
+      ref="textEditableRef"
+      class="text-editable"
+      contenteditable="true"
+      @keydown="handleKeydown"
+      @input="handleInput"
+      @compositionstart="handleCompositionStart"
+      @compositionend="handleCompositionEnd"
+      @paste="handlePaste"
+      @focusout="finishEditing"
+      @keydown.enter.shift.prevent="finishEditing"
   >
     <div>
       <template v-for="textSegment in textSegments">
@@ -576,30 +620,28 @@ onUnmounted(() => {
       </template>
     </div>
   </div>
-  <el-button style="position: absolute; left: 0; top: 40px;" @click="applyColorToSelection(getRandomRgbColor())">rand-color</el-button>
-</div>
 </template>
 
 <style scoped lang="scss">
 .text-editable {
   position: absolute;
-  width: 300px; /* 輸入框寬度 */
+  width: fit-content; /* 輸入框寬度 */
   min-height: 10px; /* 輸入框最小高度 */
-  background-color: white;
+  //background-color: white;
   border: 1px dashed #909399;
   margin: 0;
   text-align: center;
   outline: none;
-  box-sizing: border-box;
+  //box-sizing: border-box;
   z-index: 10;
   overflow: hidden;
   resize: none;
-  font-size: 20px;
+  font-size: 32px;
   padding: 0 0;
   top: 0;
   left: 0;
+  line-height: 1.2;
   white-space: pre-wrap; /* 確保換行符號正確顯示 */
-
   &:focus {
     outline: none; /* 移除預設藍色外框 */
     border-color: #007bff; /* 換成其他顏色 */

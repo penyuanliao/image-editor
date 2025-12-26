@@ -80,8 +80,6 @@ export class CanvasEditor {
     | null = null;
   public onPopOverMenu: ((event: IContextMenuEvent) => void) | null = null;
   public onStartEditText: ((element: ICanvasElement) => void) | null = null;
-  // 點擊兩下編輯的輸入框
-  public textInput: HTMLInputElement | null = null;
   // 狀態屬性
   public cropBox: { x: number; y: number; width: number; height: number; scale: number };
 
@@ -1473,7 +1471,6 @@ export class CanvasEditor {
 
   // 銷毀時要移除監聽器
   public destroy() {
-    this.textInput = null;
     this.canvas?.removeEventListener("mousedown", this.handleMouseDown.bind(this));
     this.canvas?.removeEventListener("mousemove", this.handleMouseMove.bind(this));
     this.canvas?.removeEventListener("dblclick", this.handleDoubleClick.bind(this));

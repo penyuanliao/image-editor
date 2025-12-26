@@ -8,7 +8,7 @@ const selected = ref<number>(0);
 const buttonGroup: { icon: string; text: string; key: string }[] = [
   {
     icon: "sticker",
-    key: "sticker",
+    key: "image",
     text: "素材"
   },
   {

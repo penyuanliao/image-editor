@@ -16,6 +16,8 @@ import { advancedDefaults, generalDefaults } from "@/config/settings.ts";
 import NCropControls from "@/components/EditorArea/NCropControls.vue";
 import NBaseScrollbar from "@/components/Basic/NBaseScrollbar.vue";
 import NContextMenu from "@/components/EditorArea/NContextMenu.vue";
+import NTextEditable from "@/components/Basic/NTextEditable.vue";
+import NTextArea from "@/components/Basic/NTextArea.vue";
 
 const editorStore = useEditorStore();
 const emit = defineEmits(["element-selected"]);
@@ -109,7 +111,6 @@ onMounted(async () => {
   editor.value.setup(canvas.value, uploaderContainer.value);
   if (wheelerRef.value?.parentElement && advancedDefaults.zoomEnabled)
     editor.value.setupZoomView(wheelerRef.value.parentElement as HTMLDivElement);
-  editor.value.textInput = textInput.value;
   // 預設畫布大小
   editor.value.updateViewportSize(width, height, color);
   // 支援貼圖Ctrl+C和Ctrl+V
@@ -220,13 +221,13 @@ let minWidth = ref(0);
 
 // --- 文字編輯方法 ---
 const updateTextareaSize = () => {
-  const textarea = textInput.value;
+  const textarea = textInput.value as any;
   if (!textarea || !editor.value.editingElement) return;
 
   // 為了準確計算，先重設高度
-  textarea.style.height = "auto";
+  textInputStyle.height = "auto";
   // 寬度設為 auto 以便計算 scrollWidth，但要確保它不小於初始寬度
-  textarea.style.width = `${minWidth.value}px`;
+  textInputStyle.width = `${minWidth.value}px`;
   const config = selectedElement.value?.config as ITextConfig;
   const scale = editorStore.viewTranslate.scale;
 
@@ -235,15 +236,14 @@ const updateTextareaSize = () => {
   const scrollWidth = textarea.scrollWidth;
   const w = Math.max(scrollWidth, minWidth.value);
   const countLines: number = config.content.split("\n").length;
-  // console.log('countLines', countLines * (config._lineSpacing || 0), scrollHeight);
-  textarea.style.height = `${countLines * (config._lineSpacing || 0) * scale}px`;
-  textarea.style.width = `${w}px`;
+  textInputStyle.height = `${countLines * (config._lineSpacing || 0) * scale}px`;
+  textInputStyle.width = `${w}px`;
   if (countLines > (config._countLines || 1)) {
-    const top: number = Number.parseFloat(textarea.style.top.replace("px", ""));
-    textarea.style.top = `${top - (config._lineSpacing || 0) / 2}px`;
+    const top: number = Number.parseFloat(textInputStyle.top.replace("px", ""));
+    textInputStyle.top = `${top - (config._lineSpacing || 0) / 2}px`;
   } else if (countLines < (config._countLines || 1)) {
-    const top: number = Number.parseFloat(textarea.style.top.replace("px", ""));
-    textarea.style.top = `${top + (config._lineSpacing || 0) / 2}px`;
+    const top: number = Number.parseFloat(textInputStyle.top.replace("px", ""));
+    textInputStyle.top = `${top + (config._lineSpacing || 0) / 2}px`;
   }
 };
 
@@ -260,24 +260,6 @@ const finishEditing = () => {
   minWidth.value = 0; // 重設
   editor.value.editingElement = null;
   editor.value.render();
-};
-// 處理IME輸入問題
-const compositionStart = () => {
-  isComposing.value = true;
-};
-const compositionEnd = () => {
-  isComposing.value = false;
-  updateTextareaSize();
-};
-const handleTextInput = () => {
-  if (isComposing.value) return;
-  updateTextareaSize();
-};
-const textAreaSelected = (event: Event) => {
-  console.log("textAreaSelected");
-  const target = event.target as HTMLTextAreaElement;
-  const selectedText: string = target.value.substring(target.selectionStart, target.selectionEnd);
-  console.log("Text selected:", selectedText);
 };
 //
 const preview = () => {
@@ -554,19 +536,22 @@ defineExpose({
           }"
           class="editor-canvas grid"
         ></canvas>
-        <textarea
-          v-if="editor.editingElement"
-          ref="textInput"
-          v-model="(editor.editingElement.config as ITextConfig).content"
-          :style="textInputStyle"
-          class="text-editor-input"
-          wrap="off"
-          @compositionend="compositionEnd"
-          @compositionstart="compositionStart"
-          @focusout="finishEditing"
-          @input="handleTextInput"
-          @select="textAreaSelected"
-          @keydown.enter.shift.prevent="finishEditing"
+        <NTextArea
+            v-if="editor.editingElement && !advancedDefaults.textMultiColorEnabled"
+            ref="textInput"
+            v-model:content="(editor.editingElement.config as ITextConfig).content"
+            :style="textInputStyle"
+            @change="updateTextareaSize"
+            @finish="finishEditing"
+        />
+        <NTextEditable
+            v-if="editor.editingElement && advancedDefaults.textMultiColorEnabled"
+            ref="textInput"
+            v-model:content="(editor.editingElement.config as ITextConfig).content"
+            v-model:text-segments="(editor.editingElement.config as ITextConfig).segments"
+            :style="textInputStyle"
+            @change="updateTextareaSize"
+            @finish="finishEditing"
         />
         <!-- 快速選單 -->
         <div
@@ -777,20 +762,6 @@ defineExpose({
 
 .save-button:hover {
   background-color: #95d475;
-}
-
-.text-editor-input {
-  position: absolute;
-  background-color: white;
-  border: 1px dashed #909399;
-  margin: 0;
-  text-align: center;
-  outline: none;
-  box-sizing: border-box;
-  z-index: 10;
-  overflow: hidden;
-  resize: none;
-  padding: 0;
 }
 
 .context-menu {

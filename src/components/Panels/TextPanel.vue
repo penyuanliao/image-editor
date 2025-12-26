@@ -7,6 +7,7 @@ import { ElementTypesEnum, type ICanvasElement, type ITextConfig } from "@/types
 import NPanel from "../Basic/NPanel.vue";
 import { availableFonts } from "@/config/fonts.ts";
 import NPanelButton from "@/components/Basic/NPanelButton.vue";
+import { advancedDefaults } from "@/config/settings.ts";
 
 // import { ColorInputWithoutInstance } from "tinycolor2";
 
@@ -23,6 +24,7 @@ const editorStore = useEditorStore();
 // --- Default State Factory ---
 const getDefaultTextProps = () => ({
   content: "新增内文文本",
+  segments: advancedDefaults.textMultiColorEnabled ? [{ text: "新增内文文本", color: "#000000" }] : null,
   name: "文字",
   color: "#000000",
   isBold: false,
