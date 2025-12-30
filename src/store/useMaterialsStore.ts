@@ -81,7 +81,7 @@ export const useMaterialsStore = defineStore("materialsStore", () => {
     if (!categories || !Array.isArray(categories.Info)) return [];
     return categories.Info.map((category) => {
       // 轉換每個分類下的素材項目
-      const galleryItems: IGalleryItem[] = category.Info.map((material) => {
+      const galleryItems: IGalleryItem[] = category.Info?.map((material) => {
         return {
           id: material.ID,
           name: material.MaterialName,
@@ -89,7 +89,7 @@ export const useMaterialsStore = defineStore("materialsStore", () => {
           categoryId: category.ID,
           imageGenMode: getImageGenMode(category.CategoryName)
         };
-      });
+      }) || [];
 
       // 組合成 IGallery 格式
       return {
