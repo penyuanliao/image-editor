@@ -517,29 +517,70 @@ export class CanvasEditor {
   //開始剪裁圖片編輯狀態
   private startImageCropperEditing(clickedElement: ICanvasElement) {
     const config = clickedElement.config as IImageConfig;
+    // 沒有圖片則不進行剪裁
+    if (!config.img) return;
 
     // 初始化 cropConfig
     if (!config.cropConfig) {
       config.cropConfig = {};
     }
+    // 確保 cropRect 存在
+    if (!config.cropConfig.cropRect) {
+      config.cropConfig.cropRect = {
+        x: 0,
+        y: 0,
+        width: config.img.naturalWidth,
+        height: config.img.naturalHeight
+      };
+    }
+    // 開始剪裁資料
+    const { cropRect } = config.cropConfig;
+    const { naturalWidth, naturalHeight } = config.img;
+    const angle = config.rotation || 0;
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
 
     // 切換剪裁狀態
     config.cropConfig.isCropping = !config.cropConfig.isCropping;
 
     if (config.cropConfig.isCropping) {
       // 進入剪裁模式，選取此元素
-      // 如果 cropRect 不存在，則初始化為完整圖片大小
-      if (!config.cropConfig.cropRect && config.img) {
-        config.cropConfig.cropRect = {
-          x: 0,
-          y: 0,
-          width: config.img.naturalWidth,
-          height: config.img.naturalHeight
-        };
-      }
+
+      const scale = config.width / cropRect?.width;
+      const newWidth = naturalWidth * scale;
+      const newHeight = naturalHeight * scale;
+
+      const dx = cropRect.x + cropRect?.width / 2 - naturalWidth / 2;
+      const dy = cropRect.x + cropRect?.width / 2 - naturalWidth / 2;
+      const dxCanvas = dx * scale;
+      const dyCanvas = dy * scale;
+      const dxRotated = dxCanvas * cos - dyCanvas * sin;
+      const dyRotated = dxCanvas * sin + dyCanvas * cos;
+
+      config.x -= dxRotated;
+      config.y -= dyRotated;
+      config.width = newWidth;
+      config.height = newHeight;
+
       this.store.setSelectedElements([clickedElement]);
     } else {
       // 結束剪裁模式
+      const scale = config.width / naturalWidth;
+      const newWidth = cropRect?.width * scale;
+      const newHeight = cropRect?.height * scale;
+
+      const dx = cropRect.x + cropRect?.width / 2 - naturalWidth / 2;
+      const dy = cropRect.x + cropRect?.width / 2 - naturalWidth / 2;
+      const dxCanvas = dx * scale;
+      const dyCanvas = dy * scale;
+      const dxRotated = dxCanvas * cos - dyCanvas * sin;
+      const dyRotated = dxCanvas * sin + dyCanvas * cos;
+
+      config.x -= dxRotated;
+      config.y -= dyRotated;
+      config.width = newWidth;
+      config.height = newHeight;
+
       this.store.clearSelection();
     }
   }
@@ -631,8 +672,9 @@ export class CanvasEditor {
         return; // 攔截事件，不再往下執行
       }
       // 如果點擊在剪裁框外，則結束剪裁
-      (croppingElement.config as IImageConfig).cropConfig!.isCropping = false;
-      this.store.clearSelection();
+      // (croppingElement.config as IImageConfig).cropConfig!.isCropping = false;
+      // this.store.clearSelection();
+      this.startImageCropperEditing(croppingElement);
       this.render();
       return; // 結束剪裁後直接返回
     }
@@ -1171,8 +1213,9 @@ export class CanvasEditor {
       (el) => (el.config as IImageConfig).cropConfig?.isCropping
     );
     if (currentlyCroppingElement && currentlyCroppingElement.id !== clickedElement?.id) {
-      (currentlyCroppingElement.config as IImageConfig).cropConfig!.isCropping = false;
-      this.store.clearSelection(); // 清除選取以隱藏控制項
+      // (currentlyCroppingElement.config as IImageConfig).cropConfig!.isCropping = false;
+      // this.store.clearSelection(); // 清除選取以隱藏控制項
+      this.startImageCropperEditing(currentlyCroppingElement);
     }
   }
 
