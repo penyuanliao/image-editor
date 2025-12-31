@@ -551,7 +551,7 @@ export class CanvasEditor {
       const newHeight = naturalHeight * scale;
 
       const dx = cropRect.x + cropRect?.width / 2 - naturalWidth / 2;
-      const dy = cropRect.x + cropRect?.width / 2 - naturalWidth / 2;
+      const dy = cropRect.y + cropRect?.height / 2 - naturalHeight / 2;
       const dxCanvas = dx * scale;
       const dyCanvas = dy * scale;
       const dxRotated = dxCanvas * cos - dyCanvas * sin;
@@ -570,14 +570,14 @@ export class CanvasEditor {
       const newHeight = cropRect?.height * scale;
 
       const dx = cropRect.x + cropRect?.width / 2 - naturalWidth / 2;
-      const dy = cropRect.x + cropRect?.width / 2 - naturalWidth / 2;
+      const dy = cropRect.y + cropRect?.height / 2 - naturalHeight / 2;
       const dxCanvas = dx * scale;
       const dyCanvas = dy * scale;
       const dxRotated = dxCanvas * cos - dyCanvas * sin;
       const dyRotated = dxCanvas * sin + dyCanvas * cos;
 
-      config.x -= dxRotated;
-      config.y -= dyRotated;
+      config.x += dxRotated;
+      config.y += dyRotated;
       config.width = newWidth;
       config.height = newHeight;
 
