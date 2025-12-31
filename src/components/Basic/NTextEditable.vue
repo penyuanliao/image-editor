@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import {onMounted, onUnmounted, type PropType, reactive, ref, nextTick, computed} from "vue";
 import type { ITextSegment } from "@/types.ts";
-import {get} from "axios";
 
 const defaultText = {
   text: " ",
@@ -60,12 +59,12 @@ const currentSelection = reactive({
 
 const isComposing = ref(false);
 
-const getRandomRgbColor = () => {
-  const r = Math.floor(Math.random() * 256);
-  const g = Math.floor(Math.random() * 256);
-  const b = Math.floor(Math.random() * 256);
-  return `rgb(${r}, ${g}, ${b})`;
-}
+// const getRandomRgbColor = () => {
+//   const r = Math.floor(Math.random() * 256);
+//   const g = Math.floor(Math.random() * 256);
+//   const b = Math.floor(Math.random() * 256);
+//   return `rgb(${r}, ${g}, ${b})`;
+// }
 
 // 輔助函式：計算全域偏移量並轉換為 Segment 索引
 const getSelectionPoint = (container: Node, offset: number) => {
