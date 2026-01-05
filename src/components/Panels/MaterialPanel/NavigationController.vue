@@ -7,7 +7,10 @@ import CategoryGalleryView from "@/components/Panels/MaterialPanel/CategoryGalle
 import { useMaterialsStore } from "@/store/useMaterialsStore.ts";
 import { ElementTypesEnum } from "@/types.ts";
 import NSearchButton from "@/components/Basic/NSearchButton.vue";
+import NImage from "@/components/Basic/NImage.vue";
+import {useEditorStore} from "@/store/editorStore.ts";
 const materialsStore = useMaterialsStore();
+const editorStore = useEditorStore();
 
 const emit = defineEmits<{ (e: "add-element", action: any): void }>();
 // 目前頁面控制流程
@@ -68,6 +71,11 @@ const handleImageChange = (value: {
 const handleInputChange = (value: string) => {
   materialsStore.searchValue = value;
 };
+
+const recentlyUseImageList = computed(() => {
+  return [...editorStore.imageList].reverse();
+});
+
 onMounted(async () => {
   await materialsStore.getMaterials();
 
@@ -103,7 +111,15 @@ watch(currentStep, (newIndex) => {
       <section class="view scroll-bar-hidden">
         <div class="content">
           <NSearchButton v-model:input="input" @change="handleInputChange" />
-          <p>請選擇分類</p>
+          <p>最近使用過的素材</p>
+          <div class="recently-used">
+            <div
+                v-for="item in recentlyUseImageList"
+                class="image-item">
+              <NImage :src="item.image.src" fit="contain"/>
+            </div>
+          </div>
+          <p>素材類別</p>
           <CategoriesGroupView @change="handleCategoriesGroupChange" />
         </div>
       </section>
@@ -195,6 +211,33 @@ watch(currentStep, (newIndex) => {
       border-color: theme.$border-color-base;
       background-color: theme.$border-color-base;
       color: theme.$button-text-color;
+    }
+  }
+  .recently-used {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    .image-item {
+      border-radius: 4px;
+      height: 80px;
+      width: 80px;
+      background-color: theme.$navbar-btn-bg-color;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      cursor: pointer;
+      box-sizing: border-box;
+      border: 2px solid transparent;
+      overflow: hidden;
+      flex-shrink: 0;
+      &:active {
+        background-color: rgba(80, 80, 80, 0.6);
+      }
+      &:hover {
+        background-color: rgba(80, 80, 80, 0.6);
+      }
     }
   }
 }

@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { ref } from "vue";
+import {computed, ref} from "vue";
 import { type AIGenRequest, type ImageGenerateResult, apiImageGenerate } from "@/api/generate.ts";
 // 產生的AI圖片action
 export const useAIGenStore = defineStore("aiGenStore", () => {
@@ -17,6 +17,8 @@ export const useAIGenStore = defineStore("aiGenStore", () => {
   // 記錄錯誤訊息
   const error = ref<string | null>(null);
 
+  const inProcessing = computed(() => isLoading.value);
+
   // 從 API 獲取模板的 action
   const fetchGenerate = async (
     source: {
@@ -32,6 +34,9 @@ export const useAIGenStore = defineStore("aiGenStore", () => {
       choice: number;
     }
   ) => {
+
+    if (isLoading.value) return Promise.reject("正在處理中");
+
     isLoading.value = true;
     error.value = null;
     try {
@@ -93,7 +98,7 @@ export const useAIGenStore = defineStore("aiGenStore", () => {
 
   return {
     remainingTries,
-    isLoading,
+    inProcessing,
     error,
     fetchGenerate,
     hasOriginalImage,

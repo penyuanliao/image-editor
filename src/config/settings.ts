@@ -180,7 +180,7 @@ export const advancedDefaults: IAdvancedSettings = {
   popupMenu: true,
   imageCropEditEnabled: false,
   alignEnabled: false,
-  zoomEnabled: false,
+  zoomEnabled: true,
   undoRedoEnabled: false,
   eachSideHandlesEnabled: true,
   pivotPointEnabled: true,

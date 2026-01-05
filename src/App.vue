@@ -17,6 +17,7 @@ import NavigationController from "@/components/Panels/MaterialPanel/NavigationCo
 import AuthenticationError from "@/components/Views/AuthenticationError.vue";
 import NLoading from "@/components/Views/NLoading.vue";
 import { useAuthStore } from "@/store/useAuthStore.ts";
+import { getUrlParam } from "@/Utilities/urlHelper.ts";
 
 const editorStore = useEditorStore();
 
@@ -26,6 +27,10 @@ const authStore = useAuthStore();
 const editor = ref<InstanceType<typeof EditorView> | null>(null);
 // 目前Panel選擇狀態
 const selected = ref<string>();
+// 左邊選單編號
+const boxBarSelectedIndex = ref<number>(0);
+// 開啟上傳
+const showUpload = ref<boolean>(false);
 // 系統版本
 const version = __APP_VERSION__;
 // 載入狀態
@@ -41,8 +46,22 @@ const handleAddElement = (element: any) => {
     editor.value?.addElement(element);
   }
 };
+const handleUploadElement = (element: any) => {
+  if (element) {
+    editor.value?.addElement(element);
+  }
+};
+const handleUploadElementCompleted = () => {
+  showUpload.value = false;
+}
 
 const boxItemClickHandle = (value: string) => {
+
+  if (value === BoxBarTypes.upload) {
+    showUpload.value = true;
+    return;
+  }
+
   if (selected.value === value) selected.value = "";
   else selected.value = value;
 };
@@ -50,6 +69,22 @@ const boxItemClickHandle = (value: string) => {
 // Handler for when an element is selected on the canvas
 const handleElementSelected = (element: ICanvasElement | null) => {
   selectedElementForPanel.value = element;
+  if (!element) {
+    selected.value = BoxBarTypes.image;
+    return;
+  }
+  switch (element.type) {
+    case ElementTypesEnum.Text:
+      selected.value = BoxBarTypes.textEdit;
+      boxBarSelectedIndex.value = -1;
+      break;
+    case ElementTypesEnum.Image:
+      selected.value = BoxBarTypes.imageEdit;
+      boxBarSelectedIndex.value = -1;
+    break;
+    default:
+      selected.value = BoxBarTypes.image;
+  }
 };
 
 // Handler for when the text panel wants to update the selected element
@@ -73,7 +108,6 @@ const handleFilesDropped = async (files: FileList) => {
       const file = files[i];
       if (file) {
         const info = await processFile(file);
-        editorStore.addImage(info);
         const newImageElement: ICanvasElement = CreateImageElement(info);
         handleAddElement(newImageElement);
       }
@@ -111,11 +145,32 @@ const contentStyle = computed(() => {
 
 onMounted(async () => {
   window.addEventListener("resize", updatePanelHeight);
-  editorStore.defaultPropsPanel();
+  // 檢查登入狀態
   await authStore.checkLogin();
   // console.log('is-login:', authStore.isLogin());
-  // state.value = (!authStore.isLogin()) ? 'denied' : 'completed';
-  state.value = "completed";
+  state.value = (!authStore.isLogin()) ? 'denied' : 'completed';
+  // 設定畫布寬高大小
+  const width = Number.parseInt(getUrlParam("width"));
+  const height = Number.parseInt(getUrlParam("height"));
+  if (width > 0 && height > 0) editorStore.setCanvasSize(width, height);
+  editorStore.defaultPropsPanel();
+
+  window.addEventListener("message", (event) => {
+    console.log(`Received message from origin: ${event.origin} data: ${event.data}`);
+    // 將圖片Link上傳至服務紀錄
+    // 完成後關閉頁面
+    // window.close();
+  })
+
+  // 如果此視窗是由 window.open 開啟的，則 window.opener 會存在
+  if (window.opener) {
+
+    // window.opener.postMessage('Vue App Ready', "*");
+  } else if (import.meta.env.MODE !== "dev") {
+    // 登入失敗
+    state.value = "denied";
+  }
+
 });
 
 onUnmounted(() => {
@@ -143,7 +198,7 @@ watch(selected, async () => {
       <NNavbar />
       <div class="content" :style="contentStyle">
         <div class="sidebar" :style="styleSidebar">
-          <BoxBar @boxItemClick="boxItemClickHandle" />
+          <BoxBar v-model:selected="boxBarSelectedIndex" @boxItemClick="boxItemClickHandle" />
           <div class="sidebar-content">
             <TextPanel
               v-if="selected === BoxBarTypes.text"
@@ -152,10 +207,22 @@ watch(selected, async () => {
               @update-element="handleUpdateElement"
             />
             <NavigationController
-              v-show="selected === BoxBarTypes.sticker"
+              v-show="selected === BoxBarTypes.image"
               @add-element="handleAddElement"
             />
-            <UploadPanel v-if="selected === BoxBarTypes.upload" @add-element="handleAddElement" />
+            <UploadPanel v-if="showUpload" @add-element="handleUploadElement" @completed="handleUploadElementCompleted" />
+
+            <TextPanel
+                v-if="selected === BoxBarTypes.textEdit"
+                :controlEnabled="true"
+                @add-element="handleAddElement"
+                @update-element="handleUpdateElement"
+            />
+            <ImagePropsPanel
+                v-if="selected === BoxBarTypes.imageEdit"
+                @align-element="handleAlignElement"
+                @refresh="handleRefresh"
+            />
           </div>
         </div>
         <div class="editor-area" @pointerup.self="handlePointerUp">
@@ -167,17 +234,6 @@ watch(selected, async () => {
           <StagePropsPanel
             v-if="selectedElement?.type === ElementTypesEnum.Stage"
             @update-element="handleUpdateElement"
-          />
-          <TextPanel
-            v-if="selectedElement?.type === ElementTypesEnum.Text"
-            :controlEnabled="true"
-            @add-element="handleAddElement"
-            @update-element="handleUpdateElement"
-          />
-          <ImagePropsPanel
-            v-if="selectedElement?.type === ElementTypesEnum.Image"
-            @align-element="handleAlignElement"
-            @refresh="handleRefresh"
           />
         </div>
       </div>
@@ -273,6 +329,7 @@ watch(selected, async () => {
   border-top-left-radius: 20px;
   border-top-right-radius: 20px;
   box-shadow: -1px 3px 3px 0 #d9d9d9;
+  display: none;
 }
 
 .app-version {

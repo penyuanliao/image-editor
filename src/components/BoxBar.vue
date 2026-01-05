@@ -1,10 +1,23 @@
 <script setup lang="ts">
 import Symbols from "./Basic/Symbols.vue";
-import { onMounted, ref } from "vue";
+import { computed, onMounted } from "vue";
 import { BoxBarTypes } from "../types.ts";
 import { appearanceDefaults } from "@/config/settings.ts";
 
-const selected = ref<number>(0);
+const props = defineProps({
+  selected: {
+    type: Number,
+    default: 0
+  }
+});
+const selected = computed({
+  get() {
+    return props.selected;
+  },
+  set(val) {
+    emit("update:selected", val);
+  }
+});
 const buttonGroup: { icon: string; text: string; key: string }[] = [
   {
     icon: "sticker",
@@ -22,11 +35,10 @@ const buttonGroup: { icon: string; text: string; key: string }[] = [
     text: "上傳"
   }
 ];
-
-const emit = defineEmits(["box-item-click"]);
+const emit = defineEmits(["box-item-click", "update:selected"]);
 
 const handleClick = (index: number) => {
-  selected.value = index;
+  if (index !== 2) selected.value = index;
   const key: string = buttonGroup[index]?.key || "";
   emit("box-item-click", BoxBarTypes[key] || "");
 };

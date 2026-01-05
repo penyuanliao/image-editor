@@ -18,6 +18,7 @@ import NBaseScrollbar from "@/components/Basic/NBaseScrollbar.vue";
 import NContextMenu from "@/components/EditorArea/NContextMenu.vue";
 import NTextEditable from "@/components/Basic/NTextEditable.vue";
 import NTextArea from "@/components/Basic/NTextArea.vue";
+// import {uploadImage} from "@/api/uploader.ts";
 
 const editorStore = useEditorStore();
 const emit = defineEmits(["element-selected"]);
@@ -149,6 +150,9 @@ onMounted(async () => {
       updateTextareaSize(); // 初始設定大小
     });
   };
+  editor.value.on("selectionChanged", (el) => {
+    emit("element-selected", el);
+  })
   window.addEventListener("click", closeContextMenu);
   window.addEventListener("resize", updateCanvasScale);
 });
@@ -161,12 +165,12 @@ onUnmounted(() => {
 // --- Event Emitters and Watchers ---
 // 選擇物件刷新畫面
 watch(
-  () => editorStore.selectedElements,
+  () => editorStore.selectedElement,
   (newSelection) => {
     // Deep copy to avoid downstream mutations affecting the original object
     emit(
       "element-selected",
-      newSelection.length > 0 ? JSON.parse(JSON.stringify(newSelection)) : []
+      newSelection
     );
     editor.value.render();
     // popOverMenu.visible = (newSelection.length === 1);
@@ -284,8 +288,12 @@ const preview = async (blob: boolean = false) => {
 // 儲存裁切後的圖片
 const saveImage = async () => {
   const href = await preview() as string;
-  const b = await preview(true);
-  console.log(b);
+  // const b = await preview(true);
+  // if (b instanceof Blob) {
+  //   const data = await uploadImage("16981343891091.png", b, { hallId: "6", width: '310' , height: '196' });
+  //   console.log(data);
+  // }
+
   // editorStore.saveConfirm = true;
   if (href) {
     editorStore.setPreviewImage(href);

@@ -129,12 +129,12 @@ export interface IUploadedImage {
 export const BoxBarTypes: {
   [key: string]: string;
 } = {
-  star: "ai",
   image: "image",
   text: "text",
-  sticker: "sticker",
   upload: "upload",
   layers: "layers",
+  imageEdit: "imageEdit",
+  textEdit: "textEdit",
   none: ""
 };
 

@@ -28,6 +28,7 @@ import { processUrl } from "./FileProcessor.ts";
 import { advancedDefaults, generalDefaults } from "@/config/settings.ts";
 import { nanoid } from "nanoid";
 import { nextTick } from "vue";
+import mitt, { type Emitter } from "mitt";
 
 interface ICanvasViewport {
   width: number;
@@ -61,6 +62,11 @@ interface IContextMenuEvent {
   visible?: boolean;
 }
 
+// 定義事件類型 (可根據需求擴充)
+type CanvasEditorEvents = {
+  [key: string]: any;
+};
+
 // 這個類別將取代大部分 useImageEditor.ts 和 ImageUploader.vue 中的邏輯
 export class CanvasEditor {
   private handlePaste: ((event: ClipboardEvent) => Promise<void>) | null = null;
@@ -70,6 +76,8 @@ export class CanvasEditor {
   protected canvas?: HTMLCanvasElement;
   protected ctx?: CanvasRenderingContext2D;
   protected store: EditorStore; // 儲存 Pinia store 的引用
+  // 事件發送器
+  private emitter: Emitter<CanvasEditorEvents> = mitt<CanvasEditorEvents>();
   // 編輯時的元件
   public editingElement?: ICanvasElement | null = null;
   // 滑鼠滑入元件
@@ -158,6 +166,19 @@ export class CanvasEditor {
       x: this.cropBox.x,
       y: this.cropBox.y
     };
+  }
+
+  // --- Event Emitter Methods (mitt) ---
+  public on(type: string, handler: (event: any) => void) {
+    this.emitter.on(type, handler);
+  }
+
+  public off(type: string, handler: (event: any) => void) {
+    this.emitter.off(type, handler);
+  }
+
+  public emit(type: string, event?: any) {
+    this.emitter.emit(type, event);
   }
 
   constructor(store: EditorStore) {
@@ -311,6 +332,17 @@ export class CanvasEditor {
     const el = await createCanvasElement(element, this.canvas, this.artboardSize);
     if (el) {
       this.store.addElement(el); // 使用 action 新增
+      if (el.type === ElementTypesEnum.Image) {
+        const image = (el.config as IImageConfig).img;
+        if (image) {
+          this.store.addImage({
+            imageUrl: image.src,
+            image: image,
+            name: "new image",
+          });
+        }
+
+      }
       this.render();
       return true;
     }
@@ -714,6 +746,8 @@ export class CanvasEditor {
         // 如果點擊的物件未被選取，則只選取它
         if (!this.store.selectedElements.some((el) => el.id === clickedElement.id)) {
           this.store.setSelectedElements([clickedElement]);
+        } else {
+          this.emit("selectionChanged", clickedElement); // 點擊到物件回送事件UI需要顯示
         }
         if (!clickedElement.config.draggable) return;
         // 開始拖曳元素
@@ -1522,6 +1556,7 @@ export class CanvasEditor {
     this.canvas?.removeEventListener("contextmenu", this.handleContextMenu.bind(this));
     this.wheelElement?.removeEventListener("wheel", this.handleWheel.bind(this));
     this.disableCopyAndPasteSupport();
+    this.emitter.all.clear(); // 清除所有事件監聽
     this.canvas = undefined;
     this.ctx = undefined;
   }

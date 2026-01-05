@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 import { apiLogin, type LoginResponseResult, type UserInfo } from "@/api/login.ts";
+import { getUrlParam } from "@/Utilities/urlHelper.ts";
 
 export interface ResponseResult {
   status: boolean;
@@ -25,14 +26,12 @@ export const useAuthStore = defineStore("authStore", () => {
     isLoading.value = true;
     error.value = null;
     try {
-      const queryString = window.location.search;
-      const urlParams = new URLSearchParams(queryString);
       // 使用者名稱
-      const user: string = urlParams.get("user") || "";
+      const user: string = getUrlParam("user");
       // 使用者sid
-      const sid: string = urlParams.get("sid") || "";
+      const sid: string = getUrlParam("sid");
       // 使用者驗證碼
-      const code: string = urlParams.get("code") || "";
+      const code: string = getUrlParam("code");
 
       const result: LoginResponseResult = await apiLogin({ user, sid, code });
       if (result.status) {

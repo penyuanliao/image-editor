@@ -145,6 +145,10 @@ export const useEditorStore = defineStore("editor", () => {
 
   // 取得圖片
   function addImage(image: IUploadedImage) {
+    // 只紀錄最近使用的20筆
+    if (imageList.value.length + 1 >= 20) {
+      imageList.value.shift();
+    }
     return imageList.value.push(image) - 1;
   }
   // 設定原始圖像
@@ -455,6 +459,10 @@ export const useEditorStore = defineStore("editor", () => {
   function setPreviewImage(value: string) {
     previewImage.value = value;
   }
+  function setCanvasSize(width: number, height: number) {
+    stage.config.width = width;
+    stage.config.height = height;
+  }
 
   return {
     // State
@@ -509,6 +517,7 @@ export const useEditorStore = defineStore("editor", () => {
     updateViewTranslate,
     setCanvas,
     setViewport,
-    setPreviewImage
+    setPreviewImage,
+    setCanvasSize
   };
 });
