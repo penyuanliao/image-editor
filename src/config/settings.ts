@@ -11,13 +11,16 @@ export interface IGeneralSettings {
   // 支援的圖片格式
   allowedExtensions: string[];
   // 還原步驟最大值
-  undoRedoStackMax: number;
+  maxUndoOperations: number;
   // 縮放範圍
   zoomLimits: {
     max: number;
     min: number;
   };
+  // 網底
   gridBackground: "blackAndWhite" | "white" | "none";
+  // 最近使用過素材最大值
+  maxRecentFiles: number;
 }
 
 export interface IAdvancedSettings {
@@ -50,12 +53,13 @@ export const generalDefaults: IGeneralSettings = {
     maxHeight: 600
   },
   allowedExtensions: ["image/png", "image/jpeg", "image/webp"],
-  undoRedoStackMax: 20,
+  maxUndoOperations: 20,
   zoomLimits: {
     max: 5,
     min: 0.2
   },
-  gridBackground: "none"
+  gridBackground: "none",
+  maxRecentFiles: 20,
 };
 
 export const appearanceDefaults = {
