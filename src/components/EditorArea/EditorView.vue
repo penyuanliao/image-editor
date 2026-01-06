@@ -18,6 +18,7 @@ import NBaseScrollbar from "@/components/Basic/NBaseScrollbar.vue";
 import NContextMenu from "@/components/EditorArea/NContextMenu.vue";
 import NTextEditable from "@/components/Basic/NTextEditable.vue";
 import NTextArea from "@/components/Basic/NTextArea.vue";
+import NZoomControl from "@/components/Basic/NZoomControl.vue";
 // import {uploadImage} from "@/api/uploader.ts";
 
 const editorStore = useEditorStore();
@@ -227,28 +228,12 @@ let minWidth = ref(0);
 const updateTextareaSize = () => {
   const textarea = textInput.value as any;
   if (!textarea || !editor.value.editingElement) return;
-
-  // 為了準確計算，先重設高度
-  textInputStyle.height = "auto";
-  // 寬度設為 auto 以便計算 scrollWidth，但要確保它不小於初始寬度
-  textInputStyle.width = `${minWidth.value}px`;
-  const config = selectedElement.value?.config as ITextConfig;
-  const scale = editorStore.viewTranslate.scale;
-
-  // 根據內容捲動寬高來設定新的寬高
-  // const scrollHeight = textarea.scrollHeight;
-  const scrollWidth = textarea.scrollWidth;
-  const w = Math.max(scrollWidth, minWidth.value);
-  const countLines: number = config.content.split("\n").length;
-  textInputStyle.height = `${countLines * (config._lineSpacing || 0) * scale}px`;
-  textInputStyle.width = `${w}px`;
-  if (countLines > (config._countLines || 1)) {
-    const top: number = Number.parseFloat(textInputStyle.top.replace("px", ""));
-    textInputStyle.top = `${top - (config._lineSpacing || 0) / 2}px`;
-  } else if (countLines < (config._countLines || 1)) {
-    const top: number = Number.parseFloat(textInputStyle.top.replace("px", ""));
-    textInputStyle.top = `${top + (config._lineSpacing || 0) / 2}px`;
-  }
+  editor.value.render(); // 刷新Canvas
+  const { x, y, height, width } = editor.value.getEditingElementRect; // 重新取得位置大小
+  textInputStyle.top = `${ y - 3 }px`;
+  textInputStyle.left = `${ x }px`;
+  textInputStyle.height = `${ height }px`;
+  textInputStyle.width = `${ width }px`;
 };
 
 // --- 文字編輯方法 ---
@@ -611,6 +596,9 @@ defineExpose({
           <el-icon size="20"><Symbols name="download" /></el-icon>
           <span>储存图片</span>
         </el-button>
+        <div class="zoom-controls">
+          <NZoomControl v-if="advancedDefaults.zoomEnabled" />
+        </div>
         <NCropControls
           :crop-box="editor.cropBox"
           :viewport="editor.viewport"
@@ -754,8 +742,9 @@ defineExpose({
   gap: 2rem;
   flex-wrap: wrap;
   z-index: 10;
-  bottom: 50px;
+  bottom: 10px;
   cursor: default;
+  width: calc(100% - 4px);
 }
 
 .save-button {
@@ -774,6 +763,14 @@ defineExpose({
 
 .save-button:hover {
   background-color: #95d475;
+}
+.zoom-controls {
+  position: absolute;
+  display: flex;
+  top: -10px;
+  right: 8px;
+  height: 100%;
+  justify-content: right;
 }
 
 .context-menu {

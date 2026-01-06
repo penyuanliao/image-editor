@@ -111,13 +111,15 @@ export const drawText = (ctx: CanvasRenderingContext2D, element: ICanvasElement)
   const scaleY: number = typeof config.scaleY === "number" ? config.scaleY : 1;
   ctx.scale(scaleX, scaleY);
   if (typeof config.opacity === "number") ctx.globalAlpha = config.opacity;
-  if (config.segments) return drawMultiText(ctx, element);
 
   // 繪圖時候在塞入寬高
   element.config.height = totalTextHeight * 2;
   element.config.width = textWidth * 2;
   config._countLines = lines.length;
   config._lineSpacing = fontSize * lineHeight;
+
+  if (config.segments) return drawMultiText(ctx, element);
+
   // console.log(`
   // lines: ${config._countLines}
   // lineSpacing: ${config._lineSpacing}
@@ -209,9 +211,7 @@ export const drawMultiText = (ctx: CanvasRenderingContext2D, element: ICanvasEle
 
   // START: Multi-color and line-by-line processing logic
   // 1. Process content into lines of segments
-
   const contentSegments: ITextSegment[] | null = config.segments || null;
-
   if (contentSegments) {
     const lines: { segments: { text: string; color: string }[]; width: number }[] = [];
     let currentLine: { segments: { text: string; color: string }[]; width: number } = {

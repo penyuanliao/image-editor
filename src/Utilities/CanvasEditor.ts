@@ -168,6 +168,26 @@ export class CanvasEditor {
     };
   }
 
+  public get getEditingElementRect() {
+    if (!this.editingElement || !this.ctx || !this.canvas) return { x: 0, y: 0, width: 0, height: 0 };
+
+    const box = getElementBoundingBox(this.ctx, this.editingElement);
+    if (!box) return { x: 0, y: 0, width: 0, height: 0 };
+
+    const panX = this.viewOffsetX;
+    const panY = this.viewOffsetY;
+    const cx = this.canvas.width / 2;
+    const cy = this.canvas.height / 2;
+
+    const x = (box.x - cx) * this.scale + cx + panX;
+    const y = (box.y - cy) * this.scale + cy - panY;
+
+    const width = box.width * this.scale;
+    const height = box.height * this.scale;
+
+    return { x, y, width, height };
+  }
+
   // --- Event Emitter Methods (mitt) ---
   public on(type: string, handler: (event: any) => void) {
     this.emitter.on(type, handler);
@@ -412,13 +432,13 @@ export class CanvasEditor {
       // 如果元素正在被編輯，則不在 canvas 上繪製它，由 input 框取代
       // 如果圖片正在剪裁，我們依然要繪製它，但之後會蓋上遮罩
       // 增加條件：如果正在縮放或旋轉，則強制繪製，忽略編輯狀態
-      if (
-        this.editingElement?.id === element.id &&
-        !isCroppingThisElement &&
-        !this.isResizing &&
-        !this.isRotating
-      )
-        return;
+      // if (
+      //   this.editingElement?.id === element.id &&
+      //   !isCroppingThisElement &&
+      //   !this.isResizing &&
+      //   !this.isRotating
+      // )
+      //   return;
       if (this.hoveredElement?.id === element.id) existHoveredElement = true;
       if (element.type === ElementTypesEnum.Text) {
         drawText(ctx, element);

@@ -25,8 +25,8 @@ export const createCanvasElement = (
         config: {
           content: config.content || "新文字",
           segments: config.segments,
-          x: canvas.width / 2, // 預設放在畫布中央
-          y: canvas.height / 2,
+          x: config.x ? config.x : canvas.width / 2, // 預設放在畫布中央
+          y: config.y ? config.y : canvas.height / 2,
           fontSize: config.fontSize || 32,
           fontFamily: config.fontFamily || "Arial",
           color: config.color || "black",

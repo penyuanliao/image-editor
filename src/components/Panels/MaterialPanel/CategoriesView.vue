@@ -32,7 +32,10 @@ const handleChange = (group: IGalleryItem) => {
         </el-col>
         <el-col :span="8">
           <div class="more" @click="handleMoreButton(rowIndex, row.category)">
-            更多<el-icon><ArrowRight /></el-icon>
+            更多
+            <el-icon>
+              <ArrowRight/>
+            </el-icon>
           </div>
         </el-col>
       </el-row>
@@ -40,7 +43,7 @@ const handleChange = (group: IGalleryItem) => {
       <el-row class="row" :gutter="28">
         <el-col v-for="item in row.items.slice(0, 3)" :span="8">
           <div class="image-item" @click="handleChange(item)">
-            <NImage :src="item.src" fit="contain" />
+            <NImage :src="item.src" fit="contain"/>
           </div>
         </el-col>
       </el-row>
@@ -57,19 +60,24 @@ const handleChange = (group: IGalleryItem) => {
   width: 100%;
   height: 100%;
 }
+
 .el-row {
   margin-bottom: 20px;
 }
+
 .el-row:last-child {
   margin-bottom: 0;
 }
+
 .el-col {
   border-radius: 4px;
 }
+
 .row {
   margin-top: 0;
   margin-bottom: 10px;
 }
+
 .image-item {
   border-radius: 4px;
   height: 80px;
@@ -84,26 +92,32 @@ const handleChange = (group: IGalleryItem) => {
   box-sizing: border-box;
   border: 2px solid transparent;
   overflow: hidden;
+
   &:active {
     background-color: rgba(80, 80, 80, 0.6);
   }
+
   &:hover {
     background-color: rgba(80, 80, 80, 0.6);
   }
 }
+
 .title {
   border-radius: 4px;
   min-height: 24px;
 }
+
 .label {
   height: 24px;
   position: relative;
   display: flex;
+
   .el-col,
   .el-row {
     margin-bottom: 0;
   }
 }
+
 .more {
   display: flex;
   justify-content: flex-end;
@@ -113,6 +127,7 @@ const handleChange = (group: IGalleryItem) => {
   text-align: center;
   align-items: center;
   height: 24px;
+
   &:hover {
     color: theme.$button-text-color;
   }

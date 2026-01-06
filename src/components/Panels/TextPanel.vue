@@ -3,10 +3,9 @@ import { computed, onMounted, reactive, ref, watch } from "vue";
 import { useEditorStore } from "@/store/editorStore.ts";
 import { Delete, Lock, Unlock } from "@element-plus/icons-vue";
 import { ColorPicker } from "colorpickers";
-import { ElementTypesEnum, type ICanvasElement, type ITextConfig } from "@/types.ts";
+import {ElementTypesEnum, type ICanvasElement, type ITextConfig, type ITextSegment} from "@/types.ts";
 import NPanel from "../Basic/NPanel.vue";
 import { availableFonts } from "@/config/fonts.ts";
-import NPanelButton from "@/components/Basic/NPanelButton.vue";
 import { advancedDefaults } from "@/config/settings.ts";
 
 // import { ColorInputWithoutInstance } from "tinycolor2";
@@ -24,7 +23,7 @@ const editorStore = useEditorStore();
 // --- Default State Factory ---
 const getDefaultTextProps = () => ({
   content: "新增内文文本",
-  segments: advancedDefaults.textMultiColorEnabled ? [{ text: "新增内文文本", color: "#000000" }] : null,
+  segments: advancedDefaults.textMultiColorEnabled ? [{ text: "新增内文文本", color: "#000000" } as ITextSegment] : undefined,
   name: "文字",
   color: "#000000",
   isBold: false,
@@ -99,6 +98,7 @@ const updatePanelFromElement = (element: ICanvasElement | null) => {
     const config = element.config as ITextConfig;
     // Update text properties
     textProps.content = config.content;
+    textProps.segments = config.segments;
     textProps.color = config.color;
     textProps.isBold = config.fontWeight === "bold";
     textProps.isItalic = config.fontItalic || false;
@@ -207,6 +207,14 @@ watch(
 // --- Methods ---
 
 const addText = () => {
+  let x, y;
+  if (editorStore.selectedElement && editorStore.selectedElement.type === ElementTypesEnum.Text) {
+    x = editorStore.selectedElement.config.x + 10;
+    y = editorStore.selectedElement.config.y + 10;
+  } else {
+    x = 0;
+    y = 0;
+  }
   editorStore.selectedElements = [];
 
   const element: any = {
@@ -218,6 +226,9 @@ const addText = () => {
       fontItalic: textProps.isItalic
     }
   };
+  // 偏移
+  element.config.x = x;
+  element.config.y = y;
 
   emit("addElement", element);
 };
@@ -389,10 +400,6 @@ const handleFontSelectChange = (value: string) => {
   fontFamily.value = value;
 };
 
-onMounted(() => {
-  updatePanelFromElement(selectedElement.value as ICanvasElement);
-});
-
 const handleLockAndUnlock = () => {
   if (editorStore.selectedElement?.config) {
     editorStore.selectedElement.config.draggable = !editorStore.selectedElement.config.draggable;
@@ -408,6 +415,14 @@ const handleSaveHistory = () => {
   console.log("handleSaveHistory");
   editorStore.saveHistory();
 };
+
+onMounted(() => {
+  if (props.controlEnabled) {
+    updatePanelFromElement(selectedElement.value as ICanvasElement);
+  } else {
+    addText();
+  }
+});
 </script>
 
 <template>
@@ -417,7 +432,6 @@ const handleSaveHistory = () => {
     :padding="`${controlEnabled ? `30px 16px 0 16px` : `30px 35px 0 32px`}`"
   >
     <div class="categories" v-if="!props.controlEnabled">
-      <NPanelButton @click="addText">+ 添加文字</NPanelButton>
     </div>
     <div class="categories" v-if="props.controlEnabled">
       <div class="ctrl">

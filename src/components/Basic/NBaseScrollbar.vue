@@ -305,7 +305,7 @@ defineExpose({
   background: transparent;
   border-radius: 4px;
   cursor: pointer;
-  margin-top: 8px;
+  margin-top: 0;
 }
 
 .thumb-x {
@@ -327,7 +327,7 @@ defineExpose({
   background: transparent;
   border-radius: 4px;
   cursor: pointer;
-  margin-left: 8px;
+  margin-left: 0;
 }
 
 .thumb-y {

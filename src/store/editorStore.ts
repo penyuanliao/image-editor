@@ -146,7 +146,7 @@ export const useEditorStore = defineStore("editor", () => {
   // 取得圖片
   function addImage(image: IUploadedImage) {
     // 只紀錄最近使用的20筆
-    if (imageList.value.length + 1 >= 20) {
+    if (imageList.value.length + 1 >= generalDefaults.maxRecentFiles) {
       imageList.value.shift();
     }
     return imageList.value.push(image) - 1;
@@ -357,7 +357,7 @@ export const useEditorStore = defineStore("editor", () => {
       })
     );
     // 限制還原步驟
-    if (newHistory.length > generalDefaults.undoRedoStackMax) {
+    if (newHistory.length > generalDefaults.maxUndoOperations) {
       const diff = newHistory.shift();
       const last = newHistory[0];
       if (diff) {
