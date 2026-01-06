@@ -4,6 +4,7 @@ import UndoRedo from "@/components/EditorArea/UndoRedo.vue";
 import { advancedDefaults } from "@/config/settings.ts";
 import NZoomControl from "@/components/Basic/NZoomControl.vue";
 import Symbols from "@/components/Basic/Symbols.vue";
+import NMarqueeText from "@/components/Basic/NMarqueeText.vue";
 
 const props = defineProps({
   progressValue: {
@@ -34,6 +35,7 @@ const emit = defineEmits(["update:progressValue"]);
       </div>
       <UndoRedo v-if="advancedDefaults.undoRedoEnabled" />
       <NZoomControl v-if="advancedDefaults.zoomEnabled" />
+      <NMarqueeText style="color: red; width: 500px;" :duration="20">這是跑馬燈文字</NMarqueeText>
     </div>
   </div>
 </template>
