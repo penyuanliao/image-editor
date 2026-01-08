@@ -2,18 +2,27 @@
 import { computed, ref, watch } from "vue";
 import { useAIGenStore } from "@/store/useAIGenStore.ts";
 import { useEditorStore } from "@/store/editorStore.ts";
-import type { IImageConfig } from "@/types.ts";
+import { type IImageConfig, ImageGenModeEnum } from "@/types.ts";
 import { processBase64, processUrlToBase64 } from "@/Utilities/FileProcessor.ts";
 import { appearanceDefaults } from "@/config/settings.ts";
 import { AlertMessage } from "@/Utilities/AlertMessage.ts";
 import NPanelButton from "@/components/Basic/NPanelButton.vue";
 import Symbols from "@/components/Basic/Symbols.vue";
+import { ColorPicker } from "colorpickers";
 // import {calculateConstrainedSize} from "@/Utilities/useImageEditor.ts";
 
 const aiGenStore = useAIGenStore();
+
 const editorStore = useEditorStore();
 
 const emit = defineEmits(["refresh"]);
+// 生成型態
+const imageGenMode = computed(() => {
+  const config = editorStore.selectedElement?.config as IImageConfig;
+  console.log("-imageGenMode: ", config.imageGenMode);
+
+  return config.imageGenMode || ImageGenModeEnum.NONE;
+});
 
 const originalImage = ref<{
   image?: HTMLImageElement;
@@ -152,7 +161,7 @@ const onSubmit = async () => {
 </script>
 
 <template>
-  <div class="images-gallery-container">
+  <div v-if="imageGenMode != ImageGenModeEnum.NONE" class="images-gallery-container">
     <div class="heading">
       <h2>AI生成</h2>
       <div class="description">
@@ -160,58 +169,81 @@ const onSubmit = async () => {
         <span class="remaining-tries">{{ aiGenStore.remainingTries }}</span>
       </div>
     </div>
-    <div class="ai-select-stylize">
-      <el-tabs v-model="activeName" @tab-change="tabsChangeHandle">
-        <el-tab-pane label="物件转变" name="mod1">
-          <div
-            class="stylize"
-            :style="{ 'pointer-events': aiGenStore.isLoading ? 'none' : 'auto' }"
-          >
+    <div class="content">
+      <div v-if="imageGenMode === ImageGenModeEnum.STYLE || imageGenMode === ImageGenModeEnum.CUSTOM" class="ai-select-stylize">
+        <el-tabs v-model="activeName" @tab-change="tabsChangeHandle">
+          <el-tab-pane label="物件转变" name="mod1">
             <div
-              v-for="style in styles"
-              :key="style.key"
-              class="item"
-              @click="selectStyle(style.value)"
+              class="stylize"
+              :style="{ 'pointer-events': aiGenStore.isLoading ? 'none' : 'auto' }"
             >
-              <div class="image" :class="{ selected: selectedStyle === style.value }">
-                <img :src="style.url" alt="" />
+              <div
+                v-for="style in styles"
+                :key="style.key"
+                class="item"
+                @click="selectStyle(style.value)"
+              >
+                <div class="image" :class="{ selected: selectedStyle === style.value }">
+                  <img :src="style.url" alt="" />
+                </div>
+                <span>{{ style.name }}</span>
               </div>
-              <span>{{ style.name }}</span>
             </div>
-          </div>
-        </el-tab-pane>
-        <el-tab-pane label="风格调整" name="mod2">
-          <div class="style-adjustment">
-            <span>即將推出</span>
-          </div>
-        </el-tab-pane>
-        <el-tab-pane label="自订生成" name="mod3">
-          <div class="prompt-content">
-            <textarea
-              class="prompt-textarea"
-              type="textarea"
-              :rows="14"
-              placeholder="请输入您想产生的图片主题或描述(例如: 金色龙、轮盘、3D吉祥物...)"
-              v-model="prompt"
-            />
-          </div>
-        </el-tab-pane>
-      </el-tabs>
+          </el-tab-pane>
+          <el-tab-pane label="风格调整" name="mod2">
+            <div class="style-adjustment">
+              <span>即將推出</span>
+            </div>
+          </el-tab-pane>
+          <el-tab-pane label="自订生成" name="mod3">
+            <div class="prompt-content">
+              <textarea
+                class="prompt-textarea"
+                type="textarea"
+                :rows="14"
+                placeholder="请输入您想产生的图片主题或描述(例如: 金色龙、轮盘、3D吉祥物...)"
+                v-model="prompt"
+              />
+            </div>
+          </el-tab-pane>
+        </el-tabs>
+      </div>
+      <div v-if="imageGenMode === ImageGenModeEnum.COLOR" class="ai-select-color">
+        <ColorPicker
+          v-bind="{ isWidget: true, disableAlpha: true, disableHistory: true }"
+          style="box-shadow: none"
+        />
+      </div>
+      <div class="footer">
+        <NPanelButton
+          :loading="aiGenStore.isLoading"
+          :disabled="selectedStyle === -1 || (selectedStyle === 0 && prompt.trim().length === 0)"
+          @click="onSubmit"
+        >
+          <template #default>
+            {{ selectedStyle === -2 ? "還原" : "生成" }}
+          </template>
+          <template #icon>
+            <el-icon size="22" :style="{ 'padding-right': '10px' }">
+              <Symbols name="magic" />
+            </el-icon>
+          </template>
+        </NPanelButton>
+        <NPanelButton
+          :loading="aiGenStore.isLoading"
+          :disabled="selectedStyle === -1 || (selectedStyle === 0 && prompt.trim().length === 0)"
+          @click="onSubmit"
+        >
+          <template #default> 移除影像背景 </template>
+          <template #icon>
+            <el-icon size="22" :style="{ 'padding-right': '10px' }">
+              <Symbols name="magic" />
+            </el-icon>
+          </template>
+        </NPanelButton>
+      </div>
+      <div class="mask" v-if="aiGenStore.isLoading">正在執行BB AI素材生成...</div>
     </div>
-    <NPanelButton
-      :loading="aiGenStore.isLoading"
-      :disabled="selectedStyle === -1 || (selectedStyle === 0 && prompt.trim().length === 0)"
-      @click="onSubmit"
-    >
-      <template #default>
-        {{ selectedStyle === -2 ? "還原" : "生成" }}
-      </template>
-      <template #icon>
-        <el-icon size="22" :style="{ 'padding-right': '10px' }">
-          <Symbols name="magic" />
-        </el-icon>
-      </template>
-    </NPanelButton>
   </div>
 </template>
 
@@ -262,6 +294,25 @@ const onSubmit = async () => {
     font-weight: 400;
     color: theme.$button-text-color;
   }
+}
+
+.content {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+.mask {
+  background-color: rgba(0, 0, 0, 0.75);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  border-radius: 10px;
 }
 
 .ai-select-stylize {
@@ -346,6 +397,20 @@ const onSubmit = async () => {
     }
   }
 }
+
+.ai-select-color {
+  width: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 16px;
+  min-height: 302px;
+  z-index: 0;
+}
+:deep(.vc-colorpicker) {
+  box-shadow: none;
+}
+
 .style-adjustment {
   position: relative;
   height: 100%;
@@ -384,5 +449,16 @@ const onSubmit = async () => {
 :deep(.el-tabs__item) {
   font-size: 16px; /* 在這裡調整你想要的字體大小 */
   font-weight: 500;
+}
+.footer {
+  width: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.el-button + .el-button {
+  margin-left: 0;
+  margin-top: 10px;
 }
 </style>

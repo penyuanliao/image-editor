@@ -1,66 +1,163 @@
 <script setup lang="ts">
-import { computed } from "vue";
-import { useMaterialsStore } from "@/store/useMaterialsStore.ts";
-const materialsStore = useMaterialsStore();
+import {type IGalleryInfo, type IGroupThumbnail} from "@/store/useMaterialsStore.ts";
+import {type PropType, ref} from "vue";
+import NImage from "@/components/Basic/NImage.vue";
+import {ArrowRight, ArrowLeft} from "@element-plus/icons-vue";
 
-const emit = defineEmits(["change"]);
-
-const itemsPerRow: number = 3;
-
-const groupList = computed(() => materialsStore.groupList || []);
-
-// 將分類資料分組，每組 3 個，以對應 el-row 的結構
-const groupRows = computed(() => {
-  const rows = [];
-  for (let i = 0; i < groupList.value.length; i += itemsPerRow) {
-    rows.push(groupList.value.slice(i, i + itemsPerRow));
+const props = defineProps({
+  data: {
+    type: Array as PropType<IGroupThumbnail[]>,
+    required: true,
+    default: () => {
+      return [];
+    }
   }
-  return rows;
+});
+const emit = defineEmits({
+  change: (value: { categoryIndex: number; category: string; groupIndex: number }) => value
 });
 
-const handleSelectChange = (value: { id: number; name: string; index: number }) => {
-  emit("change", value);
+const carouselRefs = ref<any[]>([]);
+
+const getActiveIndex = (index: number) => {
+  return carouselRefs.value[index]?.activeIndex;
+}
+
+const handleChange = (info: IGalleryInfo, groupIndex: number) => {
+  emit("change", {
+    categoryIndex: info.categoryIndex,
+    category: info.category,
+    groupIndex
+  });
+};
+
+const handlePrev = (index: number) => {
+  carouselRefs.value[index]?.prev();
+};
+
+const handleNext = (index: number) => {
+  carouselRefs.value[index]?.next();
 };
 </script>
 
 <template>
-  <el-row v-for="(row, rowIndex) in groupRows" :key="rowIndex" class="row" :gutter="10">
-    <el-col v-for="group in row" :key="group.id" :span="8">
-      <div class="group-item ep-bg-purple" @click="handleSelectChange(group)">
-        <div>
-          <svg width="36" height="36" viewBox="0 0 2.16 2.16" xmlns="http://www.w3.org/2000/svg">
-            <path
-              fill="#ffa000"
-              d="M1.8.54H.99L.81.36H.36a.18.18 0 0 0-.18.18V.9h1.8V.72A.18.18 0 0 0 1.8.54"
-            />
-            <path
-              fill="#ffca28"
-              d="M1.8.54H.36a.18.18 0 0 0-.18.18v.9c0 .099.081.18.18.18H1.8a.18.18 0 0 0 .18-.18v-.9A.18.18 0 0 0 1.8.54"
-            />
-          </svg>
+  <section class="categories-view">
+    <template v-for="(group, index) in props.data" :key="`group-${group.groupId}`">
+      <h2 class="group-title">{{ group.groupName }}</h2>
+      <div class="carousel-wrapper">
+        <!-- 自訂左按鈕 -->
+        <div v-if="getActiveIndex(index) !== 0" class="custom-arrow left" @click="handlePrev(index)">
+          <el-icon>
+            <ArrowLeft/>
+          </el-icon>
         </div>
-        {{ group.name }}
+
+        <el-carousel :ref="(el: any) => (carouselRefs[index] = el)"
+                     :loop="false" :autoplay="false" :indicator-position="'none'" class="group-carousel"
+                     :arrow="'never'" height="100px">
+          <el-carousel-item class="el-carousel-item" v-for="row in group.groupItems">
+            <div class="item" v-for="item in row" :key="`item-${item.id}`">
+              <div class="image-item">
+                <NImage :src="item.src" fit="contain" @click="handleChange(item, index)"/>
+              </div>
+              <span>{{ item.category }}</span>
+            </div>
+          </el-carousel-item>
+        </el-carousel>
+
+        <!-- 自訂右按鈕 -->
+        <div v-if="getActiveIndex(index) !== group.groupItems.length - 1" class="custom-arrow right"
+             @click="handleNext(index)">
+          <el-icon>
+            <ArrowRight/>
+          </el-icon>
+        </div>
       </div>
-    </el-col>
-  </el-row>
+    </template>
+  </section>
 </template>
 
 <style scoped lang="scss">
 @use "@/styles/theme";
+
+.categories-view {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  height: 100%;
+}
+
 .el-row {
   margin-bottom: 20px;
 }
+
 .el-row:last-child {
   margin-bottom: 0;
 }
+
 .el-col {
   border-radius: 4px;
 }
+
 .row {
   margin-top: 0;
   margin-bottom: 10px;
 }
-.group-item {
+
+.carousel-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.custom-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  cursor: pointer;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.8);
+  }
+
+  &.left {
+    left: 0;
+  }
+
+  &.right {
+    right: 0;
+  }
+}
+
+.group-carousel {
+  height: 100px;
+  width: 100%;
+}
+
+.el-carousel-item {
+  width: 100%;
+  display: flex;
+  gap: 20px;
+}
+
+.item {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  cursor: pointer;
+}
+
+.image-item {
   border-radius: 4px;
   height: 80px;
   width: 80px;
@@ -69,16 +166,28 @@ const handleSelectChange = (value: { id: number; name: string; index: number }) 
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #3a3a3a;
+  color: white;
   cursor: pointer;
   box-sizing: border-box;
   border: 2px solid transparent;
-  flex-direction: column;
+  overflow: hidden;
+
   &:active {
     background-color: rgba(80, 80, 80, 0.6);
   }
+
   &:hover {
     background-color: rgba(80, 80, 80, 0.6);
   }
+}
+
+.image-item + span {
+  font-size: 14px;
+}
+
+.group-title {
+  border-radius: 4px;
+  min-height: 24px;
+  font-size: 18px;
 }
 </style>

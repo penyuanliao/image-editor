@@ -13,11 +13,11 @@ export const useAIGenStore = defineStore("aiGenStore", () => {
   // 存放處理過後圖片資料
   const rawData = ref<Record<number, any>>({});
   // 記錄讀取狀態
-  const isLoading = ref(false);
+  const isUploading = ref(false);
   // 記錄錯誤訊息
   const error = ref<string | null>(null);
 
-  const inProcessing = computed(() => isLoading.value);
+  const isLoading = computed(() => isUploading.value);
 
   // 從 API 獲取模板的 action
   const fetchGenerate = async (
@@ -37,7 +37,7 @@ export const useAIGenStore = defineStore("aiGenStore", () => {
 
     if (isLoading.value) return Promise.reject("正在處理中");
 
-    isLoading.value = true;
+      isUploading.value = true;
     error.value = null;
     try {
       // 這邊有三個流程
@@ -79,7 +79,7 @@ export const useAIGenStore = defineStore("aiGenStore", () => {
     } catch (e: any) {
       error.value = e.error;
     } finally {
-      isLoading.value = false;
+        isUploading.value = false;
     }
   };
 
@@ -98,7 +98,7 @@ export const useAIGenStore = defineStore("aiGenStore", () => {
 
   return {
     remainingTries,
-    inProcessing,
+    isLoading,
     error,
     fetchGenerate,
     hasOriginalImage,

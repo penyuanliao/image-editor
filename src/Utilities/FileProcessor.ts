@@ -1,5 +1,5 @@
 import { ErrorMessage } from "./AlertMessage.ts";
-import type { IUploadedImage } from "@/types.ts";
+import { ImageGenModeEnum, type IUploadedImage } from "@/types.ts";
 import { generalDefaults } from "@/config/settings.ts";
 // 處理選擇或拖曳的檔案
 export const processFile = (file: File) => {
@@ -23,7 +23,8 @@ export const processFile = (file: File) => {
           image: img, // 儲存圖片物件
           name: file.name, // 用於顯示檔案名稱
           base64: e.target?.result as string,
-          file
+          file,
+          imageGenMode: ImageGenModeEnum.CUSTOM
         });
       };
       img.src = dataUrl;

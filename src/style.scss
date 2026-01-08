@@ -39,3 +39,29 @@ body {
   /*max-width: 1280px;*/
   width: 100%;
 }
+
+.custom-confirm-btn {
+  --el-button-bg-color: #78efb2 !important;
+  --el-button-border-color: #78efb2 !important;
+  --el-button-text-color: black !important;
+  --el-button-hover-bg-color: #95d475 !important;
+  --el-button-hover-border-color: #95d475 !important;
+  --el-button-hover-text-color: black !important;
+  --el-button-active-bg-color: #60c28e !important;
+  --el-button-active-border-color: #60c28e !important;
+  font-weight: bold !important;
+  width: 100px;
+}
+.custom-cancel-btn {
+  --el-button-bg-color: #78efb2 !important;
+  --el-button-border-color: #78efb2 !important;
+  --el-button-text-color: black !important;
+  --el-button-hover-bg-color: #95d475 !important;
+  --el-button-hover-border-color: #95d475 !important;
+  --el-button-hover-text-color: black !important;
+  --el-button-active-bg-color: #60c28e !important;
+  --el-button-active-border-color: #60c28e !important;
+  font-weight: bold !important;
+  width: 100px;
+}
+

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch, nextTick } from "vue";
-import { ElementTypesEnum, type ICanvasElement, BoxBarTypes } from "./types";
+import { ElementTypesEnum, type ICanvasElement, BoxBarTypes, type IUploadedImage } from "./types";
 import BoxBar from "./components/BoxBar.vue";
 import TextPanel from "./components/Panels/TextPanel.vue";
 import UploadPanel from "./components/Panels/UploadPanel.vue";
@@ -18,10 +18,13 @@ import AuthenticationError from "@/components/Views/AuthenticationError.vue";
 import NLoading from "@/components/Views/NLoading.vue";
 import { useAuthStore } from "@/store/useAuthStore.ts";
 import { getUrlParam } from "@/Utilities/urlHelper.ts";
+import { useMainStore } from "@/store/useMainStore.ts";
 
 const editorStore = useEditorStore();
 
 const authStore = useAuthStore();
+
+const mainStore = useMainStore();
 
 // 素材編輯器view
 const editor = ref<InstanceType<typeof EditorView> | null>(null);
@@ -31,10 +34,6 @@ const selected = ref<string>();
 const boxBarSelectedIndex = ref<number>(0);
 // 開啟上傳
 const showUpload = ref<boolean>(false);
-// 系統版本
-const version = __APP_VERSION__;
-// 載入狀態
-const state = ref<"loading" | "completed" | "denied">("loading");
 
 const panelMaxHeight = ref(window.innerHeight - 80 - 22);
 
@@ -53,10 +52,9 @@ const handleUploadElement = (element: any) => {
 };
 const handleUploadElementCompleted = () => {
   showUpload.value = false;
-}
+};
 
 const boxItemClickHandle = (value: string) => {
-
   if (value === BoxBarTypes.upload) {
     showUpload.value = true;
     return;
@@ -81,7 +79,7 @@ const handleElementSelected = (element: ICanvasElement | null) => {
     case ElementTypesEnum.Image:
       selected.value = BoxBarTypes.imageEdit;
       boxBarSelectedIndex.value = -1;
-    break;
+      break;
     default:
       selected.value = BoxBarTypes.image;
   }
@@ -101,6 +99,11 @@ const handleRefresh = () => {
 
 const selectedElement = computed(() => editorStore.selectedElement);
 
+const handleAddRecentlyImage = (info: IUploadedImage) => {
+  const newImageElement: ICanvasElement = CreateImageElement(info);
+  handleAddElement(newImageElement);
+};
+
 // 處理從 DropZone 元件傳來的檔案
 const handleFilesDropped = async (files: FileList) => {
   if (files && files.length > 0) {
@@ -108,8 +111,7 @@ const handleFilesDropped = async (files: FileList) => {
       const file = files[i];
       if (file) {
         const info = await processFile(file);
-        const newImageElement: ICanvasElement = CreateImageElement(info);
-        handleAddElement(newImageElement);
+        handleAddRecentlyImage(info);
       }
     }
   }
@@ -145,32 +147,28 @@ const contentStyle = computed(() => {
 
 onMounted(async () => {
   window.addEventListener("resize", updatePanelHeight);
-  // 檢查登入狀態
+
+  mainStore.initialization();
+  const isDev = import.meta.env.MODE === "dev";
+  // 1. 檢查是否由PD另外開啟頁面
+  if (!window.opener && !isDev) {
+    mainStore.setState("denied");
+    return;
+  }
+  // 2. 開始進行檢查登入狀態
   await authStore.checkLogin();
-  // console.log('is-login:', authStore.isLogin());
-  state.value = (!authStore.isLogin()) ? 'denied' : 'completed';
-  // 設定畫布寬高大小
+  if (!authStore.isLogin()) {
+    mainStore.setState("denied");
+    return;
+  }
+  mainStore.setState("completed");
+
+  // 3. 進行相關參數初始化
+  // 3-1. 設定畫布寬高大小
   const width = Number.parseInt(getUrlParam("width"));
   const height = Number.parseInt(getUrlParam("height"));
   if (width > 0 && height > 0) editorStore.setCanvasSize(width, height);
   editorStore.defaultPropsPanel();
-
-  window.addEventListener("message", (event) => {
-    console.log(`Received message from origin: ${event.origin} data: ${event.data}`);
-    // 將圖片Link上傳至服務紀錄
-    // 完成後關閉頁面
-    // window.close();
-  })
-
-  // 如果此視窗是由 window.open 開啟的，則 window.opener 會存在
-  if (window.opener) {
-
-    // window.opener.postMessage('Vue App Ready', "*");
-  } else if (import.meta.env.MODE !== "dev") {
-    // 登入失敗
-    state.value = "denied";
-  }
-
 });
 
 onUnmounted(() => {
@@ -186,11 +184,11 @@ watch(selected, async () => {
 </script>
 
 <template>
-  <NLoading v-if="state === 'loading'" />
-  <AuthenticationError v-if="state === 'denied'" />
+  <NLoading v-if="mainStore.state === 'loading'" />
+  <AuthenticationError v-if="mainStore.state === 'denied'" />
   <!-- 使用 DropZone 元件並監聽 files-dropped 事件 -->
   <DropZone
-    v-if="state === 'completed'"
+    v-if="mainStore.state === 'completed'"
     class="drop-zone-wrapper"
     @files-dropped="handleFilesDropped"
   >
@@ -209,19 +207,24 @@ watch(selected, async () => {
             <NavigationController
               v-show="selected === BoxBarTypes.image"
               @add-element="handleAddElement"
+              @addRecentlyImage="handleAddRecentlyImage"
             />
-            <UploadPanel v-if="showUpload" @add-element="handleUploadElement" @completed="handleUploadElementCompleted" />
+            <UploadPanel
+              v-if="showUpload"
+              @add-element="handleUploadElement"
+              @completed="handleUploadElementCompleted"
+            />
 
             <TextPanel
-                v-if="selected === BoxBarTypes.textEdit"
-                :controlEnabled="true"
-                @add-element="handleAddElement"
-                @update-element="handleUpdateElement"
+              v-if="selected === BoxBarTypes.textEdit"
+              :controlEnabled="true"
+              @add-element="handleAddElement"
+              @update-element="handleUpdateElement"
             />
             <ImagePropsPanel
-                v-if="selected === BoxBarTypes.imageEdit"
-                @align-element="handleAlignElement"
-                @refresh="handleRefresh"
+              v-if="selected === BoxBarTypes.imageEdit"
+              @align-element="handleAlignElement"
+              @refresh="handleRefresh"
             />
           </div>
         </div>
@@ -237,7 +240,7 @@ watch(selected, async () => {
           />
         </div>
       </div>
-      <div class="app-version">v{{ version }}</div>
+      <div class="app-version">v{{ mainStore.version }}</div>
     </div>
   </DropZone>
 </template>

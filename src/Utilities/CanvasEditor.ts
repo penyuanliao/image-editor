@@ -20,7 +20,7 @@ import { clipboardPaste, validationPermissions } from "./useClipboard.ts";
 import {
   ElementTypesEnum,
   type ICanvasElement,
-  type IImageConfig,
+  type IImageConfig, ImageGenModeEnum,
   type ISVGConfig,
   type ITextConfig
 } from "../types.ts";
@@ -327,7 +327,8 @@ export class CanvasEditor {
         url: image.src,
         base64,
         rotation: 0,
-        draggable: true
+        draggable: true,
+        imageGenMode: ImageGenModeEnum.CUSTOM
       }
     } as ICanvasElement);
     this.render();
@@ -353,12 +354,14 @@ export class CanvasEditor {
     if (el) {
       this.store.addElement(el); // 使用 action 新增
       if (el.type === ElementTypesEnum.Image) {
+        const config = el.config as IImageConfig;
         const image = (el.config as IImageConfig).img;
         if (image) {
           this.store.addImage({
             imageUrl: image.src,
             image: image,
             name: "new image",
+            imageGenMode: config.imageGenMode
           });
         }
 
@@ -1370,7 +1373,14 @@ export class CanvasEditor {
   // 啟用快捷鍵: 複製和貼上
   public enableCopyAndPasteSupport() {
     if (this.handlePaste) return;
-    this.handlePaste = async () => await this.paste();
+    this.handlePaste = async (event: ClipboardEvent) => {
+      if (
+        !(event.target instanceof HTMLInputElement) &&
+        !(event.target instanceof HTMLTextAreaElement)
+      ) {
+        await this.paste();
+      }
+    };
     this.handleCopy = async (event: ClipboardEvent) => {
       // 在文字編輯模式不copy
       if (!this.editingElement) {
@@ -1536,7 +1546,7 @@ export class CanvasEditor {
         const jsonString: RegExpMatchArray | null = str.toString().match(/({.+?})(?={|$)/g);
         if (!jsonString) {
           // 只有純文字
-          await this.addText(str);
+          if (!this.editingElement) await this.addText(str);
           continue;
         }
         const jsonData = JSON.parse(jsonString[0]);

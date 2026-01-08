@@ -2,7 +2,6 @@
 import { htmlTheme } from "@/styles/stageTheme.ts";
 import UndoRedo from "@/components/EditorArea/UndoRedo.vue";
 import { advancedDefaults } from "@/config/settings.ts";
-import NZoomControl from "@/components/Basic/NZoomControl.vue";
 import Symbols from "@/components/Basic/Symbols.vue";
 import NMarqueeText from "@/components/Basic/NMarqueeText.vue";
 
@@ -10,9 +9,14 @@ const props = defineProps({
   progressValue: {
     type: Number,
     default: 0
+  },
+  marqueeText: {
+    type: String,
+    default: ""
   }
 });
 const emit = defineEmits(["update:progressValue"]);
+
 </script>
 
 <template>
@@ -33,9 +37,13 @@ const emit = defineEmits(["update:progressValue"]);
         </el-icon>
         <span class="text">图层</span>
       </div>
+      <div class="comment-btn">
+        <span>建議回饋</span>
+      </div>
       <UndoRedo v-if="advancedDefaults.undoRedoEnabled" />
-      <NZoomControl v-if="advancedDefaults.zoomEnabled" />
-      <NMarqueeText style="color: red; width: 500px;" :duration="20">這是跑馬燈文字</NMarqueeText>
+      <NMarqueeText style="width: 100%;" :duration="20">
+        {{ marqueeText }}
+      </NMarqueeText>
     </div>
   </div>
 </template>
@@ -65,13 +73,14 @@ const emit = defineEmits(["update:progressValue"]);
   position: absolute;
   display: flex;
   flex-direction: row-reverse;
-  max-width: fit-content;
+  width: calc(100% - 150px - 64px );
   min-width: 110px;
   min-height: 56px;
   max-height: 56px;
   top: 50%;
   transform: translateY(-50%);
-  right: calc(340px + 14px);
+  /*right: calc(340px + 14px);*/
+  right: 22px;
   align-items: center;
 }
 .layers-btn {

@@ -13,9 +13,8 @@ export interface PDUploadImg {
 }
 
 //PD上傳圖片採用FormData格式
-export const uploadImage = async (fileName: string, image: Blob, metaData?: { hallId?: string, width?: string, height?: string, bytes?: string }) => {
+export const uploadImage = async (fileName: string, image: Blob, metaData?: { hallId?: string, width?: string, height?: string, bytes?: string, url?: string }) => {
     const formData = new FormData();
-    console.log(image);
     // 根據你的原始字串，後端接收的 key 是 "file" 而不是 "imageFile"
     formData.append("file", image, fileName);
 
@@ -28,7 +27,7 @@ export const uploadImage = async (fileName: string, image: Blob, metaData?: { ha
         formData.append("bytes", metaData.bytes || image.size.toString());
     }
 
-    const response: AxiosResponse | null = await axios.post("/offer/uploadimg", formData, {
+    const response: AxiosResponse | null = await axios.post(`${metaData?.url || ""}/offer/uploadimg`, formData, {
         headers: {
             "accept": "application/json, text/plain, */*",
             "bambi": "N",

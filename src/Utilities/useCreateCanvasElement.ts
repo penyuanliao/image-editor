@@ -122,12 +122,14 @@ export const CreateImageElement = ({
   name,
   image,
   imageUrl,
-  base64
+  base64,
+  imageGenMode
 }: {
   name: string;
   image: HTMLImageElement;
   imageUrl: string;
   base64?: string;
+  imageGenMode?: number | undefined;
 }): ICanvasElement => {
   return {
     id: nanoid(12),
@@ -143,7 +145,8 @@ export const CreateImageElement = ({
       draggable: true,
       url: imageUrl,
       img: image,
-      base64
+      base64,
+      imageGenMode: typeof imageGenMode === "number" ? imageGenMode : 1
     }
   };
 };

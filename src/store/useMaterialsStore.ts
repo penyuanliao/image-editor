@@ -9,6 +9,7 @@ export interface IGalleryItem {
   id: number;
   name: string;
   src: string;
+  categoryId: number;
   imageGenMode: number;
 }
 
@@ -20,6 +21,22 @@ export interface IGallery {
   category: string;
   items: IGalleryItem[];
 }
+export interface IGalleryInfo {
+  id: number;
+  name: string;
+  src: string;
+  categoryId: number;
+  category: string;
+  categoryIndex: number;
+  imageGenMode: number;
+}
+
+export interface IGroupThumbnail {
+  groupId: number;
+  groupName: string;
+  groupItems: IGalleryInfo[][];
+}
+
 // 取得素材庫的action
 export const useMaterialsStore = defineStore("materialsStore", () => {
   // 存放模板列表
@@ -31,7 +48,7 @@ export const useMaterialsStore = defineStore("materialsStore", () => {
   // 選擇的群組group
   const selectedGroup = ref<number>(0);
   // 群組裡面的material
-  const selectedCategoryId = ref<number>(0);
+  const selectedCategoryIndex = ref<number>(0);
 
   const searchValue = ref<string>("");
 
@@ -99,15 +116,49 @@ export const useMaterialsStore = defineStore("materialsStore", () => {
       };
     });
   });
+  const groupThumbnails = computed<IGroupThumbnail[]>(() => {
+    const group: IGroupThumbnail[] = [];
+    rawData.value.forEach((categories) => {
+      if (!categories || !Array.isArray(categories.Info)) return;
+      const groupItems: IGalleryInfo[][] = [];
+      let col = 0;
+      const itemsPerRow: number = 3;
+      categories.Info.map((category, index) => {
+        const material = category.Info.slice(0, 1);
+        if (material.length > 0 && material[0]) {
+          if (!groupItems[col]) groupItems[col] = [];
+          if (groupItems[col]?.length === itemsPerRow) groupItems[++col] = [];
+          groupItems[col]?.push({
+            id: material[0].ID,
+            name: material[0].MaterialName,
+            src: material[0].Urlpath,
+            categoryId: category.ID,
+            categoryIndex: index,
+            category: category.CategoryName,
+            imageGenMode: getImageGenMode(category.CategoryName)
+          });
+        }
+      });
+      group.push({
+        groupId: categories.ID,
+        groupName: categories.CategoryName,
+        groupItems
+      });
+    });
+    return group;
+  });
+
   const categoryImages = computed(() => {
-    if (selectedCategoryId.value == -1) return [];
-    const categoryItems = materials.value[selectedCategoryId.value];
+    if (selectedCategoryIndex.value == -1) return [];
+
+    const categoryItems = materials.value[selectedCategoryIndex.value];
     if (categoryItems) {
       return categoryItems.items;
     }
   });
 
   const filtered = computed(() => {
+    console.log("filtered", searchValue.value);
     if (!searchValue.value) {
       return [];
     }
@@ -136,9 +187,10 @@ export const useMaterialsStore = defineStore("materialsStore", () => {
     getMaterials,
     groupList,
     materials,
+    groupThumbnails,
     categoryImages,
     selectedMaterialGroup,
-    selectedCategoryId,
+    selectedCategoryIndex,
     filtered
   };
 });

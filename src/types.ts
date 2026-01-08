@@ -124,6 +124,7 @@ export interface IUploadedImage {
   name: string;
   base64?: string;
   file?: File;
+  imageGenMode?: number;
 }
 
 export const BoxBarTypes: {
@@ -146,3 +147,11 @@ export const AlignPositionEnum = {
   middle: "middle",
   bottom: "bottom"
 };
+
+export const ImageGenModeEnum = {
+  NONE: 0,
+  STYLE: 1,
+  COLOR: 2,
+  CUSTOM: 10
+};
+export type ImageGenMode = (typeof ImageGenModeEnum)[keyof typeof ImageGenModeEnum];

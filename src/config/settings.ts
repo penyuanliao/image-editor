@@ -16,6 +16,7 @@ export interface IGeneralSettings {
   zoomLimits: {
     max: number;
     min: number;
+    perUnit: number;
   };
   // 網底
   gridBackground: "blackAndWhite" | "white" | "none";
@@ -56,7 +57,8 @@ export const generalDefaults: IGeneralSettings = {
   maxUndoOperations: 20,
   zoomLimits: {
     max: 5,
-    min: 0.2
+    min: 0.2,
+    perUnit: 0.1
   },
   gridBackground: "none",
   maxRecentFiles: 20,

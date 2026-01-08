@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import {onMounted, ref} from "vue";
+import { onMounted, ref } from "vue";
 import { CreateImageElement } from "@/Utilities/useCreateCanvasElement.ts";
 import { generalDefaults } from "@/config/settings.ts";
 import { processFile } from "@/Utilities/FileProcessor.ts";
-import type { IUploadedImage } from "@/types.ts";
+import type { IImageConfig, IUploadedImage } from "@/types.ts";
 
 const emit = defineEmits<{
   (e: "add-element", action: any): void;
@@ -24,7 +24,7 @@ const handleFileChange = async (event: Event) => {
 };
 const handleCancel = () => {
   emit("completed");
-}
+};
 const handleAddingElement = ({ name, image, imageUrl, base64 }: IUploadedImage) => {
   const element = CreateImageElement({
     name: name || "新圖片",
@@ -32,24 +32,24 @@ const handleAddingElement = ({ name, image, imageUrl, base64 }: IUploadedImage) 
     imageUrl,
     base64
   });
+  (element.config as IImageConfig).imageGenMode = 10;
   emit("add-element", element);
 };
 
 onMounted(() => {
   fileInput.value?.click();
-})
-
+});
 </script>
 
 <template>
   <input
-      type="file"
-      ref="fileInput"
-      @change="handleFileChange"
-      @cancel="handleCancel"
-      multiple
-      :accept="generalDefaults.allowedExtensions.join(',')"
-      hidden
+    type="file"
+    ref="fileInput"
+    @change="handleFileChange"
+    @cancel="handleCancel"
+    multiple
+    :accept="generalDefaults.allowedExtensions.join(',')"
+    hidden
   />
 </template>
 

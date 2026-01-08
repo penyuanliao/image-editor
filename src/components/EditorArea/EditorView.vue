@@ -767,10 +767,14 @@ defineExpose({
 .zoom-controls {
   position: absolute;
   display: flex;
-  top: -10px;
+  top: 0;
   right: 8px;
   height: 100%;
+  width: fit-content;
   justify-content: right;
+  background-color: white;
+  border-radius: 999px;
+  align-items: center;
 }
 
 .context-menu {
@@ -822,5 +826,6 @@ defineExpose({
   min-width: 30px;
   justify-content: center;
   align-items: center;
+  pointer-events: none;
 }
 </style>

@@ -49,3 +49,30 @@ export const PromptMessage = async (message: string, title: string = "提示") =
 
   return promise;
 };
+
+export const ConfirmMessage = async (
+    {message, title, confirmText, cancelText}: {
+        message: string,
+        title: string,
+        confirmText: string,
+        cancelText?: string
+    }) => {
+    return await ElMessageBox.confirm(
+        message,
+        title,
+        {
+            confirmButtonText: confirmText,
+            cancelButtonText: cancelText,
+            draggable: true,
+            showConfirmButton: !!confirmText,
+            showCancelButton: !!cancelText,
+            dangerouslyUseHTMLString: true,
+            distinguishCancelAndClose: true,
+            center: true,
+            confirmButtonClass: 'custom-confirm-btn',
+            cancelButtonClass: 'custom-cancel-btn',
+        }
+    ).catch((reason) => {
+        return reason;
+    });
+}
