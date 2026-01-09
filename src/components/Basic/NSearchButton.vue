@@ -9,7 +9,7 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(["update:input", "change"]);
+const emit = defineEmits(["update:input", "change", "clear"]);
 
 const inputValue = computed({
   get() {
@@ -19,6 +19,19 @@ const inputValue = computed({
     emit("update:input", value);
   }
 });
+
+const handleClear = () => {
+  inputValue.value = '';
+  emit("change", '');
+}
+const handleInputChange = () => {
+  if (inputValue.value === '') {
+    emit("clear", "");
+  } else {
+    emit("change", inputValue.value);
+  }
+}
+
 </script>
 
 <template>
@@ -29,11 +42,10 @@ const inputValue = computed({
       placeholder="搜尋素材"
       :clear-icon="Close"
       clearable
-      @change="emit('change', inputValue)"
-      @clear="emit('change', '')"
+      @clear="handleClear"
     >
       <template v-slot:suffix>
-        <div class="submit-btn">
+        <div class="submit-btn" @click="handleInputChange">
           <el-icon size="20"><Search /></el-icon>
         </div>
       </template>

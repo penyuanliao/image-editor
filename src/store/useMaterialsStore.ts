@@ -158,7 +158,6 @@ export const useMaterialsStore = defineStore("materialsStore", () => {
   });
 
   const filtered = computed(() => {
-    console.log("filtered", searchValue.value);
     if (!searchValue.value) {
       return [];
     }

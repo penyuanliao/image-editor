@@ -1,15 +1,13 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
+import { onMounted, ref, watch } from "vue";
 import gsap from "gsap";
 import CategoriesGroupView from "@/components/Panels/MaterialPanel/CategoriesGroupView.vue";
 import CategoryGalleryView from "@/components/Panels/MaterialPanel/CategoryGalleryView.vue";
 import { useMaterialsStore } from "@/store/useMaterialsStore.ts";
 import { ElementTypesEnum, type IUploadedImage } from "@/types.ts";
 import NSearchButton from "@/components/Basic/NSearchButton.vue";
-import NImage from "@/components/Basic/NImage.vue";
-import { useEditorStore } from "@/store/editorStore.ts";
+import NCarouselView from "@/components/Panels/MaterialPanel/NCarouselView.vue";
 const materialsStore = useMaterialsStore();
-const editorStore = useEditorStore();
 
 const emit = defineEmits<{
   (e: "add-element", action: any): void,
@@ -18,7 +16,8 @@ const emit = defineEmits<{
 // 目前頁面控制流程
 const NAV_CTRL_STEPS = {
   GROUP_VIEW: 0, // 分類頁面
-  GALLERY_VIEW: 1 // 分類圖庫頁面
+  GALLERY_VIEW: 1, // 分類圖庫頁面
+  SEARCH_VIEW: 2 // 搜尋頁面
 };
 
 const contentWrapper = ref<HTMLDivElement | null>(null);
@@ -33,6 +32,8 @@ const input = ref<string>("");
 
 const handleViewClick = (step: number) => {
   currentStep.value = step;
+  input.value = "";
+  materialsStore.searchValue = "";
 };
 
 const handleCategoriesGroupChange = (value: {
@@ -67,13 +68,19 @@ const handleImageChange = (value: {
     name: value.name
   });
 };
+// 資料搜尋
 const handleInputChange = (value: string) => {
-  materialsStore.searchValue = value;
+  console.log(value);
+  if (value) {
+    materialsStore.searchValue = value;
+    currentStep.value = NAV_CTRL_STEPS.SEARCH_VIEW;
+  }
 };
-
-const recentlyUseImageList = computed(() => {
-  return [...editorStore.imageList].reverse();
-});
+// 清除搜尋
+const handleInputClear = () => {
+  materialsStore.searchValue = "";
+  currentStep.value = NAV_CTRL_STEPS.GROUP_VIEW;
+}
 
 onMounted(async () => {
   await materialsStore.getMaterials();
@@ -105,19 +112,13 @@ watch(currentStep, (newIndex) => {
 
 <template>
   <div class="view-container">
-    <div v-if="!materialsStore.searchValue" class="content-wrapper" ref="contentWrapper">
+    <div class="content-wrapper" ref="contentWrapper">
       <section class="view scroll-bar-hidden">
         <div class="content">
-          <NSearchButton v-model:input="input" @change="handleInputChange" />
+          <NSearchButton v-model:input="input" @change="handleInputChange"/>
           <p>最近使用過的素材</p>
           <div class="recently-used">
-            <div v-for="item in recentlyUseImageList" class="image-item">
-              <NImage
-                :src="item.image.src"
-                fit="contain"
-                @click="handleRecentlyImageChange(item)"
-              />
-            </div>
+            <NCarouselView @change="handleRecentlyImageChange"/>
           </div>
           <CategoriesGroupView
             v-bind:data="materialsStore.groupThumbnails"
@@ -139,11 +140,17 @@ watch(currentStep, (newIndex) => {
           />
         </div>
       </section>
-    </div>
-    <div v-else class="filter-wrapper">
-      <section class="view content">
-        <NSearchButton v-model:input="input" @change="handleInputChange" />
-        <CategoryGalleryView v-bind:data="materialsStore.filtered" @change="handleImageChange" />
+      <section class="view filter-wrapper">
+        <el-page-header class="header" @back="handleViewClick(NAV_CTRL_STEPS.GROUP_VIEW)">
+          <template #content>
+            <h2>素材分類</h2>
+          </template>
+        </el-page-header>
+        <div class="view content">
+          <p>搜尋結果</p>
+          <NSearchButton v-model:input="input" @change="handleInputChange" @clear="handleInputClear"/>
+          <CategoryGalleryView v-bind:data="materialsStore.filtered" @change="handleImageChange" />
+        </div>
       </section>
     </div>
   </div>
@@ -204,6 +211,11 @@ watch(currentStep, (newIndex) => {
     display: flex;
     align-items: center;
     gap: 20px;
+    .image-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
     .image-item {
       border-radius: 4px;
       height: 80px;
