@@ -8,6 +8,10 @@ defineProps({
   sliderVisible: {
     type: Boolean,
     default: true
+  },
+  decreaseIncrease: {
+    type: Boolean,
+    default: false
   }
 });
 
@@ -52,10 +56,10 @@ const zoomOut = () => {
 <template>
   <div class="zoom-container">
     <div class="control">
-      <el-button :icon="Minus" @click="zoomOut" :disabled="disabled"></el-button>
+      <el-button v-if="decreaseIncrease" :icon="Minus" @click="zoomOut" :disabled="disabled"></el-button>
       <el-slider v-if="sliderVisible" class="zoom-slider" size="small" v-model="zoom" :min="10" :max="500" :disabled="disabled" />
       <p class="zoom-value">{{ zoomPercentage }}</p>
-      <el-button :icon="Plus" @click="zoomIn" :disabled="disabled"></el-button>
+      <el-button v-if="decreaseIncrease" :icon="Plus" @click="zoomIn" :disabled="disabled"></el-button>
     </div>
   </div>
 </template>
@@ -99,5 +103,7 @@ const zoomOut = () => {
   --el-slider-height: 4px;       /* 軌道高度 (預設約 6px) */
   width: 80%;
   min-width: 100px;
+  padding-left: 10px;
+  padding-top: 4px;
 }
 </style>
