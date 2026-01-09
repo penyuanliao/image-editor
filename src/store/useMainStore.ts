@@ -4,6 +4,7 @@ import { ElMessageBox } from "element-plus";
 import { useUploadStore } from "@/store/useUploadStore.ts";
 import { getUrlParam } from "@/Utilities/urlHelper.ts";
 import { ConfirmMessage } from "@/Utilities/AlertMessage.ts";
+import { nanoid } from "nanoid";
 
 // 第一個參數 'main' 是 Store 的唯一 ID
 export const useMainStore = defineStore("main", () => {
@@ -17,19 +18,18 @@ export const useMainStore = defineStore("main", () => {
   const marqueeText = ref<string>("");
   // 載入狀態
   const state = ref<"loading" | "completed" | "denied">("loading");
-
   // 監聽PostMessage回傳
-  const postMessageBlock = ref<any | null>(null);
-
+  const postMessageBlock = ref<Record<string, any>>({});
+  // 訊息
   const onMessage = (event: MessageEvent) => {
-    console.log(`Received message from origin: ${event.origin} data: ${event.data}`);
-    if (postMessageBlock.value) {
-      postMessageBlock.value({
-        data: event.data,
+    console.log(`Received message from origin: ${event.origin} data: ${JSON.stringify(event.data)}`);
+    if (postMessageBlock.value && event.data?.uuid) {
+      const block = postMessageBlock.value[event.data.uuid];
+      block({
+        ...event.data,
         origin: event.origin,
-        status: true
       });
-      postMessageBlock.value = null;
+      postMessageBlock.value[event.data.uuid] = null;
     }
   };
 
@@ -109,16 +109,18 @@ export const useMainStore = defineStore("main", () => {
       height: getUrlParam("height")
     };
     const result = await uploadStore.executeUpload(fileName, blob, metaData);
-    if (!result.status) {
+    if (!result || !result.status) {
       // 失敗怎麼辦
+      return;
     }
     // 3. 通知PD完成上傳
     const openerResult = await new Promise<{ status: boolean }>((resolve) => {
-      postMessageBlock.value = resolve;
-      window.opener.postMessage(JSON.stringify({ url: "" }), "*");
+      const uuid = nanoid(12);
+      postMessageBlock.value[uuid] = resolve;
+      window.opener.postMessage({ uuid, url: result.data.link }, "*");
       // 超時5秒
       setTimeout(() => {
-        postMessageBlock.value = null;
+        postMessageBlock.value[uuid] = null;
         resolve({ status: false });
       }, 5000);
     });

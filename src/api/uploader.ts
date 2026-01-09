@@ -1,7 +1,7 @@
 import axios, {type AxiosError, type AxiosResponse} from "axios";
 import {ErrorMessage} from "@/Utilities/AlertMessage.ts";
 
-export interface PDUploadImg {
+export interface UploadImageResult {
     status: "Y" | "N";
     code: string;
     data: {
@@ -13,7 +13,7 @@ export interface PDUploadImg {
 }
 
 //PD上傳圖片採用FormData格式
-export const uploadImage = async (fileName: string, image: Blob, metaData?: { hallId?: string, width?: string, height?: string, bytes?: string, url?: string }) => {
+export const uploadImage = async (fileName: string, image: Blob, metaData?: { hallId?: string, width?: string, height?: string, bytes?: string, url?: string }):Promise<UploadImageResult | null> => {
     const formData = new FormData();
     // 根據你的原始字串，後端接收的 key 是 "file" 而不是 "imageFile"
     formData.append("file", image, fileName);

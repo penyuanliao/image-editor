@@ -1,13 +1,13 @@
 import {defineStore} from "pinia";
 import {ref, computed} from "vue";
-import {uploadImage, type PDUploadImg} from "@/api/uploader.ts";
+import { uploadImage, type UploadImageResult } from "@/api/uploader.ts";
 
 export const useUploadStore = defineStore("uploadStore", () => {
     // --- State ---
     const isUploading = ref(false);
     const uploadProgress = ref(0); // 如果未來 axios 有支援 onUploadProgress 可以用
     const error = ref<string | null>(null);
-    const lastUploadedResult = ref<PDUploadImg | null>(null);
+    const lastUploadedResult = ref<UploadImageResult | null>(null);
 
     // --- Getters ---
     const isLoading = computed(() => isUploading.value);
@@ -23,7 +23,7 @@ export const useUploadStore = defineStore("uploadStore", () => {
         fileName: string,
         blob: Blob,
         metaData?: { hallId?: string; width?: string; height?: string; bytes?: string; url?: string }
-    ) => {
+    ):Promise<UploadImageResult | null> => {
         if (isUploading.value) return null;
 
         isUploading.value = true;
