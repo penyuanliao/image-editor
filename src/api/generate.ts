@@ -15,7 +15,9 @@ export interface AIGenRequest {
   materialurl?: string; // choice = 0 有 materialid
   originalurl?: string;
   prompt?: string;
-  choice: number;
+  choice?: number;
+  color?: string; // 處理顏色
+  mask?: boolean; // 處理去背
 }
 
 // 3. 建立一個專門用來擷取資料的函式

@@ -1,6 +1,14 @@
 import { defineStore } from "pinia";
 import {computed, ref} from "vue";
 import { type AIGenRequest, type ImageGenerateResult, apiImageGenerate } from "@/api/generate.ts";
+
+export interface IGenerateSource {
+  image: HTMLImageElement;
+  id: string; // elementId
+  materialId?: number;
+  url?: string;
+  base64?: string;
+}
 // 產生的AI圖片action
 export const useAIGenStore = defineStore("aiGenStore", () => {
   // 使用次數
@@ -21,45 +29,53 @@ export const useAIGenStore = defineStore("aiGenStore", () => {
 
   // 從 API 獲取模板的 action
   const fetchGenerate = async (
-    source: {
-      image: HTMLImageElement;
-      id: string; // elementId
-      materialId?: number;
-      url?: string;
-      base64?: string;
-      blob?: Blob;
-    },
+    source: IGenerateSource,
     args: {
       prompt?: string;
-      choice: number;
+      choice?: number;
+      color?: string;
+      mask?: boolean;
     }
   ) => {
 
     if (isLoading.value) return Promise.reject("正在處理中");
-
-      isUploading.value = true;
+    isUploading.value = true;
     error.value = null;
     try {
-      // 這邊有三個流程
+      // 這邊有5個流程
       // 1. 物件轉換
       // 2. 風格轉換
-      const body: AIGenRequest = {
-        choice: args.choice // 轉換CODE
-      };
-      // 1. 如果有帶素材編號就不是自己上傳物件
+      // 3. 自訂生成
+      // 4. 更換顏色
+      // 5. 移除背景
+      const body: AIGenRequest = {};
+      // 1-1. 如果有帶素材編號就不是自己上傳物件
       if (source.materialId && source.materialId > 0) {
         body.materialid = source.materialId;
       } else if (source.base64) {
-        // 2. 這邊是手動上傳的圖片
+        // 1-2. 這邊是手動上傳的圖片
         body.originalimage = source.base64.replace(/^data:image\/[a-z]+;base64,/, "");
       } else {
-        // 3. 想直接從素材庫取出來
+        // 1-3. 想直接從素材庫取出來
         body.originalurl = source.image.src;
       }
-      // 檢查是否選擇自訂生成
-      if (args.prompt && args.choice === 0) {
+
+      const choice = args.choice || 0;
+      // 1. 物件轉換模式、2. 風格轉換模式
+      if (choice > 0) {
+        body.choice = choice;
+      } else if (args.prompt && choice === 0) {
+        // 3. 檢查是否選擇自訂生成
         body.prompt = args.prompt;
         body.materialurl = source.url;
+      } else if (args.color) {
+        // 4. 顏色轉換
+        body.color = args.color;
+      } else if (args.mask) {
+        // 5. 移除背景
+        body.mask = args.mask;
+      } else {
+
       }
       const result: ImageGenerateResult = await apiImageGenerate(JSON.stringify(body));
       if (result.status) {
@@ -89,6 +105,7 @@ export const useAIGenStore = defineStore("aiGenStore", () => {
   const getOriginalImage = (id: string) => {
     return originalImages.get(id);
   };
+  // 這邊紀錄原始圖片目的用於還原
   const setOriginalImage = (
     id: string,
     source: { image?: HTMLImageElement; base64?: string; id: string; blob?: Blob }
