@@ -455,7 +455,7 @@ const handleSaveHistory = () => {
     <el-divider border-style="solid" />
     <div class="additional">
       <AIPanel
-        v-if="(editorStore.selectedElement?.config as IImageConfig).imageGenMode"
+        v-if="(editorStore.selectedElement?.config as IImageConfig)?.imageGenMode"
         @refresh="emit('refresh')"
       />
     </div>

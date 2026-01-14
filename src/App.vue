@@ -19,7 +19,8 @@ import NLoading from "@/components/Views/NLoading.vue";
 import { useAuthStore } from "@/store/useAuthStore.ts";
 import { getUrlParam } from "@/Utilities/urlHelper.ts";
 import { useMainStore } from "@/store/useMainStore.ts";
-
+import NComment from "@/components/Basic/NComment.vue";
+import { AlertMessage } from "@/Utilities/AlertMessage.ts";
 const editorStore = useEditorStore();
 
 const authStore = useAuthStore();
@@ -133,11 +134,6 @@ const updatePanelHeight = () => {
   panelMaxHeight.value = window.innerHeight - 80 - 22; // 80 for navbar, 22 for content padding-top
 };
 // ---- Style ---- //
-const styleSidebar = computed(() => {
-  return {
-    width: selected.value !== "" ? "420px" : "85px"
-  };
-});
 
 const contentStyle = computed(() => {
   return {
@@ -149,19 +145,8 @@ onMounted(async () => {
   window.addEventListener("resize", updatePanelHeight);
 
   mainStore.initialization();
-  const isDev = import.meta.env.MODE === "dev";
-  // 1. 檢查是否由PD另外開啟頁面
-  if (!window.opener && !isDev) {
-    mainStore.setState("denied");
-    return;
-  }
-  // 2. 開始進行檢查登入狀態
-  await authStore.checkLogin();
-  if (!authStore.isLogin()) {
-    mainStore.setState("denied");
-    return;
-  }
-  mainStore.setState("completed");
+
+  await mainStore.startLogin();
 
   // 3. 進行相關參數初始化
   // 3-1. 設定畫布寬高大小
@@ -193,9 +178,9 @@ watch(selected, async () => {
     @files-dropped="handleFilesDropped"
   >
     <div class="main-container">
-      <NNavbar />
+      <NNavbar v-bind:marqueeText="mainStore.marqueeText" />
       <div class="content" :style="contentStyle">
-        <div class="sidebar" :style="styleSidebar">
+        <div :class="{ sidebar: true, 'open': selected !== '', 'close': selected === '' }">
           <BoxBar v-model:selected="boxBarSelectedIndex" @boxItemClick="boxItemClickHandle" />
           <div class="sidebar-content">
             <TextPanel
@@ -241,8 +226,22 @@ watch(selected, async () => {
         </div>
       </div>
       <div class="app-version">v{{ mainStore.version }}</div>
+      <el-button class="help-btn" @click="AlertMessage('要相信聖光', '噠噠')">
+        <template #default>
+          使用说明
+        </template>
+        <template #icon>
+          <el-icon size="24">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M21.3171 20.5035C21.2555 20.9217 20.7166 21.2431 19.8374 21.2431H5.46175C4.98903 21.2431 4.60574 20.8538 4.60574 20.3738C4.60574 19.8937 4.98903 19.5045 5.46175 19.5045H19.8043C19.8043 19.5045 20.378 19.4561 20.8287 19.0055C21.2131 18.621 21.2962 17.5842 21.2962 16.9939V3.17109C21.2962 1.97211 20.3391 1.00018 19.1585 1.00018H5.1377C3.95706 1.00018 3 1.97211 3 3.17109V20.7872C3.00523 22.0104 3.98261 23.0006 5.18881 23.0006H19.1446C20.3537 23.0006 21.3334 22.0056 21.3334 20.7778C21.3334 20.6852 21.3276 20.5938 21.3165 20.5035H21.3171ZM4.58774 17.9369V3.39814C4.58774 2.99711 4.90773 2.67215 5.30263 2.67215H19.0749C19.4698 2.67215 19.7898 2.99711 19.7898 3.39814V17.0682C19.7898 17.4692 19.4698 17.7942 19.0749 17.7942H5.30844C4.69053 17.7942 4.58774 17.9369 4.58774 17.9369Z" fill="white"/>
+              <path d="M11.0177 15.9865V14.0326H12.9916V15.9865H11.0177ZM11.2169 13.2029V12.4822C11.1826 11.4837 11.642 10.6362 12.5828 9.96389C13.4893 9.32872 13.9185 8.71714 13.8592 8.14449C13.7686 7.28698 13.282 6.83876 12.3708 6.77565C12.3464 6.77506 12.322 6.77447 12.2976 6.77447C11.2604 6.77447 10.6222 7.39431 10.3469 8.66878L10.3109 8.83568L8.54663 8.40339L8.57973 8.24415C9.01413 6.17292 10.308 5.12256 12.4254 5.12256C12.4939 5.12256 12.563 5.12374 12.6327 5.1261C14.5486 5.23225 15.6067 6.1853 15.7815 7.95871V7.96461C15.8518 9.07159 15.2228 10.0588 13.9115 10.9004C13.1606 11.377 12.811 11.9237 12.8418 12.573V12.5812V13.204H11.2169V13.2029Z" fill="white"/>
+            </svg>
+          </el-icon>
+        </template>
+        </el-button>
     </div>
   </DropZone>
+  <NComment v-model:visible="mainStore.commentVisible" :name="authStore.userInfo.username"></NComment>
 </template>
 
 <style scoped lang="scss">
@@ -262,7 +261,7 @@ watch(selected, async () => {
   width: 420px;
   position: relative;
   display: flex;
-  min-width: 85px;
+  min-width: var(--box-bar-width);
   overflow: hidden;
   box-shadow: 0 3px 3px 0 #d9d9d9;
   background-color: theme.$primary-color;
@@ -270,8 +269,15 @@ watch(selected, async () => {
   border-top-right-radius: 20px;
   transition: width 0.2s ease;
 
+  &.open {
+    width: calc(335px + var(--box-bar-width));
+  }
+  &.close {
+    width: var(--box-bar-width);
+  }
+
   .sidebar-content {
-    width: calc(100% - 85px);
+    width: calc(100% - var(--box-bar-width));
     position: relative;
     display: flex;
   }
@@ -312,7 +318,7 @@ watch(selected, async () => {
   top: 0;
   right: 14px;
   width: 122px;
-  max-height: calc(var(--panel-max-height, 100%) - 20px);
+  max-height: calc(var(--panel-max-height, 100%) - 50px);
   overflow: auto;
   justify-content: center;
   padding: 5px 5px;
@@ -338,9 +344,28 @@ watch(selected, async () => {
 .app-version {
   position: absolute;
   bottom: 5px;
-  right: 10px;
+  left: 10px;
   font-size: 12px;
   color: #aaa;
   z-index: 1000; /* 確保在最上層 */
+}
+.help-btn {
+  position: absolute;
+  background-color: #f15624;
+  color: white;
+  font-weight: 700;
+  font-size: 15px;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  border: none;
+  bottom: 0;
+  right: 0;
+  width: 163px;
+  height: 46px;
+  font-family: theme.$font-family;
+  line-height: 100%;
+  letter-spacing: 0;
+  text-align: center;
+
 }
 </style>

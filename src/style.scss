@@ -1,4 +1,5 @@
 @use "styles/fonts.scss";
+@use "styles/theme";
 
 @import url("https://fonts.googleapis.com/css2?family=ABeeZee:ital@0;1&family=Fredoka:wght@500&family=Noto+Sans+SC:wght@100..900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
 
@@ -40,28 +41,94 @@ body {
   width: 100%;
 }
 
-.custom-confirm-btn {
-  --el-button-bg-color: #78efb2 !important;
-  --el-button-border-color: #78efb2 !important;
-  --el-button-text-color: black !important;
-  --el-button-hover-bg-color: #95d475 !important;
-  --el-button-hover-border-color: #95d475 !important;
-  --el-button-hover-text-color: black !important;
-  --el-button-active-bg-color: #60c28e !important;
-  --el-button-active-border-color: #60c28e !important;
-  font-weight: bold !important;
-  width: 100px;
-}
 .custom-cancel-btn {
-  --el-button-bg-color: #78efb2 !important;
-  --el-button-border-color: #78efb2 !important;
+  --el-button-bg-color: white !important;
+  --el-button-border-color: #D9D9D9 !important;
   --el-button-text-color: black !important;
-  --el-button-hover-bg-color: #95d475 !important;
-  --el-button-hover-border-color: #95d475 !important;
+  --el-button-hover-bg-color: #D9D9D9 !important;
+  --el-button-hover-border-color: #D9D9D9 !important;
   --el-button-hover-text-color: black !important;
-  --el-button-active-bg-color: #60c28e !important;
-  --el-button-active-border-color: #60c28e !important;
-  font-weight: bold !important;
-  width: 100px;
+  --el-button-active-bg-color: white !important;
+  --el-button-active-border-color: #D9D9D9 !important;
+  width: 138px;
+  min-height: 58px;
+  border-radius: 40px !important;
+  span {
+    font-weight: 400 !important;
+    font-family: theme.$font-family !important;
+    font-size: 18px !important;
+  }
+  &:focus {
+    outline: none !important;
+  }
+}
+.custom-confirm-btn {
+  --el-button-bg-color: #f15624 !important;
+  --el-button-border-color: #f15624 !important;
+  --el-button-text-color: white !important;
+  --el-button-hover-bg-color: #f15624 !important;
+  --el-button-hover-border-color: #f15624 !important;
+  --el-button-hover-text-color: white !important;
+  --el-button-active-bg-color: #f15624 !important;
+  --el-button-active-border-color: #f15624 !important;
+  width: 138px;
+  min-height: 58px;
+  border-radius: 40px  !important;
+  span {
+    font-weight: 400 !important;
+    font-family: theme.$font-family !important;
+    font-size: 18px !important;
+  }
+}
+.custom-message-box {
+  //padding: 45px 80px 27px 80px !important;
+  padding-top: 45px !important;
+  padding-bottom: 27px !important;
+  border-radius: 50px !important;
+  --el-messagebox-width: 506px !important;
+
+  .el-message-box__title {
+    font-family: theme.$font-family;
+    font-weight: 700;
+    font-size: 26px; /* 您可以在這裡調整想要的字體大小 */
+    leading-trim: NONE;
+    line-height: 100%;
+    text-align: center;
+  }
+  .el-message-box__message {
+    font-family: theme.$font-family;
+    font-weight: 400;
+    font-size: 15px;
+    leading-trim: NONE;
+    line-height: 24px;
+    text-align: center;
+  }
+}
+.message-box-w-xl {
+  --el-messagebox-width: 527px !important;
+}
+.w-246 {
+  width: 246px !important;
+}
+.w-192 {
+  width: 192px !important;
+}
+.w-330 {
+  width: 330px !important;
+}
+.custom-loading .el-loading-spinner .path {
+  stroke: #f15624 !important;
+}
+.custom-loading .el-loading-spinner .el-loading-text {
+  color: #f15624 !important;
+  font-size: 16px;
 }
 
+:root {
+  --box-bar-width: 85px;
+}
+@media (max-width: 1000px) {
+  :root {
+    --box-bar-width: 60px;
+  }
+}

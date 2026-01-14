@@ -1,17 +1,13 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, type PropType } from "vue";
 import { useEditorStore } from "@/store/editorStore.ts";
 import { Minus, Plus } from "@element-plus/icons-vue";
-import {generalDefaults} from "@/config/settings.ts";
+import { generalDefaults, type IZoomControlVisible } from "@/config/settings.ts";
 
 defineProps({
-  sliderVisible: {
-    type: Boolean,
-    default: true
-  },
-  decreaseIncrease: {
-    type: Boolean,
-    default: false
+  visible: {
+    type: Object as PropType<IZoomControlVisible>,
+    default: () => ({ slider: true, decreaseIncrease: true })
   }
 });
 
@@ -21,11 +17,13 @@ const zoomPercentage = computed(() => {
   return `${Math.round(editorStore.viewTranslate.scale * (editorStore.stage.config.scaleX || 1) * 100)}%`;
 });
 
-const zoomPerUnit:number = generalDefaults.zoomLimits.perUnit;
+const zoomPerUnit: number = generalDefaults.zoomLimits.perUnit;
 
 const zoom = computed({
   get() {
-    return Math.round(editorStore.viewTranslate.scale * (editorStore.stage.config.scaleX || 1) * 100);
+    return Math.round(
+      editorStore.viewTranslate.scale * (editorStore.stage.config.scaleX || 1) * 100
+    );
   },
   set(val: number) {
     const scaleFactor = editorStore.stage.config.scaleX || 1;
@@ -46,7 +44,10 @@ const zoomIn = () => {
 
 const zoomOut = () => {
   const scaleFactor = editorStore.stage.config.scaleX || 1;
-  const newScale = Math.max(zoomPerUnit / scaleFactor, editorStore.viewTranslate.scale -zoomPerUnit / scaleFactor); // 確保不會小於最小比例
+  const newScale = Math.max(
+    zoomPerUnit / scaleFactor,
+    editorStore.viewTranslate.scale - zoomPerUnit / scaleFactor
+  ); // 確保不會小於最小比例
   editorStore.setScale(newScale);
   editorStore.viewTranslate.autoScale = false;
   editorStore.updateViewTranslate();
@@ -56,10 +57,28 @@ const zoomOut = () => {
 <template>
   <div class="zoom-container">
     <div class="control">
-      <el-button v-if="decreaseIncrease" :icon="Minus" @click="zoomOut" :disabled="disabled"></el-button>
-      <el-slider v-if="sliderVisible" class="zoom-slider" size="small" v-model="zoom" :min="10" :max="500" :disabled="disabled" />
+      <el-button
+        v-if="visible.decreaseIncrease"
+        :icon="Minus"
+        @click="zoomOut"
+        :disabled="disabled"
+      ></el-button>
+      <el-slider
+        v-if="visible.slider"
+        class="zoom-slider"
+        size="small"
+        v-model="zoom"
+        :min="10"
+        :max="500"
+        :disabled="disabled"
+      />
       <p class="zoom-value">{{ zoomPercentage }}</p>
-      <el-button v-if="decreaseIncrease" :icon="Plus" @click="zoomIn" :disabled="disabled"></el-button>
+      <el-button
+        v-if="visible.decreaseIncrease"
+        :icon="Plus"
+        @click="zoomIn"
+        :disabled="disabled"
+      ></el-button>
     </div>
   </div>
 </template>
@@ -95,15 +114,28 @@ const zoomOut = () => {
   padding: 0 10px;
   text-align: center;
   width: 50px; // 確保寬度足夠顯示百分比
+  font-style: normal;
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 22px;
+  letter-spacing: 0.2em;
+  color: theme.$text-color-info;
+
 }
 
 .zoom-slider {
   /* 透過 CSS 變數覆寫 Element Plus 預設大小 */
-  --el-slider-button-size: 12px; /* 滑塊按鈕大小 (預設約 20px) */
-  --el-slider-height: 4px;       /* 軌道高度 (預設約 6px) */
-  width: 80%;
+  --el-slider-button-size: 20px; /* 滑塊按鈕大小 (預設約 20px) */
+  --el-slider-height: 8px; /* 軌道高度 (預設約 6px) */
+  width: 250px;
   min-width: 100px;
+  max-width: 250px;
   padding-left: 10px;
   padding-top: 4px;
+  --el-slider-main-bg-color: #D9D9D9;
+  :deep(.el-slider__button) {
+    border-color: #F15624;
+    border-width: 1px;
+  }
 }
 </style>

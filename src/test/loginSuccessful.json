@@ -1,6 +1,8 @@
 {
   "status": true,
   "data": {
-    "token": "crypto_hash_token"
+    "authorization": "crypto_hash_token",
+    "user": "user",
+    "marqueeText": "這是跑馬燈訊息..."
   }
 }

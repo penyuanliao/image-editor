@@ -10,13 +10,13 @@ export interface IComment {
 
 export const useCommentStore = defineStore("commentStore", () => {
   // --- State ---
-  const comments = ref<IComment[]>([]);
+  const comments = ref<IComment>({
+    content: "",
+  });
   const isUploading = ref(false);
   const error = ref<string | null>(null);
 
   const isLoading = computed(() => isUploading.value);
-
-  const authStore = useAuthStore();
 
   // --- Actions ---
   /**
@@ -28,6 +28,7 @@ export const useCommentStore = defineStore("commentStore", () => {
 
     isUploading.value = true;
     try {
+      const authStore = useAuthStore();
       const result = await apiComment(content, { authorization: authStore.authorization });
       return result.status;
     } catch (e: any) {

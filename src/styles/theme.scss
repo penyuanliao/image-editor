@@ -3,6 +3,7 @@ $secondary-color: #f15624;
 $badge-color: red;
 $text-color: black;
 $text-color-active: #f15624;
+$text-color-info: #606060;
 $icon-color: white;
 
 $border-color-base: #dfdfdf;
@@ -11,6 +12,7 @@ $shadow-color: #d9d9d9;
 $button-text-color: #f15624;
 $font-family:
   "Noto Sans SC",
+  "Noto Sans HK",
   "Montserrat",
   -apple-system,
   BlinkMacSystemFont,
@@ -42,6 +44,22 @@ h2 {
   font-size: 21px;
   line-height: 100%;
   user-select: none;
+}
+
+ul li::marker {
+  color: #FFC3B0;
+  font-size: 1.5rem;
+}
+li {
+  text-align: left;
+  text-indent: 0;
+}
+ul {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  margin-top: 5px;
+
 }
 
 .scroll-bar {
@@ -236,4 +254,9 @@ h2 {
   100% {
     transform: translateX(100%);
   }
+}
+
+.el-slider {
+  --el-slider-main-bg-color: #f15624; /* 自訂滑桿主色 (填充條與按鈕) */
+  --el-slider-runway-bg-color: #e4e7ed; /* 自訂滑桿軌道底色 (可選) */
 }

@@ -1,4 +1,4 @@
-export const storageManager = (() => {
+export const NStorageManager = (() => {
   // 取得快取資料
   const get = (key: string) => {
     return JSON.parse(localStorage.getItem(key) || "{}");

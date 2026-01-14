@@ -1,4 +1,4 @@
-import { ElMessage, ElMessageBox } from "element-plus";
+import { ElMessage, ElMessageBox, type ElMessageBoxOptions } from "element-plus";
 import { nextTick } from "vue";
 
 export const ErrorMessage = (message: string) => {
@@ -50,29 +50,51 @@ export const PromptMessage = async (message: string, title: string = "提示") =
   return promise;
 };
 
-export const ConfirmMessage = async (
-    {message, title, confirmText, cancelText}: {
-        message: string,
-        title: string,
-        confirmText: string,
-        cancelText?: string
-    }) => {
-    return await ElMessageBox.confirm(
-        message,
-        title,
-        {
-            confirmButtonText: confirmText,
-            cancelButtonText: cancelText,
-            draggable: true,
-            showConfirmButton: !!confirmText,
-            showCancelButton: !!cancelText,
-            dangerouslyUseHTMLString: true,
-            distinguishCancelAndClose: true,
-            center: true,
-            confirmButtonClass: 'custom-confirm-btn',
-            cancelButtonClass: 'custom-cancel-btn',
-        }
-    ).catch((reason) => {
-        return reason;
+export const ConfirmMessage = async ({
+  message,
+  title,
+  confirmText,
+  cancelText,
+  options = {}
+}: {
+  message: string;
+  title: string;
+  confirmText?: string;
+  cancelText?: string;
+  options?: ElMessageBoxOptions;
+}) => {
+  return await ElMessageBox.confirm(message, title, {
+    confirmButtonText: confirmText,
+    cancelButtonText: cancelText,
+    draggable: true,
+    showConfirmButton: !!confirmText,
+    showCancelButton: !!cancelText,
+    dangerouslyUseHTMLString: true,
+    distinguishCancelAndClose: true,
+    showClose: false,
+    center: true,
+    confirmButtonClass: "custom-confirm-btn",
+    cancelButtonClass: "custom-cancel-btn",
+    customClass: "custom-message-box",
+    ...options
+  }).catch((reason) => {
+    return reason;
+  });
+};
+
+export const createAlertMessage = (content: string[] | string, align: "left" | "right" | "center" = "center") => {
+  let message: string = `<div style="text-align: ${ align }; user-select: none; font-size: 16px;">`;
+  if (Array.isArray(content)) {
+    content.forEach((str) => {
+      message += str;
+      message += "<br/>";
     });
+  } else if (content) {
+    content.split("\n").forEach((str) => {
+      message += str;
+      message += "<br/>";
+    });
+  }
+  message += "</div>";
+  return message;
 }

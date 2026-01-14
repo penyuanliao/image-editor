@@ -41,7 +41,7 @@ const handleNext = () => {
 <template>
   <div class="carousel-wrapper">
     <!-- 自訂左按鈕 -->
-    <div v-if="getActiveIndex() !== 0" class="custom-arrow left" @click="handlePrev()">
+    <div v-if="getActiveIndex() > 0" class="custom-arrow left" @click="handlePrev()">
       <el-icon>
         <ArrowLeft />
       </el-icon>
@@ -121,6 +121,7 @@ const handleNext = () => {
   width: 100%;
   display: flex;
   gap: 20px;
+  background-color: white;
 }
 
 .item {

@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 import { apiGetMaterials, type ResMaterialsData } from "@/api/materials.ts";
+import { useAuthStore } from "@/store/useAuthStore.ts";
 
 /**
  * 單一素材項目的格式
@@ -57,7 +58,9 @@ export const useMaterialsStore = defineStore("materialsStore", () => {
     isLoading.value = true;
     error.value = null;
     try {
-      const result = await apiGetMaterials();
+      const authStore = useAuthStore();
+
+      const result = await apiGetMaterials({ authorization: authStore.authorization || "" });
 
       if (result.status) rawData.value = result.data;
       return result;

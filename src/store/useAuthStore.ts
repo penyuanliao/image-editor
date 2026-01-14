@@ -3,13 +3,6 @@ import { computed, ref } from "vue";
 import { apiLogin, type LoginResponseResult, type UserInfo } from "@/api/login.ts";
 import { getUrlParam } from "@/Utilities/urlHelper.ts";
 
-export interface ResponseResult {
-  status: boolean;
-  error?: string;
-  data: {
-    authorization: string;
-  };
-}
 // TODO: 何時重新驗證
 // PD驗證
 export const useAuthStore = defineStore("authStore", () => {
@@ -19,7 +12,11 @@ export const useAuthStore = defineStore("authStore", () => {
   // 記錄錯誤訊息
   const error = ref<string | null>(null);
 
-  const _authorization = ref<string | null>(null);
+  const userInfo = ref<{ username: string; code: string, authorization: string | null }>({
+    username: "",
+    code: "",
+    authorization: null
+  });
 
   // 從 API 獲取模板的 action
   const checkLogin = async () => {
@@ -27,16 +24,18 @@ export const useAuthStore = defineStore("authStore", () => {
     error.value = null;
     try {
       // 使用者名稱
-      const user: string = getUrlParam("user");
-      // 使用者sid
-      const sid: string = getUrlParam("sid");
+      const username: string = getUrlParam("username");
+      // 使用者token
+      const token: string = getUrlParam("token");
       // 使用者驗證碼
-      const code: string = getUrlParam("code");
+      const logincode: string = getUrlParam("logincode");
+      const env: string = getUrlParam("env");
 
-      const result: LoginResponseResult = await apiLogin({ user, sid, code });
+      const result: LoginResponseResult = await apiLogin({ username, token, logincode, env });
       if (result.status) {
         rawData.value = result.data;
-        _authorization.value = result.data?.token || null;
+        userInfo.value.authorization = result.data?.authorization || null;
+        userInfo.value.username = username || "";
         return result;
       } else {
         error.value = result.error || "驗證失敗";
@@ -50,16 +49,17 @@ export const useAuthStore = defineStore("authStore", () => {
   };
   // 是否登入
   const isLogin = () => {
-    return !!_authorization.value;
+    return !!userInfo.value.authorization;
   };
   // 授權碼
-  const authorization = computed(() => _authorization.value);
+  const authorization = computed(() => userInfo.value.authorization);
 
   return {
     isLoading,
     error,
     checkLogin,
     isLogin,
-    authorization
+    authorization,
+    userInfo,
   };
 });

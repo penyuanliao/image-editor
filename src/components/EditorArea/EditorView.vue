@@ -19,9 +19,14 @@ import NContextMenu from "@/components/EditorArea/NContextMenu.vue";
 import NTextEditable from "@/components/Basic/NTextEditable.vue";
 import NTextArea from "@/components/Basic/NTextArea.vue";
 import NZoomControl from "@/components/Basic/NZoomControl.vue";
+import { Download, Upload } from "@element-plus/icons-vue";
+import { useMainStore } from "@/store/useMainStore.ts";
+import { getUrlParam } from "@/Utilities/urlHelper.ts";
 // import {uploadImage} from "@/api/uploader.ts";
 
 const editorStore = useEditorStore();
+const mainStore = useMainStore();
+
 const emit = defineEmits(["element-selected"]);
 
 const canvas = ref<HTMLCanvasElement | null>(null);
@@ -273,27 +278,23 @@ const preview = async (blob: boolean = false) => {
 // 儲存裁切後的圖片
 const saveImage = async () => {
   const href = await preview() as string;
-  // const b = await preview(true);
-  // if (b instanceof Blob) {
-  //   const data = await uploadImage("16981343891091.png", b, { hallId: "6", width: '310' , height: '196' });
-  //   console.log(data);
-  // }
-
-  // editorStore.saveConfirm = true;
-  if (href) {
-    editorStore.setPreviewImage(href);
-    // 4. 將暫時畫布的內容轉換為圖片的 data URL 並觸發下載
-    const link = document.createElement("a");
-    link.href = href;
-    link.download = editorStore.pageName
-      ? `${editorStore.pageName}.png`
-      : `edited-image-${Date.now()}.png`; // 加上時間戳避免檔名重複
-    document.body.appendChild(link); // Firefox 需要將 link 加入 DOM
-    link.click();
-    document.body.removeChild(link); // 清理 DOM
+  const imageByBlob = await preview(true);
+  if (href && imageByBlob instanceof Blob) {
+    const filename = getUrlParam('filename') || "image.png";
+    await mainStore.startUploadAndDownload(imageByBlob, href, filename);
   }
 };
+const handleUploadImage = async () => {
+  const filename = getUrlParam('filename') || "image.png";
+  const href = await preview() as string;
+  const imageByBlob = await preview(true);
+  if (imageByBlob instanceof Blob) {
+    await mainStore.startUpload(imageByBlob, href, filename);
+  } else {
+    // 產生圖片失敗
+  }
 
+}
 // --- 右鍵選單方法 ---
 // 共用鍵盤快捷鍵參數
 const handleContextMenuCommand = (action: string) => {
@@ -578,8 +579,12 @@ defineExpose({
         >
           <div class="prompt-content">
             <div class="prompt-icon"><Symbols name="picture" /></div>
-            <h1>开始产生影像</h1>
-            <p>选择素材添加文字、效果和AI，线上编辑您的图片。</p>
+            <h1>{{ `开始制作 ${ editor.artboardSize.width }x${ editor.artboardSize.height } 广宣图` }}</h1>
+            <p>
+              选择背景&ensp;<span><Symbols name="arrow-right"/></span>&ensp;添加素材
+              &ensp;<span><Symbols name="arrow-right"/></span>&ensp;编辑文字
+              &ensp;<span><Symbols name="arrow-right"/></span>&ensp;完成存档
+            </p>
           </div>
         </div>
       </div>
@@ -591,13 +596,20 @@ defineExpose({
         :element="contextMenu.element"
         @command="handleContextMenuCommand"
       />
-      <div class="actions-bar" v-if="editorStore.elements.length !== 0">
-        <el-button class="save-button" @click="saveImage">
-          <el-icon size="20"><Symbols name="download" /></el-icon>
-          <span>储存图片</span>
+      <div class="actions-bar">
+
+      </div>
+      <div class="control-bar" v-if="editorStore.elements.length !== 0">
+        <el-button class="file-ctrl-btn" @click="handleUploadImage">
+          <el-icon size="20"><Upload /></el-icon>
+          <span>存擋關閉</span>
+        </el-button>
+        <el-button class="file-ctrl-btn" @click="saveImage">
+          <el-icon size="20"><Download /></el-icon>
+          <span>存擋下載</span>
         </el-button>
         <div class="zoom-controls">
-          <NZoomControl v-if="advancedDefaults.zoomEnabled" />
+          <NZoomControl v-if="advancedDefaults.zoomEnabled" :visible="generalDefaults.zoomControlVisible"/>
         </div>
         <NCropControls
           :crop-box="editor.cropBox"
@@ -733,9 +745,22 @@ defineExpose({
     }
   }
 }
-
 .actions-bar {
-  position: relative;
+  position: absolute;
+  top: 200px;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+  transition: opacity 0.3s;
+  border-radius: 20px;
+  /* 1. 將此元素定義為一個尺寸查詢容器，'size' 允許查詢寬度和高度 */
+}
+.control-bar {
+  position: absolute;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -747,7 +772,7 @@ defineExpose({
   width: calc(100% - 4px);
 }
 
-.save-button {
+.file-ctrl-btn {
   width: 146px;
   height: 50px;
   padding: 10px 20px;
@@ -761,21 +786,33 @@ defineExpose({
   font-size: 15px;
 }
 
-.save-button:hover {
+.file-ctrl-btn:hover {
   background-color: #95d475;
 }
 .zoom-controls {
-  position: absolute;
+  position: relative;
   display: flex;
-  top: 0;
+  bottom: -10px;
   right: 8px;
-  height: 100%;
+  height: 44px;
   width: fit-content;
   justify-content: right;
-  background-color: white;
+  //background-color: white;
   border-radius: 999px;
   align-items: center;
+  padding-left: 10px;
+  padding-right: 10px;
 }
+.right-controls {
+  position: absolute;
+  right: 8px;
+  height: 100%;
+  display: flex;
+  justify-content: right;
+  align-items: flex-end;
+  width: fit-content;
+}
+
 
 .context-menu {
   position: fixed; /* 使用 fixed 定位，相對於視窗 */
@@ -828,4 +865,5 @@ defineExpose({
   align-items: center;
   pointer-events: none;
 }
+
 </style>

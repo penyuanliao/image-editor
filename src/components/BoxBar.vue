@@ -76,11 +76,12 @@ onMounted(() => {
 @use "../styles/theme";
 
 .box-bar-container {
-  width: 85px;
+  width: var(--box-bar-width);
   display: flex;
   justify-content: flex-start;
   flex-shrink: 0;
   border-right: 1px solid theme.$border-color-base;
+  transition: width 0.2s ease;
 }
 .box-bar-group {
   display: flex;
@@ -123,4 +124,17 @@ onMounted(() => {
     font-size: 12px;
   }
 }
+
+@media (max-width: 100px) {
+
+  .box-bar-group {
+    gap: 15px;
+  }
+  .box-item {
+    width: 50px;
+    height: 50px;
+  }
+}
+
+
 </style>

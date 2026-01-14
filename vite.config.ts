@@ -16,8 +16,11 @@ export default defineConfig((configEnv: ConfigEnv) => {
       configureServer(server: ViteDevServer) {
         server.middlewares.use(
           async (req: IncomingMessage, res: ServerResponse, next: () => void) => {
-            if (req.url === API_ENDPOINTS.GET_MATERIALS) {
-              const filePath = path.resolve(__dirname, "./src/test/material.json");
+            if (req.url === API_ENDPOINTS.GET_MATERIALS || req.url === API_ENDPOINTS.COMMENT) {
+              let file: string = '';
+              if (req.url === API_ENDPOINTS.GET_MATERIALS) file = "./src/test/material.json";
+              if (req.url === API_ENDPOINTS.COMMENT) file = "./src/test/comment.json";
+              const filePath = path.resolve(__dirname, file);
               const json = fs.readFileSync(filePath, "utf-8");
               await new Promise((resolve) => setTimeout(resolve, Math.random() * 1000)); // 模擬網路延遲
               res.setHeader("Content-Type", "application/json");
@@ -50,7 +53,13 @@ export default defineConfig((configEnv: ConfigEnv) => {
               res.setHeader("Content-Type", "application/json");
               res.end(json);
             }
-
+            if (req.url === "/offer/uploadimg") {
+              const filePath = path.resolve(__dirname, "./src/test/uploadImage.json");
+              const json = fs.readFileSync(filePath, "utf-8");
+              await new Promise((resolve) => setTimeout(resolve, Math.random() * 1000)); // 模擬網路延遲
+              res.setHeader("Content-Type", "application/json");
+              res.end(json);
+            }
             // if (req.url === API_ENDPOINTS.IMAGE_GENERATE && req.method === 'POST') {
             //   // 模擬一個成功的 AI 圖片生成回應
             //   await new Promise(resolve => setTimeout(resolve, 1000)); // 模擬網路延遲

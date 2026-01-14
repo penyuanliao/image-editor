@@ -46,7 +46,7 @@ const handleNext = (index: number) => {
       <h2 class="group-title">{{ group.groupName }}</h2>
       <div class="carousel-wrapper">
         <!-- 自訂左按鈕 -->
-        <div v-if="getActiveIndex(index) !== 0" class="custom-arrow left" @click="handlePrev(index)">
+        <div v-if="getActiveIndex(index) > 0" class="custom-arrow left" @click="handlePrev(index)">
           <el-icon>
             <ArrowLeft/>
           </el-icon>
@@ -55,7 +55,7 @@ const handleNext = (index: number) => {
         <el-carousel :ref="(el: any) => (carouselRefs[index] = el)"
                      :loop="false" :autoplay="false" :indicator-position="'none'" class="group-carousel"
                      :arrow="'never'" height="100px">
-          <el-carousel-item class="el-carousel-item" v-for="row in group.groupItems">
+          <el-carousel-item class="el-carousel-item" v-for="(row, itemIndex) in group.groupItems" :key="`row-${itemIndex}`">
             <div class="item" v-for="item in row" :key="`item-${item.id}`">
               <div class="image-item">
                 <NImage :src="item.src" fit="contain" @click="handleChange(item, index)"/>
@@ -147,6 +147,7 @@ const handleNext = (index: number) => {
   width: 100%;
   display: flex;
   gap: 20px;
+  background-color: white;
 }
 
 .item {

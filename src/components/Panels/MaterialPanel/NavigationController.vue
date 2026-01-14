@@ -115,7 +115,7 @@ watch(currentStep, (newIndex) => {
     <div class="content-wrapper" ref="contentWrapper">
       <section class="view scroll-bar-hidden">
         <div class="content">
-          <NSearchButton v-model:input="input" @change="handleInputChange"/>
+          <NSearchButton class="search-btn" v-model:input="input" @change="handleInputChange"/>
           <p>最近使用過的素材</p>
           <div class="recently-used">
             <NCarouselView @change="handleRecentlyImageChange"/>
@@ -177,6 +177,13 @@ watch(currentStep, (newIndex) => {
   position: relative;
   height: 100%;
 }
+
+.search-btn {
+  position: sticky;
+  top: 0;
+  background-color: white;
+}
+
 .view {
   display: flex;
   flex-direction: column;

@@ -1,6 +1,7 @@
 import {defineStore} from "pinia";
 import {ref, computed} from "vue";
 import { uploadImage, type UploadImageResult } from "@/api/uploader.ts";
+import type { LoadingInstance } from "element-plus";
 
 export const useUploadStore = defineStore("uploadStore", () => {
     // --- State ---
@@ -18,11 +19,13 @@ export const useUploadStore = defineStore("uploadStore", () => {
      * @param fileName 檔案名稱
      * @param blob 圖片 Blob 物件
      * @param metaData 額外參數 (hallId, width, height 等)
+     * @param loadingInstance
      */
     const executeUpload = async (
         fileName: string,
         blob: Blob,
-        metaData?: { hallId?: string; width?: string; height?: string; bytes?: string; url?: string }
+        metaData?: { hallId?: string; width?: string; height?: string; bytes?: string; url?: string },
+        loadingInstance?: LoadingInstance
     ):Promise<UploadImageResult | null> => {
         if (isUploading.value) return null;
 
@@ -31,7 +34,11 @@ export const useUploadStore = defineStore("uploadStore", () => {
         lastUploadedResult.value = null;
 
         try {
-            const result = await uploadImage(fileName, blob, metaData);
+            const result = await uploadImage(fileName, blob, metaData, (percent: number) => {
+              if (loadingInstance) {
+                loadingInstance.setText(`上傳中... ${percent}%`);
+              }
+            });
 
             if (result && result.status === "Y") {
                 lastUploadedResult.value = result;

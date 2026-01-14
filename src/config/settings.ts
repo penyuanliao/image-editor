@@ -1,5 +1,10 @@
 import { BoxBarTypes } from "@/types.ts";
 
+export interface IZoomControlVisible {
+  slider: boolean;
+  decreaseIncrease: boolean;
+}
+
 export interface IGeneralSettings {
   viewport: {
     width: number;
@@ -18,6 +23,8 @@ export interface IGeneralSettings {
     min: number;
     perUnit: number;
   };
+  // 放大縮小按鈕模式
+  zoomControlVisible: IZoomControlVisible
   // 網底
   gridBackground: "blackAndWhite" | "white" | "none";
   // 最近使用過素材最大值
@@ -57,8 +64,12 @@ export const generalDefaults: IGeneralSettings = {
   maxUndoOperations: 20,
   zoomLimits: {
     max: 5,
-    min: 0.2,
+    min: 0.1,
     perUnit: 0.1
+  },
+  zoomControlVisible: {
+    slider: true,
+    decreaseIncrease: false
   },
   gridBackground: "none",
   maxRecentFiles: 20,
@@ -68,8 +79,6 @@ export const appearanceDefaults = {
   AIStyles: [
     // { name: '自订', value: 0, key: 'custom', url: './assets/themes/img_custom.png' },
     { name: "3D插画", value: 1, key: "Illustration Style", url: "./assets/themes/img_3d.jpg" },
-    { name: "吉卜力風格", value: 2, key: "Ghibli Style", url: "./assets/themes/img_cartoon.jpg" },
-    { name: "动漫", value: 3, key: "Anime Style", url: "./assets/themes/img_anime.jpg" },
     {
       name: "赛博庞克",
       value: 4,
@@ -77,7 +86,6 @@ export const appearanceDefaults = {
       class: "cyberpunk",
       url: "./assets/themes/img_cyberpunk.jpg"
     },
-    { name: "水彩畫", value: 5, key: "watercolor", url: "./assets/themes/img_watercolor.jpg" },
     { name: "塗鴉藝術", value: 6, key: "Graffiti", url: "./assets/themes/img_oil_painting.jpg" }
   ],
   colorMask: [

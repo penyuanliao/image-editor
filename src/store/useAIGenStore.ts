@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import {computed, ref} from "vue";
 import { type AIGenRequest, type ImageGenerateResult, apiImageGenerate } from "@/api/generate.ts";
+import { useAuthStore } from "@/store/useAuthStore.ts";
 
 export interface IGenerateSource {
   image: HTMLImageElement;
@@ -77,7 +78,11 @@ export const useAIGenStore = defineStore("aiGenStore", () => {
       } else {
 
       }
-      const result: ImageGenerateResult = await apiImageGenerate(JSON.stringify(body));
+      const authStore = useAuthStore();
+
+      const authorization = authStore.authorization || "";
+
+      const result: ImageGenerateResult = await apiImageGenerate(JSON.stringify(body), { authorization });
       if (result.status) {
         remainingTries.value--;
         if (source.materialId) {
@@ -120,6 +125,6 @@ export const useAIGenStore = defineStore("aiGenStore", () => {
     fetchGenerate,
     hasOriginalImage,
     getOriginalImage,
-    setOriginalImage
+    setOriginalImage,
   };
 });
