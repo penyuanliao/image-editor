@@ -20,6 +20,8 @@ const NAV_CTRL_STEPS = {
   SEARCH_VIEW: 2 // 搜尋頁面
 };
 
+const viewContainer = ref<HTMLDivElement | null>(null);
+
 const contentWrapper = ref<HTMLDivElement | null>(null);
 
 const galleryViewRef = ref<HTMLDivElement>();
@@ -97,7 +99,7 @@ onMounted(async () => {
 
 watch(currentStep, (newIndex) => {
   if (contentWrapper.value) {
-    const viewWidth = contentWrapper.value.children[0]?.clientWidth || 0;
+    const viewWidth = viewContainer.value?.clientWidth || 0;
     gsap.to(contentWrapper.value, {
       x: -newIndex * viewWidth,
       duration: 0.4,
@@ -111,10 +113,10 @@ watch(currentStep, (newIndex) => {
 </script>
 
 <template>
-  <div class="view-container">
-    <div class="content-wrapper" ref="contentWrapper">
-      <section class="view scroll-bar-hidden">
-        <div class="content">
+  <div class="view-container" ref="viewContainer">
+    <div class="material-content-wrapper" ref="contentWrapper">
+      <section class="view scroll-bar-custom">
+        <div>
           <NSearchButton class="search-btn" v-model:input="input" @change="handleInputChange"/>
           <p>最近使用過的素材</p>
           <div class="recently-used">
@@ -126,13 +128,13 @@ watch(currentStep, (newIndex) => {
           />
         </div>
       </section>
-      <section ref="galleryViewRef" class="view scroll-bar-hidden">
+      <section ref="galleryViewRef" class="view scroll-bar-custom">
         <el-page-header class="header" @back="handleViewClick(NAV_CTRL_STEPS.GROUP_VIEW)">
           <template #content>
             <h2>{{ categoryName }}</h2>
           </template>
         </el-page-header>
-        <div class="content">
+        <div class="material-content">
           <NSearchButton v-model:input="input" @change="handleInputChange"/>
           <CategoryGalleryView
             v-bind:data="materialsStore.categoryImages"
@@ -140,13 +142,13 @@ watch(currentStep, (newIndex) => {
           />
         </div>
       </section>
-      <section class="view filter-wrapper">
+      <section class="view filter-wrapper scroll-bar-custom">
         <el-page-header class="header" @back="handleViewClick(NAV_CTRL_STEPS.GROUP_VIEW)">
           <template #content>
             <h2>素材分類</h2>
           </template>
         </el-page-header>
-        <div class="view content">
+        <div class="view material-content">
           <p>搜尋結果</p>
           <NSearchButton v-model:input="input" @change="handleInputChange" @clear="handleInputClear"/>
           <CategoryGalleryView v-bind:data="materialsStore.filtered" @change="handleImageChange" />
@@ -167,7 +169,7 @@ watch(currentStep, (newIndex) => {
   color: theme.$text-color;
 }
 
-.content-wrapper {
+.material-content-wrapper {
   display: flex;
   position: relative;
   height: 100%;
@@ -182,6 +184,7 @@ watch(currentStep, (newIndex) => {
   position: sticky;
   top: 0;
   background-color: white;
+  z-index: 100;
 }
 
 .view {
@@ -193,6 +196,7 @@ watch(currentStep, (newIndex) => {
   box-sizing: border-box;
   min-height: 400px; /* 保持最小高度 */
   overflow: auto;
+
   .header {
     display: flex;
     align-items: center;
@@ -201,7 +205,7 @@ watch(currentStep, (newIndex) => {
     padding: 40px 0 5px 0;
     gap: 5px;
   }
-  .content {
+  .material-content {
     flex: 1;
     //display: flex;
   }

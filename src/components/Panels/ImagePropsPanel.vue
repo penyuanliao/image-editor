@@ -452,7 +452,7 @@ const handleSaveHistory = () => {
         </el-tooltip>
       </div>
     </div>
-    <el-divider border-style="solid" />
+    <el-divider class="line" border-style="solid" />
     <div class="additional">
       <AIPanel
         v-if="(editorStore.selectedElement?.config as IImageConfig)?.imageGenMode"
@@ -468,7 +468,6 @@ const handleSaveHistory = () => {
   position: relative;
   display: flex;
   width: 100%;
-  gap: 10px;
 }
 .properties {
   position: relative;
@@ -529,4 +528,10 @@ const handleSaveHistory = () => {
 .full-stage-btn {
   min-height: 36px;
 }
+
+.line {
+  margin-top: 25px;
+  margin-bottom: 14px;
+}
+
 </style>

@@ -78,15 +78,15 @@ export const generalDefaults: IGeneralSettings = {
 export const appearanceDefaults = {
   AIStyles: [
     // { name: '自订', value: 0, key: 'custom', url: './assets/themes/img_custom.png' },
-    { name: "3D插画", value: 1, key: "Illustration Style", url: "./assets/themes/img_3d.jpg" },
+    { name: "3D插画", value: 1, key: "Illustration Style", url: "./assets/themes/img_3d.png" },
     {
       name: "赛博庞克",
       value: 4,
       key: "cyberpunk",
       class: "cyberpunk",
-      url: "./assets/themes/img_cyberpunk.jpg"
+      url: "./assets/themes/img_cyberpunk.png"
     },
-    { name: "塗鴉藝術", value: 6, key: "Graffiti", url: "./assets/themes/img_oil_painting.jpg" }
+    { name: "塗鴉藝術", value: 6, key: "Graffiti", url: "./assets/themes/img_oil_painting.png" }
   ],
   colorMask: [
     { name: "藍色", value: 1, key: "blue" },

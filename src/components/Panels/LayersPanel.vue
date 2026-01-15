@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUpdate, type PropType, ref, watch } from "vue";
+import { computed, onBeforeUpdate, onMounted, type PropType, ref, watch } from "vue";
 import { useEditorStore } from "@/store/editorStore.ts";
 import draggable from "vuedraggable";
 import { ElementTypesEnum, type ICanvasElement, type ITextConfig } from "@/types.ts";
@@ -24,6 +24,10 @@ const props = defineProps({
   scrollToSelected: {
     type: Boolean,
     default: false
+  },
+  visible: {
+    type: Boolean,
+    default: true
   }
 });
 
@@ -32,6 +36,7 @@ const editorStore = useEditorStore();
 const { elements } = storeToRefs(editorStore);
 
 const layersContainer = ref<HTMLDivElement | null>(null);
+const layersBackgroundRef = ref<HTMLDivElement | null>(null);
 
 const layerRefs = ref<Map<string, HTMLElement>>(new Map());
 
@@ -104,7 +109,7 @@ watch(
         // 如果元素不在可視範圍內，才執行滾動
         if (!isVisible && props.scrollToSelected) {
           gsap.to(layersContainer.value, {
-            duration: 0.5,
+            duration: 0.3,
             scrollTo: { y: targetElement, offsetY: 100 },
             ease: "power2.out"
           });
@@ -114,11 +119,30 @@ watch(
   },
   { deep: true, flush: "post" }
 );
+
+watch(
+  () => props.visible,
+  (val) => {
+    if (!layersBackgroundRef.value) return;
+    gsap.to(layersBackgroundRef.value, {
+      height: val ? "auto" : 93, // GSAP 支援直接動畫至 "auto"
+      duration: 0.5,
+      ease: "power2.out"
+    });
+  }
+);
+
+onMounted(() => {
+  // 初始化狀態：如果不顯示，直接設定高度為 93px
+  if (!props.visible && layersBackgroundRef.value) {
+    gsap.set(layersBackgroundRef.value, { height: 93 });
+  }
+});
 </script>
 
 <template>
   <section ref="layersContainer" class="layers-section">
-    <div class="layers-background">
+    <div ref="layersBackgroundRef" class="layers-background">
       <div class="layers-object" :style="layersObjectStyle()">
         <div class="layers-wrapper">
           <div class="layer" @click="onClickBGHandle">
@@ -168,16 +192,20 @@ watch(
 @use "@/styles/theme";
 
 .layers-section {
+  --layer-item-width: 66px;
+  --layer-item-height: 66px;
+  --layers-width: 93px;
 }
 
 .layers-background {
   position: relative;
   display: flex;
-  width: 122px;
-  height: 100%;
-  border-radius: 20px;
+  width: 100%;
+  height: 100%; // 93
+  border-radius: 15px;
   background-color: theme.$panel-background-color;
   box-shadow: 0 3px 3px 0 theme.$shadow-color;
+  overflow: hidden;
 }
 
 .layers-object {
@@ -192,7 +220,7 @@ watch(
   &::-webkit-scrollbar {
     display: none;
   }
-  gap: 16px;
+  gap: 15px;
   padding-top: 16px;
   padding-bottom: 16px;
   span {
@@ -218,8 +246,8 @@ watch(
   border-radius: 5px;
 }
 .layer {
-  width: 80px;
-  height: 80px;
+  width: var(--layer-item-width, 80px);
+  height: var(--layer-item-height, 80px);
   font-size: 12px;
   display: flex;
   position: relative;

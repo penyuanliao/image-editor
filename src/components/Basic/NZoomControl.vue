@@ -70,6 +70,7 @@ const zoomOut = () => {
         v-model="zoom"
         :min="10"
         :max="500"
+        :show-tooltip="false"
         :disabled="disabled"
       />
       <p class="zoom-value">{{ zoomPercentage }}</p>
@@ -132,7 +133,7 @@ const zoomOut = () => {
   max-width: 250px;
   padding-left: 10px;
   padding-top: 4px;
-  --el-slider-main-bg-color: #D9D9D9;
+  --el-slider-main-bg-color: transparent;
   :deep(.el-slider__button) {
     border-color: #F15624;
     border-width: 1px;

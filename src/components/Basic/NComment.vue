@@ -101,15 +101,13 @@ const handleCommentSubmit = async () => {
   </el-dialog>
 </template>
 
-<style lang="scss">
+<style scoped lang="scss">
+@use "@/styles/theme";
 .dialog-comment {
   --el-dialog-border-radius: 50px;
   min-height: 606px;
   max-width: 561px;
 }
-</style>
-<style scoped lang="scss">
-@use "@/styles/theme";
 .comment-header {
   font-size: 30px;
   color: theme.$text-color;

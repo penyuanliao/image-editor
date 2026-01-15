@@ -84,6 +84,16 @@ ul {
     display: none;
   }
 }
+.scroll-bar-custom {
+  scrollbar-color: #F5F5F5 transparent;
+  scrollbar-width: thin; /* Firefox: 設定為細捲軸 */
+
+  &::-webkit-scrollbar {
+    width: 5px;  /* 垂直捲軸寬度 */
+    height: 5px; /* 水平捲軸高度 */
+  }
+}
+
 .theme-white {
   background: white !important;
   .n-calendar-wrap {

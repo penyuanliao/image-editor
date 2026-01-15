@@ -13,7 +13,7 @@ export interface IGenerateSource {
 // 產生的AI圖片action
 export const useAIGenStore = defineStore("aiGenStore", () => {
   // 使用次數
-  const remainingTries = ref<number>(50);
+  const remainingTries = ref<number>(100);
   // 存放原始圖片資料
   const originalImages: Map<
     string,
@@ -35,7 +35,7 @@ export const useAIGenStore = defineStore("aiGenStore", () => {
       prompt?: string;
       choice?: number;
       color?: string;
-      mask?: boolean;
+      matting?: boolean;
     }
   ) => {
 
@@ -72,9 +72,9 @@ export const useAIGenStore = defineStore("aiGenStore", () => {
       } else if (args.color) {
         // 4. 顏色轉換
         body.color = args.color;
-      } else if (args.mask) {
+      } else if (args.matting) {
         // 5. 移除背景
-        body.mask = args.mask;
+        body.mask = args.matting;
       } else {
 
       }

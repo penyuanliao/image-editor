@@ -21,7 +21,7 @@ const props = defineProps({
 const emit = defineEmits(["update:progressValue"]);
 
 const handleCommentClick = () => {
-  mainStore.setCommentVisible(true);
+  mainStore.showComment(true);
 }
 
 </script>
@@ -38,7 +38,7 @@ const handleCommentClick = () => {
     />
     <img src="@/assets/icons/bbin.svg" height="38" alt="Logo" class="logo" />
     <div class="navbar-action">
-      <div class="layers-btn">
+      <div class="layers-btn" @pointerup="mainStore.showLayers = !mainStore.layersVisible">
         <el-icon class="icon" size="24">
           <Symbols name="layer-btn" />
         </el-icon>
@@ -93,15 +93,15 @@ const handleCommentClick = () => {
   top: 50%;
   transform: translateY(-50%);
   /*right: calc(340px + 14px);*/
-  right: 22px;
+  right: 16px;
   align-items: center;
 }
 .layers-btn {
   position: relative;
   display: flex;
   align-items: center;
-  max-width: 110px;
-  min-width: 110px;
+  max-width: 93px;
+  min-width: 93px;
   min-height: 56px;
   max-height: 56px;
   border-radius: 999px;
@@ -110,6 +110,7 @@ const handleCommentClick = () => {
   justify-content: center;
   cursor: pointer;
   gap: 10px;
+  pointer-events: none;
   background-color: theme.$navbar-btn-bg-color;
   .icon {
     width: 24px;

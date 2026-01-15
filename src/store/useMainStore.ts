@@ -40,6 +40,8 @@ export const useMainStore = defineStore("main", () => {
 
   const commentVisible = ref<boolean>(false);
 
+  const layersVisible = ref<boolean>(true);
+
   // 訊息
   const onMessage = (event: MessageEvent) => {
     console.log(`Received message from origin: ${event.origin} data: ${JSON.stringify(event.data)}`);
@@ -57,9 +59,15 @@ export const useMainStore = defineStore("main", () => {
   const setLoading = (status: boolean) => {
     isLoading.value = status;
   };
-  const setCommentVisible = (status: boolean) => {
+  const showComment = (status: boolean) => {
     commentVisible.value = status;
   }
+  const showLayers = computed({
+    get: () => layersVisible.value,
+    set: (value: boolean) => {
+      layersVisible.value = value;
+    }
+  })
 
   const setState = (newState: "loading" | "completed" | "denied") => {
     state.value = newState;
@@ -230,6 +238,7 @@ export const useMainStore = defineStore("main", () => {
     isLoading,
     isDev,
     commentVisible,
+    layersVisible,
     theme,
     version,
     marqueeText,
@@ -237,7 +246,8 @@ export const useMainStore = defineStore("main", () => {
     setLoading,
     toggleTheme,
     setState,
-    setCommentVisible,
+    showComment,
+    showLayers,
     setMarqueeText,
     initialization,
     startLogin,

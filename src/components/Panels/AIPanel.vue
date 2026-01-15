@@ -233,14 +233,14 @@ const onSubmitColor = async () => {
   }
 };
 // 送出移除背景生成
-const onSubmitMask = async () => {
+const onSubmitImageMatting = async () => {
   if (!editorStore.selectedElement) return false;
   if (!(await validate())) return;
   const elementId = editorStore.selectedElement?.id;
   const source = await createSource();
   if (!source) return;
   const result = await aiGenStore.fetchGenerate(source, {
-    mask: true
+    matting: true
   });
   if (result) {
     await setupChangeImage(elementId, source, result);
@@ -272,9 +272,9 @@ onMounted(() => {
 <template>
   <div v-if="imageGenMode != ImageGenModeEnum.NONE" class="images-gallery-container">
     <div class="heading">
-      <h2>AI生成</h2>
+      <h2>AI功能</h2>
       <div class="description">
-        <span class="text">您今日AI换图剩余次数: </span>
+        <span class="text">贵站AI功能本月剩余次数： </span>
         <span class="remaining-tries">{{ aiGenStore.remainingTries }}</span>
       </div>
     </div>
@@ -283,8 +283,11 @@ onMounted(() => {
         v-if="imageGenMode === ImageGenModeEnum.STYLE || imageGenMode === ImageGenModeEnum.CUSTOM"
         class="ai-select-stylize"
       >
-        <el-tabs v-model="genStyleConfig.type" @tab-change="handleTabsChange">
-          <el-tab-pane label="物件转变" :name="StyleGenTypes.convert">
+        <el-tabs class="ai-tab" v-model="genStyleConfig.type" @tab-change="handleTabsChange">
+          <el-tab-pane :name="StyleGenTypes.convert">
+            <template #label>
+              <span class="custom-tab-label">物件转变</span>
+            </template>
             <div
               class="stylize"
               :style="{ 'pointer-events': aiGenStore.isLoading ? 'none' : 'auto' }"
@@ -302,18 +305,24 @@ onMounted(() => {
               </div>
             </div>
           </el-tab-pane>
-          <el-tab-pane label="风格调整" :name="StyleGenTypes.style">
+          <el-tab-pane :name="StyleGenTypes.style">
+            <template #label>
+              <span class="custom-tab-label">风格调整</span>
+            </template>
             <div class="style-adjustment">
               <span>即將推出</span>
             </div>
           </el-tab-pane>
-          <el-tab-pane label="自订生成" :name="StyleGenTypes.custom">
+          <el-tab-pane :name="StyleGenTypes.custom">
+            <template #label>
+              <span class="custom-tab-label">自订生成</span>
+            </template>
             <div class="prompt-content">
               <textarea
                 class="prompt-textarea"
                 type="textarea"
                 :rows="14"
-                placeholder="请输入您想产生的图片主题或描述(例如: 金色龙、轮盘、3D吉祥物...)"
+                placeholder="请输入您想要的素材提示词"
                 v-model="genStyleConfig.prompt"
               />
             </div>
@@ -328,7 +337,7 @@ onMounted(() => {
         />
       </div>
       <div class="footer">
-        <NPanelButton :loading="aiGenStore.isLoading" :disabled="!isSubmit()" @click="onSubmit">
+        <NPanelButton class="image-gen-btn" :loading="aiGenStore.isLoading" :disabled="!isSubmit()" @click="onSubmit">
           <template #default>
             {{ genStyleConfig.style === -2 ? "還原" : "生成" }}
           </template>
@@ -339,14 +348,15 @@ onMounted(() => {
           </template>
         </NPanelButton>
         <NPanelButton
+          class="image-matting-btn"
           :loading="aiGenStore.isLoading"
           v-if="imageGenMode === ImageGenModeEnum.CUSTOM"
-          @click="onSubmitMask()"
+          @click="onSubmitImageMatting()"
         >
           <template #default> 移除影像背景 </template>
           <template #icon>
             <el-icon size="22" :style="{ 'padding-right': '10px' }">
-              <Symbols name="magic" />
+              <Symbols name="image-matting" />
             </el-icon>
           </template>
         </NPanelButton>
@@ -382,7 +392,8 @@ onMounted(() => {
   flex-wrap: nowrap;
   align-items: center;
   justify-content: space-between;
-
+  height: 25px;
+  padding-bottom: 25px;
   h2 {
     font-size: 21px;
     font-weight: 400;
@@ -393,13 +404,13 @@ onMounted(() => {
   }
 
   .text {
-    font-size: 15px;
+    font-size: 13px;
     font-weight: 400;
-    color: theme.$text-color;
+    color: theme.$text-color-info;
   }
 
   .remaining-tries {
-    font-size: 15px;
+    font-size: 13px;
     font-weight: 400;
     color: theme.$button-text-color;
   }
@@ -430,15 +441,15 @@ onMounted(() => {
   position: relative;
   display: flex;
   flex-direction: column;
-  padding-bottom: 16px;
-  min-height: 302px;
+  padding-bottom: 23px;
+  min-height: fit-content;
 
   .stylize {
     display: flex;
     flex-wrap: wrap;
     flex-direction: row;
     //justify-content: space-between;
-    gap: 10px;
+    gap: 21px;
     width: 100%;
     position: relative;
     align-content: flex-start;
@@ -532,6 +543,7 @@ onMounted(() => {
 .prompt-content {
   position: relative;
   height: 100%;
+  width: 100%;
 }
 .prompt-textarea {
   min-height: 200px;
@@ -545,20 +557,41 @@ onMounted(() => {
   z-index: 10;
   overflow: hidden;
   resize: none;
-  padding: 10px 10px;
-  font-size: 16px;
+  padding: 11px 8px;
+  font-size: 15px;
+  font-weight: 400;
+  &::placeholder {
+    font-size: 15px;
+  }
 }
 
 :deep(.el-tabs__item.is-active) {
-  color: #f15624;
+  .custom-tab-label {
+    color: white !important;
+    border: 1px solid #f15624;
+    background-color: #F15624;
+  }
 }
 
 :deep(.el-tabs__active-bar) {
-  background-color: #f15624;
+  background-color: transparent;
 }
 :deep(.el-tabs__item) {
   font-size: 16px; /* 在這裡調整你想要的字體大小 */
   font-weight: 500;
+  padding: 0 14px 0 0;
+}
+:deep(.el-tabs__nav-wrap::after) {
+  display: none;
+}
+.custom-tab-label {
+  font-size: 15px;
+  font-weight: 400;
+  background-color: white;
+  border: 1px solid #D9D9D9;
+  color: black;
+  border-radius: 999px;
+  padding: 8px 11px 8px 11px;
 }
 .footer {
   width: 100%;
@@ -566,6 +599,15 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  align-items: center;
+  .image-gen-btn {
+    width: 281px;
+    height: 34px;
+  }
+  .image-matting-btn {
+    width: 281px;
+    height: 34px;
+  }
 }
 .el-button + .el-button {
   margin-left: 0;

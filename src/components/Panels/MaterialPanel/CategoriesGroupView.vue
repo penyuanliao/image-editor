@@ -2,7 +2,6 @@
 import {type IGalleryInfo, type IGroupThumbnail} from "@/store/useMaterialsStore.ts";
 import {type PropType, ref} from "vue";
 import NImage from "@/components/Basic/NImage.vue";
-import {ArrowRight, ArrowLeft} from "@element-plus/icons-vue";
 
 const props = defineProps({
   data: {
@@ -48,7 +47,9 @@ const handleNext = (index: number) => {
         <!-- 自訂左按鈕 -->
         <div v-if="getActiveIndex(index) > 0" class="custom-arrow left" @click="handlePrev(index)">
           <el-icon>
-            <ArrowLeft/>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" transform="rotate(180 8 8)"/>
+            </svg>
           </el-icon>
         </div>
 
@@ -69,7 +70,9 @@ const handleNext = (index: number) => {
         <div v-if="getActiveIndex(index) !== group.groupItems.length - 1" class="custom-arrow right"
              @click="handleNext(index)">
           <el-icon>
-            <ArrowRight/>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
           </el-icon>
         </div>
       </div>
@@ -111,30 +114,31 @@ const handleNext = (index: number) => {
 
 .custom-arrow {
   position: absolute;
-  top: 50%;
+  top: calc(50% - var(--label-height, 20px) / 2);
   transform: translateY(-50%);
   z-index: 10;
   cursor: pointer;
-  background-color: rgba(0, 0, 0, 0.5);
-  color: white;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
+  background-color: theme.$primary-color;
+  color: black;
+  width: 19px;
+  height: 48px;
+  border-radius: 5px;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: background-color 0.3s;
+  box-shadow: 0 3px 4px 0 #3F3F401A;
 
   &:hover {
-    background-color: rgba(0, 0, 0, 0.8);
+    color: #F15624;
   }
 
   &.left {
-    left: 0;
+    left: -10px;
   }
 
   &.right {
-    right: 0;
+    right: -10px;
   }
 }
 
