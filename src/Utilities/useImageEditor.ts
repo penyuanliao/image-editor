@@ -490,12 +490,14 @@ export const drawTransformHandles = (
   const handles = getTransformHandles(ctx, element);
   if (!handles) return null;
 
+  const editorStore = useEditorStore();
+  const scale = editorStore.viewTranslate.scale || 1;
+
   ctx.strokeStyle = stageTheme.borderColor;
-  ctx.lineWidth = stageTheme.borderStrokeWidth;
+  ctx.lineWidth = stageTheme.borderStrokeWidth / scale;
 
   // Draw bounding box
   ctx.stroke(handles.path);
-  const editorStore = useEditorStore();
 
   // Draw handles
   Object.entries(handles.points).forEach(([key, p]) => {
@@ -508,6 +510,7 @@ export const drawTransformHandles = (
     ctx.save();
     // 將原點移動到控制點中心以便繪製和旋轉
     ctx.translate(p.x, p.y);
+    ctx.scale(1 / scale, 1 / scale);
 
     // 不支援多選編輯
     if (multiple) return ctx.restore();
