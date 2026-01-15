@@ -52,27 +52,30 @@ export const drawBackground = (
 };
 /**
  * 繪製裁切框
- * @param canvasEl
  * @param ctx
  * @param cropBox
+ * @param scale
  */
 export const drawCropMarks = (
-  canvasEl: HTMLCanvasElement,
   ctx: CanvasRenderingContext2D,
-  cropBox: { x: number; y: number; width: number; height: number }
+  cropBox: { x: number; y: number; width: number; height: number },
+  scale: number = 1
 ) => {
+
   ctx.save();
   // 使用 "evenodd" 填充規則來建立一個有孔的矩形（遮罩）
   ctx.fillStyle = "#EEEEEE"; //"rgba(0, 0, 0, 0.5)";
   ctx.beginPath();
-  ctx.rect(0, 0, canvasEl.width, canvasEl.height); // 外矩形
+  // 繪製一個覆蓋整個畫布的大矩形 (確保縮放時也能覆蓋)
+  const huge = 100000 / scale;
+  ctx.rect(-huge, -huge, huge * 2, huge * 2); // 外矩形
   ctx.rect(cropBox.x, cropBox.y, cropBox.width, cropBox.height); // 內矩形 (孔)
   ctx.fill("evenodd"); // XOR
   ctx.restore();
 
   // 繪製裁切框的邊框
   ctx.strokeStyle = stageTheme.dropBoxColor;
-  ctx.lineWidth = stageTheme.dropBoxBorderWidth;
+  ctx.lineWidth = stageTheme.dropBoxBorderWidth / scale;
   ctx.strokeRect(cropBox.x, cropBox.y, cropBox.width, cropBox.height);
 };
 /**

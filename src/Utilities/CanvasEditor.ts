@@ -458,7 +458,7 @@ export class CanvasEditor {
       }
     });
     // 4. 繪製裁切框(元素後畫為了遮住元素)
-    drawCropMarks(canvas, ctx, cropBox);
+    drawCropMarks(ctx, cropBox, this.scale);
 
     // 5. 繪製控制項
     if (store.selectedElements.length > 0 && !this.editingElement) {
