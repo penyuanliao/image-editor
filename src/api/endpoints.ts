@@ -5,5 +5,6 @@ export const API_ENDPOINTS = {
   GET_MATERIALS: "/api/frontend/material/list",
   LOGIN: "/api/frontend/login",
   IMAGE_GENERATE: "/api/frontend/image/generate",
-  COMMENT: "/api/frontend/comment"
+  COMMENT: "/api/frontend/comment",
+  URL_RECORD: "/api/frontend/url/record"
 };

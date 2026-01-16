@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import {computed, ref} from "vue";
 import { type AIGenRequest, type ImageGenerateResult, apiImageGenerate } from "@/api/generate.ts";
-import { useAuthStore } from "@/store/useAuthStore.ts";
+import { useAccountStore } from "@/store/useAccountStore.ts";
 
 export interface IGenerateSource {
   image: HTMLImageElement;
@@ -52,13 +52,11 @@ export const useAIGenStore = defineStore("aiGenStore", () => {
       const body: AIGenRequest = {};
       // 1-1. 如果有帶素材編號就不是自己上傳物件
       if (source.materialId && source.materialId > 0) {
-        body.materialid = source.materialId;
+        // body.materialid = source.materialId;
+        body.materialurl = source.url;
       } else if (source.base64) {
         // 1-2. 這邊是手動上傳的圖片
         body.originalimage = source.base64.replace(/^data:image\/[a-z]+;base64,/, "");
-      } else {
-        // 1-3. 想直接從素材庫取出來
-        body.originalurl = source.image.src;
       }
 
       const choice = args.choice || 0;
@@ -74,13 +72,13 @@ export const useAIGenStore = defineStore("aiGenStore", () => {
         body.color = args.color;
       } else if (args.matting) {
         // 5. 移除背景
-        body.mask = args.matting;
+        body.matting = args.matting;
       } else {
 
       }
-      const authStore = useAuthStore();
+      const accountStore = useAccountStore();
 
-      const authorization = authStore.authorization || "";
+      const authorization = accountStore.authorization || "";
 
       const result: ImageGenerateResult = await apiImageGenerate(JSON.stringify(body), { authorization });
       if (result.status) {

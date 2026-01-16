@@ -101,6 +101,8 @@ onUnmounted(() => {
   gap: 10px;
   justify-content: center;
   align-items: center;
+  flex: 1;
+  min-width: 0;
 }
 .marquee-container {
   width: 100%;

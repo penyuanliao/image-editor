@@ -3,7 +3,6 @@ import NImage from "@/components/Basic/NImage.vue";
 import { computed, ref } from "vue";
 import { useEditorStore } from "@/store/editorStore.ts";
 import type { IUploadedImage } from "@/types.ts";
-import { ArrowLeft, ArrowRight } from "@element-plus/icons-vue";
 
 const emit = defineEmits({
   change: (value: IUploadedImage) => value

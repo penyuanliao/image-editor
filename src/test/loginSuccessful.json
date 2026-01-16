@@ -1,8 +1,8 @@
 {
   "status": true,
   "data": {
-    "authorization": "crypto_hash_token",
-    "user": "user",
-    "marqueeText": "這是跑馬燈訊息..."
+    "token": "crypto_hash_token",
+    "quota": 133,
+    "marquee": "岁末钟声渐近，感恩之心满溢！衷心感谢您 2025年一路相伴的信任与厚爱！ \uD83D\uDE4F 为铭刻这份珍贵情谊，我们倾情打造 “BBIN素材网”，邀您共度温暖佳节！ 点击解锁，让节日惊喜与新年祝福，加倍温暖您的岁末时光..."
   }
 }

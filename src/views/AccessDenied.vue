@@ -1,4 +1,15 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+
+import { onMounted } from "vue";
+import { useAlertStore } from "@/store/useAlertStore.ts";
+
+const alertStore = useAlertStore();
+
+onMounted(async () => {
+  await alertStore.alertPermissionDenied();
+})
+
+</script>
 
 <template>
   <section class="error-container">
@@ -16,8 +27,8 @@
         </svg>
       </el-icon>
     </div>
-    <h1>Authentication Error</h1>
-    <p>Access Denied.</p>
+    <h1>Access Denied</h1>
+    <p>Your account is not authorized to use the application.</p>
   </section>
 </template>
 

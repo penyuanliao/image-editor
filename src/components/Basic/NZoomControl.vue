@@ -16,6 +16,9 @@ const editorStore = useEditorStore();
 const zoomPercentage = computed(() => {
   return `${Math.round(editorStore.viewTranslate.scale * (editorStore.stage.config.scaleX || 1) * 100)}%`;
 });
+const zoomMaximum = computed(() => generalDefaults.zoomLimits.max * 100);
+
+const zoomMinimum = computed(() => generalDefaults.zoomLimits.min * 100);
 
 const zoomPerUnit: number = generalDefaults.zoomLimits.perUnit;
 
@@ -68,8 +71,8 @@ const zoomOut = () => {
         class="zoom-slider"
         size="small"
         v-model="zoom"
-        :min="10"
-        :max="500"
+        :min="zoomMinimum"
+        :max="zoomMaximum"
         :show-tooltip="false"
         :disabled="disabled"
       />

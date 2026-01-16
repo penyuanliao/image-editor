@@ -29,6 +29,9 @@ export interface IGeneralSettings {
   gridBackground: "blackAndWhite" | "white" | "none";
   // 最近使用過素材最大值
   maxRecentFiles: number;
+  logo: string;
+  // 幫助
+  helpUrl: string;
 }
 
 export interface IAdvancedSettings {
@@ -73,6 +76,8 @@ export const generalDefaults: IGeneralSettings = {
   },
   gridBackground: "none",
   maxRecentFiles: 20,
+  logo: "/assets/icons/logo.png",
+  helpUrl: "/assets-editor/help"
 };
 
 export const appearanceDefaults = {

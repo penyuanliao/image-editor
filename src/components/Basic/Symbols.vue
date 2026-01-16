@@ -110,7 +110,6 @@ export default defineComponent({
   </template>
   <template v-else-if="name === 'image-matting'">
     <svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="14" height="15" fill="white"/>
       <path d="M1.75 1.06235L1.62368 0C0.812241 0.116471 0.159713 0.785735 0 1.66588L0.958276 1.875C1.03632 1.44574 1.35454 1.11926 1.75 1.06235Z" fill="currentColor"/>
       <path d="M7.875 0H6.125V0.9375H7.875V0Z" fill="currentColor"/>
       <path d="M4.375 0H2.625V0.9375H4.375V0Z" fill="currentColor"/>

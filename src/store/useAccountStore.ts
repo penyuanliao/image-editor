@@ -5,17 +5,18 @@ import { getUrlParam } from "@/Utilities/urlHelper.ts";
 
 // TODO: 何時重新驗證
 // PD驗證
-export const useAuthStore = defineStore("authStore", () => {
+export const useAccountStore = defineStore("accountStore", () => {
   const rawData = ref<UserInfo>();
   // 記錄讀取狀態
   const isLoading = ref(false);
   // 記錄錯誤訊息
   const error = ref<string | null>(null);
 
-  const userInfo = ref<{ username: string; code: string, authorization: string | null }>({
+  const userInfo = ref<{ username: string; code: string, authorization: string | null, marqueeText: string }>({
     username: "",
     code: "",
-    authorization: null
+    authorization: null,
+    marqueeText: ""
   });
 
   // 從 API 獲取模板的 action
@@ -29,13 +30,13 @@ export const useAuthStore = defineStore("authStore", () => {
       const token: string = getUrlParam("token");
       // 使用者驗證碼
       const logincode: string = getUrlParam("logincode");
-      const env: string = getUrlParam("env");
 
-      const result: LoginResponseResult = await apiLogin({ username, token, logincode, env });
+      const result: LoginResponseResult = await apiLogin({ username, token, logincode });
       if (result.status) {
         rawData.value = result.data;
-        userInfo.value.authorization = result.data?.authorization || null;
+        userInfo.value.authorization = result.data?.token || null;
         userInfo.value.username = username || "";
+        userInfo.value.marqueeText = result.data?.marquee || "";
         return result;
       } else {
         error.value = result.error || "驗證失敗";

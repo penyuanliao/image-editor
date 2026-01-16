@@ -1416,6 +1416,186 @@
           ]
         }
       ]
+    },
+    {
+      "ID": 83,
+      "CategoryName": "父層-2",
+      "Info": [
+        {
+          "ID": 57,
+          "CategoryName": "VIP",
+          "Info": [
+            {
+              "ID": 51,
+              "MaterialName": "VIP_01",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/51/VIP_01.png",
+              "Tags": null
+            },
+            {
+              "ID": 52,
+              "MaterialName": "VIP_02",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/52/VIP_02.png",
+              "Tags": null
+            },
+            {
+              "ID": 53,
+              "MaterialName": "VIP_03",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/53/VIP_03.png",
+              "Tags": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ID": 82,
+      "CategoryName": "父層-2",
+      "Info": [
+        {
+          "ID": 57,
+          "CategoryName": "VIP",
+          "Info": [
+            {
+              "ID": 51,
+              "MaterialName": "VIP_01",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/51/VIP_01.png",
+              "Tags": null
+            },
+            {
+              "ID": 52,
+              "MaterialName": "VIP_02",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/52/VIP_02.png",
+              "Tags": null
+            },
+            {
+              "ID": 53,
+              "MaterialName": "VIP_03",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/53/VIP_03.png",
+              "Tags": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ID": 83,
+      "CategoryName": "父層-2",
+      "Info": [
+        {
+          "ID": 57,
+          "CategoryName": "VIP",
+          "Info": [
+            {
+              "ID": 51,
+              "MaterialName": "VIP_01",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/51/VIP_01.png",
+              "Tags": null
+            },
+            {
+              "ID": 52,
+              "MaterialName": "VIP_02",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/52/VIP_02.png",
+              "Tags": null
+            },
+            {
+              "ID": 53,
+              "MaterialName": "VIP_03",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/53/VIP_03.png",
+              "Tags": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ID": 84,
+      "CategoryName": "父層-2",
+      "Info": [
+        {
+          "ID": 57,
+          "CategoryName": "VIP",
+          "Info": [
+            {
+              "ID": 51,
+              "MaterialName": "VIP_01",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/51/VIP_01.png",
+              "Tags": null
+            },
+            {
+              "ID": 52,
+              "MaterialName": "VIP_02",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/52/VIP_02.png",
+              "Tags": null
+            },
+            {
+              "ID": 53,
+              "MaterialName": "VIP_03",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/53/VIP_03.png",
+              "Tags": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ID": 85,
+      "CategoryName": "父層-2",
+      "Info": [
+        {
+          "ID": 57,
+          "CategoryName": "VIP",
+          "Info": [
+            {
+              "ID": 51,
+              "MaterialName": "VIP_01",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/51/VIP_01.png",
+              "Tags": null
+            },
+            {
+              "ID": 52,
+              "MaterialName": "VIP_02",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/52/VIP_02.png",
+              "Tags": null
+            },
+            {
+              "ID": 53,
+              "MaterialName": "VIP_03",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/53/VIP_03.png",
+              "Tags": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ID": 86,
+      "CategoryName": "父層-2",
+      "Info": [
+        {
+          "ID": 57,
+          "CategoryName": "VIP",
+          "Info": [
+            {
+              "ID": 51,
+              "MaterialName": "VIP_01",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/51/VIP_01.png",
+              "Tags": null
+            },
+            {
+              "ID": 52,
+              "MaterialName": "VIP_02",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/52/VIP_02.png",
+              "Tags": null
+            },
+            {
+              "ID": 53,
+              "MaterialName": "VIP_03",
+              "Urlpath": "https://news3-test.bbinmkt.com/v3/generator/53/VIP_03.png",
+              "Tags": null
+            }
+          ]
+        }
+      ]
     }
   ]
 }

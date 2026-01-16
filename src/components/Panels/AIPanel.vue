@@ -310,7 +310,22 @@ onMounted(() => {
               <span class="custom-tab-label">风格调整</span>
             </template>
             <div class="style-adjustment">
-              <span>即將推出</span>
+              <div
+                class="stylize"
+                :style="{ 'pointer-events': aiGenStore.isLoading ? 'none' : 'auto' }"
+              >
+                <div
+                  v-for="style in styles"
+                  :key="style.key"
+                  class="item"
+                  @click="selectStyle(style.value)"
+                >
+                  <div class="image" :class="{ selected: genStyleConfig.style === style.value }">
+                    <img :src="style.url" alt="" />
+                  </div>
+                  <span>{{ style.name }}</span>
+                </div>
+              </div>
             </div>
           </el-tab-pane>
           <el-tab-pane :name="StyleGenTypes.custom">
@@ -361,7 +376,10 @@ onMounted(() => {
           </template>
         </NPanelButton>
       </div>
-      <div class="mask" v-if="aiGenStore.isLoading">正在執行BB AI素材生成...</div>
+      <div class="mask" v-if="aiGenStore.isLoading">
+        <img style="width: 60px; height: 60px;" src="/src/assets/icons/loading.gif" alt="loading"/>
+        <span>正在執行BB AI素材生成...</span>
+      </div>
     </div>
   </div>
 </template>
@@ -434,6 +452,12 @@ onMounted(() => {
   color: white;
   border-radius: 10px;
   z-index: 100;
+  flex-direction: column;
+
+  span {
+    font-weight: 400;
+    font-size: 18px;
+  }
 }
 
 .ai-select-stylize {
@@ -441,8 +465,9 @@ onMounted(() => {
   position: relative;
   display: flex;
   flex-direction: column;
-  padding-bottom: 23px;
   min-height: fit-content;
+  box-sizing: border-box;
+  padding: 10px 10px;
 
   .stylize {
     display: flex;
@@ -478,7 +503,6 @@ onMounted(() => {
     max-height: 80px;
     max-width: 80px;
     flex-shrink: 0;
-    background-color: rgba(80, 80, 80, 0.3);
     border-radius: 4px;
     margin-top: 5px;
     margin-bottom: 5px;
@@ -592,6 +616,10 @@ onMounted(() => {
   color: black;
   border-radius: 999px;
   padding: 8px 11px 8px 11px;
+  &:hover {
+    background-color: #FFC3B0;
+    border-color: #FFC3B0;
+  }
 }
 .footer {
   width: 100%;
@@ -600,6 +628,7 @@ onMounted(() => {
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  padding-bottom: 10px;
   .image-gen-btn {
     width: 281px;
     height: 34px;

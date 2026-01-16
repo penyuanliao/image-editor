@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Symbols from "./Basic/Symbols.vue";
-import { computed, onMounted } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { BoxBarTypes } from "../types.ts";
 import { appearanceDefaults } from "@/config/settings.ts";
 
@@ -18,7 +18,7 @@ const selected = computed({
     emit("update:selected", val);
   }
 });
-const buttonGroup: { icon: string; text: string; key: string }[] = [
+const buttonGroup = ref< { icon: string; text: string; key: string }[] >([
   {
     icon: "sticker",
     key: "image",
@@ -34,17 +34,17 @@ const buttonGroup: { icon: string; text: string; key: string }[] = [
     key: "upload",
     text: "上傳"
   }
-];
+]);
 const emit = defineEmits(["box-item-click", "update:selected"]);
 
 const handleClick = (index: number) => {
   if (index !== 2) selected.value = index;
-  const key: string = buttonGroup[index]?.key || "";
+  const key: string = buttonGroup.value[index]?.key || "";
   emit("box-item-click", BoxBarTypes[key] || "");
 };
 
 onMounted(() => {
-  selected.value = buttonGroup.findIndex(({ key }) => key === appearanceDefaults.boxBarSelected);
+  selected.value = buttonGroup.value.findIndex(({ key }) => key === appearanceDefaults.boxBarSelected);
   handleClick(selected.value);
 });
 </script>

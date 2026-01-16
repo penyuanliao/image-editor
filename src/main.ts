@@ -8,12 +8,15 @@ import "element-plus/dist/index.css";
 import "element-plus/theme-chalk/dark/css-vars.css";
 import "colorpickers/style.css";
 import App from "./App.vue";
+import router from "./router";
+
 // import {createGtm} from "@gtm-support/vue-gtm";
 // import App from './AppKonva.vue'
 
 const pinia = createPinia();
-const app = createApp(App);
+const app = createApp(App)
 app.use(pinia);
+app.use(router);
 app.use(VueKonva);
 app.use(ElementPlus);
 app.use(ColorPickers);

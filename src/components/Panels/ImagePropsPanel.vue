@@ -213,7 +213,7 @@ const handleSaveHistory = () => {
 </script>
 
 <template>
-  <NPanel padding="30px 25px 0 25px" :searchEnabled="false">
+  <NPanel padding="30px 13px 0 13px" :searchEnabled="false">
     <div v-if="editorStore.selectedElement" class="properties">
       <div class="view">
         <img :src="(editorStore.selectedElement?.config as IImageConfig)?.url" alt="" />
@@ -464,11 +464,7 @@ const handleSaveHistory = () => {
 
 <style scoped lang="scss">
 @use "@/styles/theme";
-.additional {
-  position: relative;
-  display: flex;
-  width: 100%;
-}
+
 .properties {
   position: relative;
   display: flex;
@@ -476,6 +472,10 @@ const handleSaveHistory = () => {
   width: 100%;
   gap: 10px;
   align-items: center;
+  padding: 0 10px;
+  box-sizing: border-box;
+  //margin-left: 10px;
+  //margin-right: 10px;
   span {
     flex-shrink: 0;
     font-size: 15px;
@@ -503,6 +503,11 @@ const handleSaveHistory = () => {
     }
   }
 }
+.additional {
+  position: relative;
+  display: flex;
+  width: 100%;
+}
 .label {
   width: 20px;
 }
@@ -522,6 +527,13 @@ const handleSaveHistory = () => {
     &:hover {
       box-shadow: 0 0 0 1px var(--el-input-hover-border-color) inset;
     }
+  }
+
+}
+.el-input {
+  &:deep(.el-input__wrapper) {
+    padding-right: 6px;
+    padding-left: 6px;
   }
 }
 

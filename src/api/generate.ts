@@ -17,7 +17,7 @@ export interface AIGenRequest {
   prompt?: string;
   choice?: number;
   color?: string; // 處理顏色
-  mask?: boolean; // 處理去背
+  matting?: boolean; // 處理去背
 }
 
 // 3. 建立一個專門用來擷取資料的函式

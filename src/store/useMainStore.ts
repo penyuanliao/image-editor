@@ -3,10 +3,11 @@ import { computed, ref } from "vue";
 import { ElLoading } from "element-plus";
 import { useUploadStore } from "@/store/useUploadStore.ts";
 import { getUrlParam } from "@/Utilities/urlHelper.ts";
-import { ConfirmMessage } from "@/Utilities/AlertMessage.ts";
 import { nanoid } from "nanoid";
-import { useAuthStore } from "@/store/useAuthStore.ts";
+import { useAccountStore } from "@/store/useAccountStore.ts";
 import { NStorageManager } from "@/library/NStorageManager.ts";
+import { useAlertStore } from "@/store/useAlertStore.ts";
+import { apiUrlRecord } from "@/api/urlRecord.ts";
 
 const PD_UPLOAD_STATE = {
   WAIT: 0,
@@ -32,7 +33,7 @@ export const useMainStore = defineStore("main", () => {
   const storageData = ref<{ help: boolean }>({ help: false });
 
   // 跑馬燈資料
-  const marqueeText = ref<string>("這是跑馬燈訊息");
+  const marqueeText = ref<string>("");
   // 載入狀態
   const state = ref<"loading" | "completed" | "denied">("loading");
   // 監聽PostMessage回傳
@@ -93,16 +94,18 @@ export const useMainStore = defineStore("main", () => {
       setState("denied");
       return;
     }
-    const authStore = useAuthStore();
+    const accountStore = useAccountStore();
     // 2. 開始進行檢查登入狀態
-    await authStore.checkLogin();
-    if (!authStore.isLogin()) {
+    console.log("開始進行檢查登入狀態", accountStore.isLogin());
+    if (!accountStore.isLogin()) await accountStore.checkLogin();
+    setMarqueeText(accountStore.userInfo.marqueeText || "");
+    if (!accountStore.isLogin()) {
       setState("denied");
       return;
     }
     setState("completed");
   }
-  const pdUpload = async (blob: Blob, fileName: string): Promise<PDUploadState> => {
+  const pdUpload = async (blob: Blob, fileName: string): Promise<{ status: PDUploadState, url: string | null }> => {
     const url: string = getUrlParam("upload_url");
 
     // 2. 開始上傳檔案至後台PD
@@ -126,7 +129,7 @@ export const useMainStore = defineStore("main", () => {
       // 失敗怎麼辦
       waiting.setText(`上傳失敗`);
       waiting.close();
-      return PD_UPLOAD_STATE.FAILURE_UPLOAD;
+      return { status: PD_UPLOAD_STATE.FAILURE_UPLOAD, url: null };
     }
     console.log("executeUpload", result);
     // 3. 通知PD完成上傳
@@ -145,25 +148,11 @@ export const useMainStore = defineStore("main", () => {
     waiting.close();
     if (!openerResult.status) {
       // 通知失敗
-      return PD_UPLOAD_STATE.FAILURE_SEND_MESSAGE;
+      return { status: PD_UPLOAD_STATE.FAILURE_SEND_MESSAGE, url: result.data.link };
     } else {
-      return PD_UPLOAD_STATE.SUCCESS;
+      return { status: PD_UPLOAD_STATE.SUCCESS, url: result.data.link };
     }
   };
-  // 上傳失敗流程
-  const failureRule = async (href: string, fileName: string) => {
-    // 跳出Alert通知需要下載不然要關閉視窗
-    const state: string = await ConfirmMessage({
-      message:
-        '<div style="text-align: center; user-select: none; font-size: 16px;">視窗即將關閉，需要下載請按[確認]</div>',
-      title: "無法上傳您的所有檔案",
-      confirmText: "確認",
-      cancelText: "關閉"
-    });
-    if (state === "confirm") {
-      download(href, fileName);
-    }
-  }
   const download = (href: string, fileName: string) => {
     if (href) {
       // 2. 將暫時畫布的內容轉換為圖片的 data URL 並觸發下載
@@ -174,50 +163,58 @@ export const useMainStore = defineStore("main", () => {
       link.click();
       document.body.removeChild(link); // 清理 DOM
     }
+  };
+  const updateUrlRecord = async (url: string, attempts: number = 1) => {
+    for (let i = 0; i < attempts; i++) {
+      const result = await apiUrlRecord({ url }).catch(() => { return { status: false }; });
+      if (result.status) return result;
+    }
+    return { status: false };
   }
   // 下載Local
   const startUploadAndDownload = async (blob: Blob, href: string, fileName: string) => {
+    const alertStore = useAlertStore();
     // 1. 檢查是否完成下載後，確認上傳完成直接關閉視窗
-    const message: string = `<div style="text-align: center; user-select: none; font-size: 16px;">您是否要下載圖片？<br/>點擊「是」將會把圖片下載至本地<br/>並關閉管宣生成器</div>`;
-    const title: string = "下載圖片關閉確認";
-    const state: string = await ConfirmMessage({
-      message,
-      title,
-      confirmText: "是",
-      cancelText: "否",
-    });
+    const state: string = await alertStore.alertConfirmUploadAndDownload();
     console.log(`1. state: ${state}`);
     if (state === "close" || state === "cancel") return; // 取消上傳
 
     // 2. 開始上傳檔案至後台PD
-    const uploadState: PDUploadState = await pdUpload(blob, fileName);
-    if (uploadState !== PD_UPLOAD_STATE.SUCCESS) {
-      await failureRule(href, fileName);
+    const uploadResult = await pdUpload(blob, fileName);
+    if (uploadResult.status !== PD_UPLOAD_STATE.SUCCESS) {
+
+      const failed = await alertStore.alertUploadFailed();
+      if (failed === "confirm") {
+        download(href, fileName);
+      }
     } else {
       // 2. 執行下載
       download(href, fileName);
+      // 3. 執行紀錄上傳網址
+      if (uploadResult.url) await updateUrlRecord(uploadResult.url, 5);
     }
 
-    // 3. 執行關閉
+    // 4. 執行關閉
     window.close();
   };
   // 上傳PD
   const startUpload = async (blob: Blob, href: string, fileName: string) => {
+    const alertStore = useAlertStore();
     // 1. 檢查是否已完成編輯，確認上傳完成直接關閉視窗
-    const state: string = await ConfirmMessage({
-      message:
-        '<div style="text-align: center; user-select: none; font-size: 16px;">您是否已完成编辑？<br/>点击「是」将会把图片传送至后台<br/>并关闭广宣生成器<br/></div>',
-      title: "完成编辑确认",
-      confirmText: "是",
-      cancelText: "否",
-    });
+    const state: string = await alertStore.alertConfirmUpload();
     console.log(`1. state: ${state}`);
     if (state === "close" || state === "cancel") return; // 取消上傳
-    const uploadState = await pdUpload(blob, fileName);
-    if (uploadState !== PD_UPLOAD_STATE.SUCCESS) {
-      await failureRule(href, fileName);
+    const uploadResult = await pdUpload(blob, fileName);
+    if (uploadResult.status !== PD_UPLOAD_STATE.SUCCESS) {
+      const failed = await alertStore.alertUploadFailed();
+      if (failed === "confirm") {
+        download(href, fileName);
+      }
+    } else {
+      // 2. 執行紀錄上傳網址
+      if (uploadResult.url) await updateUrlRecord(uploadResult.url, 5);
     }
-    // 2. 執行是否關閉
+    // 3. 執行是否關閉
     window.close();
   };
   

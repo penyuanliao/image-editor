@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { htmlTheme } from "@/styles/stageTheme.ts";
-import UndoRedo from "@/components/EditorArea/UndoRedo.vue";
-import { advancedDefaults } from "@/config/settings.ts";
 import Symbols from "@/components/Basic/Symbols.vue";
 import NMarqueeText from "@/components/Basic/NMarqueeText.vue";
 import { useMainStore } from "@/store/useMainStore.ts";
@@ -52,10 +50,9 @@ const handleCommentClick = () => {
             <path d="M17.1893 12.5936H11.1983C10.5647 12.5936 10.051 13.0944 10.051 13.7123C10.051 14.3302 10.5647 14.831 11.1983 14.831H17.1893C17.8229 14.831 18.3366 14.3302 18.3366 13.7123C18.3366 13.0944 17.8229 12.5936 17.1893 12.5936Z" fill="#F15624"/>
           </svg>
         </el-icon>
-        <span class="text">建議回饋</span>
+        <span class="text">意见回馈</span>
       </div>
-      <UndoRedo v-if="advancedDefaults.undoRedoEnabled" />
-      <NMarqueeText style="width: 100%;" :duration="20">
+      <NMarqueeText :duration="20">
         {{ props.marqueeText }}
       </NMarqueeText>
     </div>

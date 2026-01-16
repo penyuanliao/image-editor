@@ -11,7 +11,7 @@ export const useAlertStore = defineStore("AlertStore", () => {
       title,
       confirmText: "我知道了",
     });
-  }
+  };
   // 執行AI點數不足
   const alertAIPointNotEnough = async () => {
     const title: string = "AI点数不足";
@@ -31,7 +31,7 @@ export const useAlertStore = defineStore("AlertStore", () => {
         cancelButtonClass: "custom-cancel-btn w-330",
       }
     });
-  }
+  };
   // 登入權限拒絕
   const alertPermissionDenied = async () => {
     const title: string = "无操作权限";
@@ -40,9 +40,12 @@ export const useAlertStore = defineStore("AlertStore", () => {
     return await ConfirmMessage({
       message,
       title,
-      confirmText: "我知道了",
+      cancelText: "我知道了",
+      options: {
+        cancelButtonClass: "custom-cancel-btn w-330",
+      }
     });
-  }
+  };
   // 無法生成圖片
   const alertUnableGenerateImage = async () => {
     const title: string = "图片套用异常";
@@ -59,6 +62,42 @@ export const useAlertStore = defineStore("AlertStore", () => {
         customClass: "custom-message-box message-box-w-xl"
       }
     });
+  };
+  // 上傳流程失敗
+  const alertUploadFailed = async () => {
+    return await ConfirmMessage({
+      title: "图片套用异常",
+      message:
+        '<div style="text-align: center; user-select: none; font-size: 16px;">图片在编辑过程中发生异常，未成功套用<br/>请重新尝试，或下载目前图片后再关闭系统</div>',
+      cancelText: "关闭弹窗",
+      confirmText: "下载与关闭系统",
+      options: {
+        cancelButtonClass: "custom-cancel-btn w-192",
+        confirmButtonClass: "custom-confirm-btn w-246",
+        customClass: "custom-message-box message-box-w-xl"
+      }
+    });
+  };
+  //PD上傳圖片確認關閉
+  const alertConfirmUpload = async () => {
+    return await ConfirmMessage({
+      message:
+        '<div style="text-align: center; user-select: none; font-size: 16px;">您是否已完成编辑？<br/>点击「是」将会把图片传送至后台<br/>并关闭广宣生成器<br/></div>',
+      title: "完成编辑确认",
+      confirmText: "是",
+      cancelText: "否",
+    });
+  };
+  // PD上傳圖片+下載確認關閉
+  const alertConfirmUploadAndDownload = async () => {
+    const message: string = `<div style="text-align: center; user-select: none; font-size: 16px;">您是否要下載圖片？<br/>點擊「是」將會把圖片下載至本地<br/>並關閉管宣生成器</div>`;
+    const title: string = "下載圖片關閉確認";
+    return await ConfirmMessage({
+      message,
+      title,
+      confirmText: "是",
+      cancelText: "否",
+    });
   }
 
   return {
@@ -66,6 +105,9 @@ export const useAlertStore = defineStore("AlertStore", () => {
     alertAIFailed,
     alertAIPointNotEnough,
     alertPermissionDenied,
-    alertUnableGenerateImage
+    alertUnableGenerateImage,
+    alertConfirmUpload,
+    alertConfirmUploadAndDownload,
+    alertUploadFailed
   };
 });
