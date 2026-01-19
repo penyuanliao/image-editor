@@ -8,6 +8,7 @@ import { useAccountStore } from "@/store/useAccountStore.ts";
 import { NStorageManager } from "@/library/NStorageManager.ts";
 import { useAlertStore } from "@/store/useAlertStore.ts";
 import { apiUrlRecord } from "@/api/urlRecord.ts";
+import { useAIGenStore } from "@/store/useAIGenStore.ts";
 
 const PD_UPLOAD_STATE = {
   WAIT: 0,
@@ -95,11 +96,22 @@ export const useMainStore = defineStore("main", () => {
       return;
     }
     const accountStore = useAccountStore();
+    const aiGenStore = useAIGenStore();
     // 2. 開始進行檢查登入狀態
-    console.log("開始進行檢查登入狀態", accountStore.isLogin());
     if (!accountStore.isLogin()) await accountStore.checkLogin();
+    console.log("開始進行檢查登入狀態", accountStore.isLogin(), accountStore.userInfo.remainingTries);
+    // 設定: 跑馬燈訊息
     setMarqueeText(accountStore.userInfo.marqueeText || "");
+    aiGenStore.setRemainingTries(accountStore.userInfo.remainingTries);
+    // 設定: AI次數
     if (!accountStore.isLogin()) {
+      setState("denied");
+      return;
+    }
+    setState("completed");
+  }
+  const startLoginDemo = async () => {
+    if (!window.opener && !isDev.value) {
       setState("denied");
       return;
     }
@@ -107,7 +119,7 @@ export const useMainStore = defineStore("main", () => {
   }
   const pdUpload = async (blob: Blob, fileName: string): Promise<{ status: PDUploadState, url: string | null }> => {
     const url: string = getUrlParam("upload_url");
-
+    console.log(`上傳圖片網址: ${url}`);
     // 2. 開始上傳檔案至後台PD
     const metaData = {
       hallId: getUrlParam("hallId"),
@@ -165,8 +177,11 @@ export const useMainStore = defineStore("main", () => {
     }
   };
   const updateUrlRecord = async (url: string, attempts: number = 1) => {
+    const accountStore = useAccountStore();
+    const authorization = accountStore.authorization || "";
+
     for (let i = 0; i < attempts; i++) {
-      const result = await apiUrlRecord({ url }).catch(() => { return { status: false }; });
+      const result = await apiUrlRecord({ url }, { authorization }).catch(() => { return { status: false }; });
       if (result.status) return result;
     }
     return { status: false };
@@ -248,6 +263,7 @@ export const useMainStore = defineStore("main", () => {
     setMarqueeText,
     initialization,
     startLogin,
+    startLoginDemo,
     startUpload,
     startUploadAndDownload,
     setStorage

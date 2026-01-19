@@ -7,7 +7,11 @@ import { useMaterialsStore } from "@/store/useMaterialsStore.ts";
 import { ElementTypesEnum, type IUploadedImage } from "@/types.ts";
 import NSearchButton from "@/components/Basic/NSearchButton.vue";
 import NCarouselView from "@/components/Panels/MaterialPanel/NCarouselView.vue";
+import { useEditorStore } from "@/store/editorStore.ts";
+
 const materialsStore = useMaterialsStore();
+
+const editorStore = useEditorStore();
 
 const emit = defineEmits<{
   (e: "add-element", action: any): void,
@@ -118,9 +122,9 @@ watch(currentStep, (newIndex) => {
       <section class="view scroll-bar-custom">
         <div>
           <NSearchButton class="search-btn" v-model:input="input" @change="handleInputChange"/>
-          <p>最近使用過的素材</p>
-          <div class="recently-used">
-            <NCarouselView @change="handleRecentlyImageChange"/>
+          <p v-if="editorStore.imageList.length > 0">最近使用过的素材</p>
+          <div class="recently-used" v-if="editorStore.imageList.length > 0">
+            <NCarouselView v-bind:data="editorStore.imageList" @change="handleRecentlyImageChange"/>
           </div>
           <CategoriesGroupView
             v-bind:data="materialsStore.groupThumbnails"

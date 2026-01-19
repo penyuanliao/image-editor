@@ -63,5 +63,13 @@ const handleInputChange = () => {
   justify-content: center;
   align-items: center;
   flex-direction: column;
+  color: #606060;
+}
+.source-search-input {
+  :deep(.el-input__inner) {
+    &::placeholder {
+      /*color: #606060;*/
+    }
+  }
 }
 </style>

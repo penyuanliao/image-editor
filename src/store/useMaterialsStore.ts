@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 import { apiGetMaterials, type ResMaterialsData } from "@/api/materials.ts";
 import { useAccountStore } from "@/store/useAccountStore.ts";
+import materialsData from "@/test/material.json";
 
 /**
  * 單一素材項目的格式
@@ -59,9 +60,8 @@ export const useMaterialsStore = defineStore("materialsStore", () => {
     error.value = null;
     try {
       const accountStore = useAccountStore();
-
-      const result = await apiGetMaterials({ authorization: accountStore.authorization || "" });
-
+      const demo: boolean = true;
+      const result = (demo) ? await apiGetMaterials({ authorization: accountStore.authorization || "" }) : materialsData;
       if (result.status) rawData.value = result.data;
       return result;
     } catch (e: any) {

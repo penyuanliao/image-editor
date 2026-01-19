@@ -5,6 +5,7 @@ import { API_ENDPOINTS } from "./endpoints";
 
 export interface ImageGenerateResult {
   status: boolean;
+  code: number;
   error?: string;
   image: string;
 }
@@ -29,7 +30,7 @@ export const apiImageGenerate = async (
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: options?.authorization || ""
+      Authorization: `Bearer ${options?.authorization}`
     },
     body
   });

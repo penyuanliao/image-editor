@@ -1,19 +1,24 @@
 <script setup lang="ts">
 import NImage from "@/components/Basic/NImage.vue";
-import { computed, ref } from "vue";
-import { useEditorStore } from "@/store/editorStore.ts";
+import { computed, type PropType, ref } from "vue";
 import type { IUploadedImage } from "@/types.ts";
+
+const props = defineProps({
+  data: {
+    type: Array as PropType<IUploadedImage[]>,
+    default: () => []
+  }
+});
 
 const emit = defineEmits({
   change: (value: IUploadedImage) => value
 });
 
-const editorStore = useEditorStore();
 
 const carouselRef = ref<any>();
 
 const recentlyUseImageList = computed(() => {
-  const list = [...editorStore.imageList].reverse();
+  const list = [...props.data].reverse();
   const result = [];
   for (let i = 0; i < list.length; i += 3) {
     result.push(list.slice(i, i + 3));
@@ -42,8 +47,21 @@ const handleNext = () => {
     <!-- 自訂左按鈕 -->
     <div v-if="getActiveIndex() > 0" class="custom-arrow left" @click="handlePrev()">
       <el-icon>
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" transform="rotate(180 8 8)"/>
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 16 16"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M6 12L10 8L6 4"
+            stroke="currentColor"
+            stroke-width="1.2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            transform="rotate(180 8 8)"
+          />
         </svg>
       </el-icon>
     </div>
@@ -72,8 +90,20 @@ const handleNext = () => {
       @click="handleNext()"
     >
       <el-icon>
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 16 16"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M6 12L10 8L6 4"
+            stroke="currentColor"
+            stroke-width="1.2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
         </svg>
       </el-icon>
     </div>
@@ -101,10 +131,10 @@ const handleNext = () => {
     align-items: center;
     justify-content: center;
     transition: background-color 0.3s;
-    box-shadow: 0 3px 4px 0 #3F3F401A;
+    box-shadow: 0 3px 4px 0 #3f3f401a;
 
     &:hover {
-      color: #F15624;
+      color: #f15624;
     }
 
     &.left {

@@ -9,6 +9,7 @@ import { API_ENDPOINTS } from "./src/api/endpoints.ts";
 
 export default defineConfig((configEnv: ConfigEnv) => {
   const isDev = configEnv.mode === "dev";
+  let count: number = 0;
   function serverPlugin() {
     if (!isDev) return;
     return {
@@ -28,6 +29,18 @@ export default defineConfig((configEnv: ConfigEnv) => {
               return;
             }
             if (req.url === API_ENDPOINTS.LOGIN) {
+
+/*
+              res.statusCode = 403;
+              res.setHeader("Content-Type", "application/json");
+              res.end(JSON.stringify({
+                status: false,
+                error: "deactivated"
+              }));
+              return;
+*/
+
+
               const user: { sid: string; code: string; user: string } = await new Promise(
                 (resolve, reject) => {
                   let rawData = "";
@@ -60,18 +73,22 @@ export default defineConfig((configEnv: ConfigEnv) => {
               res.setHeader("Content-Type", "application/json");
               res.end(json);
             }
-            // if (req.url === API_ENDPOINTS.IMAGE_GENERATE && req.method === 'POST') {
-            //   // 模擬一個成功的 AI 圖片生成回應
-            //   await new Promise(resolve => setTimeout(resolve, 1000)); // 模擬網路延遲
-            //   const response = {
-            //     status: true,
-            //     // 回傳一個 1x1 的透明像素作為假圖片
-            //     image: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='
-            //   };
-            //   res.setHeader('Content-Type', 'application/json');
-            //   res.end(JSON.stringify(response));
-            //   return;
-            // }
+            if (req.url === API_ENDPOINTS.IMAGE_GENERATE && req.method === 'POST') {
+              const aiAPIs = ["./src/test/generate_success.json", "./src/test/generate_call_fail.json", "./src/test/generate_not_enough.json"];
+              const filePath = path.resolve(__dirname, aiAPIs[count++ % 3]);
+              const json = fs.readFileSync(filePath, "utf-8");
+              await new Promise((resolve) => setTimeout(resolve, Math.random() * 5000)); // 模擬網路延遲
+              res.setHeader("Content-Type", "application/json");
+              res.end(json);
+              return;
+            }
+            if (req.url === API_ENDPOINTS.COMMENT && req.method === 'POST') {
+              const filePath = path.resolve(__dirname, "./src/test/comment.json");
+              const json = fs.readFileSync(filePath, "utf-8");
+              await new Promise((resolve) => setTimeout(resolve, Math.random() * 1000)); // 模擬網路延遲
+              res.setHeader("Content-Type", "application/json");
+              res.end(json);
+            }
             next();
           }
         );
@@ -91,7 +108,8 @@ export default defineConfig((configEnv: ConfigEnv) => {
     },
     server: {
       host: true,
-      proxy: isDev ? proxyConfig : undefined
+      proxy: isDev ? proxyConfig : undefined,
+      allowedHosts: ['www.benson.com']
     }
   };
 });

@@ -14,7 +14,7 @@ export const apiComment = async (
         method: "POST",
         headers: {
             "Content-Type": "application/json",
-            Authorization: options?.authorization || ""
+            Authorization: `Bearer ${ options?.authorization }`
         },
         body: JSON.stringify({ message })
     });

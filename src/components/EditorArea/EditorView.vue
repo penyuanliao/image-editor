@@ -52,6 +52,14 @@ const selectedElement = computed(() => {
   if (editorStore.selectedElements.length > 1) return null;
   return editorStore.selectedElements[0];
 });
+// 檢查畫布是否空值
+const isEmptyCanvas = computed(() => {
+  const empty = editorStore.elements.length === 0;
+  if (empty) {
+    editorStore.scaleClear();
+  }
+  return empty;
+})
 
 // --- 互動狀態管理 ---
 const textInput = ref<HTMLInputElement | null>(null);
@@ -512,8 +520,8 @@ defineExpose({
         <canvas
           ref="canvas"
           :style="{
-            opacity: editorStore.elements.length === 0 ? 0 : 1,
-            'pointer-events': editorStore.elements.length !== 0 ? 'auto' : 'none'
+            opacity: isEmptyCanvas ? 0 : 1,
+            'pointer-events': isEmptyCanvas ? 'none' : 'auto'
           }"
           :class="{
             'editor-canvas': true,
@@ -612,7 +620,7 @@ defineExpose({
         </div>
 
         <div class="zoom-controls">
-          <NZoomControl  class="zoom" v-if="advancedDefaults.zoomEnabled && editorStore.elements.length !== 0" :visible="generalDefaults.zoomControlVisible"/>
+          <NZoomControl  class="zoom-bar" v-if="advancedDefaults.zoomEnabled && editorStore.elements.length !== 0" :visible="generalDefaults.zoomControlVisible"/>
           <el-button class="help-btn" @pointerup="handleHelpClick">
             <template #default>
               使用说明
@@ -811,7 +819,7 @@ defineExpose({
   padding-left: 10px;
   padding-right: 10px;
   gap: 45px;
-  .zoom {
+  .zoom-bar {
     position: relative;
     bottom: -10px;
     max-width: 316px;
@@ -834,6 +842,7 @@ defineExpose({
     line-height: 100%;
     letter-spacing: 0;
     text-align: center;
+    gap: 8px;
   }
 }
 

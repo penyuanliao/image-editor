@@ -33,7 +33,7 @@ export const apiGetMaterials = async (options?: {
   const response = await fetch(API_ENDPOINTS.GET_MATERIALS, {
     method: "GET",
     headers: {
-      Authorization: options?.authorization || ""
+      Authorization: `Bearer ${options?.authorization}`
     }
   });
   if (!response.ok) {

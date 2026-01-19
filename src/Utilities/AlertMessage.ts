@@ -76,6 +76,8 @@ export const ConfirmMessage = async ({
     confirmButtonClass: "custom-confirm-btn",
     cancelButtonClass: "custom-cancel-btn",
     customClass: "custom-message-box",
+    modalClass: "custom-message-modal-mask",
+    lockScroll: false, // 加入此行可防止 body 寬度被修改，但背景將可滾動
     ...options
   }).catch((reason) => {
     return reason;

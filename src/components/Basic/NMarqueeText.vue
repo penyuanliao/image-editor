@@ -10,6 +10,10 @@ const props = defineProps({
   loop: {
     type: Boolean,
     default: true
+  },
+  visible: {
+    type: Boolean,
+    default: true
   }
 });
 
@@ -58,7 +62,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="container">
+  <div v-show="visible" class="container">
     <el-icon size="34" class="icon">
       <svg
         width="33"
@@ -109,6 +113,25 @@ onUnmounted(() => {
   overflow: hidden;
   white-space: nowrap;
   position: relative;
+
+  &::before,
+  &::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    width: 30px;
+    height: 100%;
+    z-index: 2;
+    pointer-events: none;
+  }
+  &::before {
+    left: 0;
+    background: linear-gradient(to right, #fff, transparent);
+  }
+  &::after {
+    right: 0;
+    background: linear-gradient(to left, #fff, transparent);
+  }
 }
 .marquee-content {
   display: inline-block;

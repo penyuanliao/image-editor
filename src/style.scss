@@ -86,7 +86,7 @@ body {
   padding-bottom: 27px !important;
   border-radius: 50px !important;
   --el-messagebox-width: 506px !important;
-
+  --el-messagebox-padding-primary: 15px !important;
   .el-message-box__title {
     font-family: theme.$font-family;
     font-weight: 700;
@@ -94,6 +94,7 @@ body {
     leading-trim: NONE;
     line-height: 100%;
     text-align: center;
+    letter-spacing: 5px;
   }
   .el-message-box__message {
     font-family: theme.$font-family;
@@ -103,6 +104,9 @@ body {
     line-height: 24px;
     text-align: center;
   }
+}
+.custom-message-modal-mask {
+  background-color: rgba(0, 0, 0, 0.7) !important;
 }
 .message-box-w-xl {
   --el-messagebox-width: 527px !important;

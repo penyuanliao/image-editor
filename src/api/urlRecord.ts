@@ -9,11 +9,14 @@ export interface UrlRecordResponseResult {
 // 3. 建立一個專門用來擷取資料的函式
 export const apiUrlRecord = async (data: {
   url: string
+},options?: {
+  authorization?: string;
 }): Promise<UrlRecordResponseResult> => {
   const response = await fetch(API_ENDPOINTS.URL_RECORD, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${options?.authorization}`
     },
     body: JSON.stringify(data)
   });

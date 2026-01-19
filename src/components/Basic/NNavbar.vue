@@ -34,7 +34,7 @@ const handleCommentClick = () => {
       :stroke-width="1"
       :color="htmlTheme.progressBarColor"
     />
-    <img src="@/assets/icons/bbin.svg" height="38" alt="Logo" class="logo" />
+    <img src="@/assets/icons/logo.png" height="136" alt="Logo" class="logo" />
     <div class="navbar-action">
       <div class="layers-btn" @pointerup="mainStore.showLayers = !mainStore.layersVisible">
         <el-icon class="icon" size="24">
@@ -52,7 +52,7 @@ const handleCommentClick = () => {
         </el-icon>
         <span class="text">意见回馈</span>
       </div>
-      <NMarqueeText :duration="20">
+      <NMarqueeText :duration="20" :visible="props.marqueeText?.length > 0">
         {{ props.marqueeText }}
       </NMarqueeText>
     </div>

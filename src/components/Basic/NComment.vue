@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useCommentStore } from "@/store/useCommentStore.ts";
+import { ElMessage } from "element-plus";
 
 const commentStore = useCommentStore();
 
@@ -9,6 +10,10 @@ const props = defineProps({
     type: String,
     required: true,
     default: "GUEST"
+  },
+  maxLength: {
+    type: Number,
+    default: 500
   },
   visible: {
     type: Boolean,
@@ -23,21 +28,44 @@ const dialogFormVisible = computed({
   set: (val) => emit("update:visible", val)
 });
 
+const inputValid = computed(() => {
+  return commentStore.comments.content.trim().length > 0;
+});
+
+const textLength = computed(() => {
+  return commentStore.comments.content.length;
+});
+
 const handleCommentSubmit = async () => {
-  console.log("handleCommentSubmit", commentStore.comments.content);
   const status = await commentStore.addComment(commentStore.comments.content);
   if (status) {
     dialogFormVisible.value = false;
+    ElMessage({
+      message: "您的意见非常宝贵，感谢您的填写！",
+      type: "success"
+    });
   }
   dialogFormVisible.value = false;
+};
+
+const dialogCommentStyle = () => {
+  const dialogMarginTop = window.innerHeight <= 720 ? "7.5vh" : "15vh";
+  return {
+    "--el-dialog-border-radius": "50px",
+    "border-radius": "50px",
+    // 'min-height': '606px',
+    // 'max-width': '561px',
+    "--el-dialog-margin-top": dialogMarginTop
+  };
 };
 </script>
 
 <template>
   <el-dialog
-    class="dialog-comment"
+    :style="dialogCommentStyle()"
     width="561px"
     :show-close="false"
+    :lock-scroll="false"
     v-model="dialogFormVisible"
     center
   >
@@ -71,17 +99,25 @@ const handleCommentSubmit = async () => {
         将持续聆听您的声音<br />作为优化服务与体验的重要依据
       </p>
     </div>
-    <div>
+    <div class="textarea-container">
       <textarea
         class="comment-content"
         v-model="commentStore.comments.content"
         placeholder="欢迎分享您的使用感受、问题或任何想法、建议&#10;您的意见对我们非常重要，请放心填写"
+        :maxlength="maxLength"
       ></textarea>
+      <span class="word-count">{{ textLength }} / {{ maxLength }} 字</span>
     </div>
     <template #footer>
       <div class="dialog-footer">
-        <div class="comment-submit-btn" @click="handleCommentSubmit">
-          提交回馈建议<span style="margin-top: 4px; margin-left: 5px;">
+        <div
+          :class="{
+            'comment-submit-btn': true,
+            disable: !inputValid
+          }"
+          @click="handleCommentSubmit"
+        >
+          提交回馈建议<span style="margin-top: 4px; margin-left: 5px">
             <svg
               width="16"
               height="16"
@@ -103,11 +139,6 @@ const handleCommentSubmit = async () => {
 
 <style scoped lang="scss">
 @use "@/styles/theme";
-.dialog-comment {
-  --el-dialog-border-radius: 50px;
-  min-height: 606px;
-  max-width: 561px;
-}
 .comment-header {
   font-size: 30px;
   color: theme.$text-color;
@@ -138,6 +169,17 @@ const handleCommentSubmit = async () => {
     color: #f15624;
   }
 }
+.textarea-container {
+  position: relative;
+}
+.word-count {
+  position: absolute;
+  bottom: 15px;
+  right: 35px;
+  font-size: 12px;
+  color: #909399;
+  pointer-events: none;
+}
 .comment-content {
   width: calc(100% - 30px); /* 扣除左右 margin (31px * 2) */
   height: 300px;
@@ -150,7 +192,7 @@ const handleCommentSubmit = async () => {
   margin: 0 15px;
   box-sizing: border-box;
   overflow-y: scroll;
-  scrollbar-color: #D9D9D9 transparent;
+  scrollbar-color: #d9d9d9 transparent;
   &::placeholder {
     font-size: 15px;
   }
@@ -194,6 +236,11 @@ const handleCommentSubmit = async () => {
   &:hover {
     background-color: #f15624;
     color: theme.$primary-color;
+  }
+  &.disable {
+    pointer-events: none;
+    background-color: #9f9f9f;
+    color: #d9d9d9;
   }
 }
 </style>

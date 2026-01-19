@@ -17,6 +17,8 @@ export interface IGeneralSettings {
   allowedExtensions: string[];
   // 還原步驟最大值
   maxUndoOperations: number;
+  // 意見回饋最大字數限制
+  maxCommentLength: number;
   // 縮放範圍
   zoomLimits: {
     max: number;
@@ -65,6 +67,7 @@ export const generalDefaults: IGeneralSettings = {
   },
   allowedExtensions: ["image/png", "image/jpeg", "image/webp"],
   maxUndoOperations: 20,
+  maxCommentLength: 500,
   zoomLimits: {
     max: 5,
     min: 0.1,

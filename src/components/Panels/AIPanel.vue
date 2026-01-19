@@ -10,11 +10,14 @@ import NPanelButton from "@/components/Basic/NPanelButton.vue";
 import Symbols from "@/components/Basic/Symbols.vue";
 import { ColorPicker } from "colorpickers";
 import type { ImageGenerateResult } from "@/api/generate.ts";
+import { useAlertStore } from "@/store/useAlertStore.ts";
 // import {calculateConstrainedSize} from "@/Utilities/useImageEditor.ts";
 
 const aiGenStore = useAIGenStore();
 
 const editorStore = useEditorStore();
+
+const alertStore = useAlertStore();
 
 const emit = defineEmits(["refresh"]);
 
@@ -209,8 +212,14 @@ const onSubmitStyle = async () => {
     choice: genStyleConfig.style,
     prompt: genStyleConfig.prompt
   });
-  if (result) {
+  if (result && result.status) {
     await setupChangeImage(elementId, source, result);
+  } else if (result && !result.status) {
+    if (result.code === 1) {
+      await alertStore.alertAIPointNotEnough();
+    } else {
+      await alertStore.alertAIFailed();
+    }
   } else {
     await AlertMessage(aiGenStore.error || "AI生成失敗了!求求你再給他一次機會");
   }

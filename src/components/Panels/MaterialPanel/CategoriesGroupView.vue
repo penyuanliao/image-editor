@@ -42,7 +42,7 @@ const handleNext = (index: number) => {
 <template>
   <section class="categories-view">
     <template v-for="(group, index) in props.data" :key="`group-${group.groupId}`">
-      <h2 class="group-title">{{ group.groupName }}</h2>
+      <h3 class="group-title">{{ group.groupName }}</h3>
       <div class="carousel-wrapper">
         <!-- 自訂左按鈕 -->
         <div v-if="getActiveIndex(index) > 0" class="custom-arrow left" @click="handlePrev(index)">
@@ -157,9 +157,10 @@ const handleNext = (index: number) => {
 .item {
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   position: relative;
   cursor: pointer;
+  display: flex;
+  gap: 7px;
 }
 
 .image-item {
@@ -176,6 +177,7 @@ const handleNext = (index: number) => {
   box-sizing: border-box;
   border: 2px solid transparent;
   overflow: hidden;
+  max-width: 80px;
 
   &:active {
     background-color: rgba(80, 80, 80, 0.6);
@@ -187,12 +189,26 @@ const handleNext = (index: number) => {
 }
 
 .image-item + span {
-  font-size: 14px;
+  font-weight: 400;
+  font-size: 13px;
+  line-height: 100%;
+  letter-spacing: 0;
+  text-align: center;
+  color: #606060;
+  width: 80px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .group-title {
   border-radius: 4px;
   min-height: 24px;
   font-size: 18px;
+  font-weight: 400;
+  line-height: 100%;
+  letter-spacing: 0;
+  margin-block-end: 9px;
+  margin-block-start: 9px;
 }
 </style>

@@ -12,11 +12,12 @@ export const useAccountStore = defineStore("accountStore", () => {
   // 記錄錯誤訊息
   const error = ref<string | null>(null);
 
-  const userInfo = ref<{ username: string; code: string, authorization: string | null, marqueeText: string }>({
+  const userInfo = ref<{ username: string; code: string, authorization: string | null, marqueeText: string, remainingTries: number }>({
     username: "",
     code: "",
     authorization: null,
-    marqueeText: ""
+    marqueeText: "",
+    remainingTries: 0
   });
 
   // 從 API 獲取模板的 action
@@ -31,12 +32,15 @@ export const useAccountStore = defineStore("accountStore", () => {
       // 使用者驗證碼
       const logincode: string = getUrlParam("logincode");
 
-      const result: LoginResponseResult = await apiLogin({ username, token, logincode });
+      const result: LoginResponseResult = await apiLogin({ username, token, logincode }).catch((error: string) => {
+        return { status: false, message: "驗證失敗", error };
+      });
       if (result.status) {
         rawData.value = result.data;
         userInfo.value.authorization = result.data?.token || null;
         userInfo.value.username = username || "";
         userInfo.value.marqueeText = result.data?.marquee || "";
+        userInfo.value.remainingTries = result.data?.remainingTries || 0;
         return result;
       } else {
         error.value = result.error || "驗證失敗";

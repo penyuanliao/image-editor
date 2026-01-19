@@ -91,8 +91,11 @@ export const useAIGenStore = defineStore("aiGenStore", () => {
           }
         }
         return result;
-      } else {
+      } else if (result) {
         error.value = result.error || "生成失敗";
+        return result;
+      } else {
+        error.value = "生成失敗";
         return null;
       }
     } catch (e: any) {
@@ -115,6 +118,9 @@ export const useAIGenStore = defineStore("aiGenStore", () => {
   ) => {
     return originalImages.set(id, source);
   };
+  const setRemainingTries = (value: number) => {
+    remainingTries.value = value;
+  }
 
   return {
     remainingTries,
@@ -124,5 +130,6 @@ export const useAIGenStore = defineStore("aiGenStore", () => {
     hasOriginalImage,
     getOriginalImage,
     setOriginalImage,
+    setRemainingTries,
   };
 });

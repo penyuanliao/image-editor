@@ -5,11 +5,15 @@ export const useAlertStore = defineStore("AlertStore", () => {
   // 執行AI失敗
   const alertAIFailed = async () => {
     const title: string = "本次 AI 执行失败";
-    const message: string = `<div style="text-align: center; user-select: none; font-size: 16px;">系统在执行过程中发生异常<br/>未能完成本次 AI 内容产出<br/>请稍后再试一次<br/>如持续发生异常，请联系 BBIN 专员协助处理</div>`;
+    const content: string[] = ["系统在执行过程中发生异常", "未能完成本次 AI 内容产出", "请稍后再试一次", "如持续发生异常，请联系 BBIN 专员协助处理", ""];
+    const message: string = createAlertMessage(content);
     return await ConfirmMessage({
       message,
       title,
-      confirmText: "我知道了",
+      cancelText: "我知道了",
+      options: {
+        cancelButtonClass: "custom-cancel-btn w-330",
+      }
     });
   };
   // 執行AI點數不足

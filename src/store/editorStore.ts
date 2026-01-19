@@ -420,14 +420,21 @@ export const useEditorStore = defineStore("editor", () => {
     clearSelection();
     return true;
   };
-
+  // ---- 處理畫布 Zoom-in & Zoom-out ----//
+  // 縮放:回初始值
+  function scaleClear() {
+    setScale(1);
+    viewTranslate.value.autoScale = true;
+    updateViewTranslate();
+  }
+  // 縮放:縮放畫布數值
   function setScale(scale: number) {
     const { min, max } = generalDefaults.zoomLimits;
     if (viewTranslate.value.scale < 1 && scale > 1) scale = 1;
 
     viewTranslate.value.scale = Math.max(min, Math.min(scale, max));
   }
-  //
+  // 縮放:更新 ScrollBar 邊緣數值
   function updateViewTranslate() {
     if (!viewportEl.value || !canvas.value) return;
 
@@ -513,6 +520,7 @@ export const useEditorStore = defineStore("editor", () => {
     saveHistory,
     undo,
     redo,
+    scaleClear,
     setScale,
     updateViewTranslate,
     setCanvas,

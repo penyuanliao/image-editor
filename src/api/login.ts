@@ -3,13 +3,14 @@ import { API_ENDPOINTS } from "./endpoints";
 export interface LoginResponseResult {
   status: boolean;
   message?: string;
-  data: UserInfo;
+  data?: UserInfo;
   error?: string;
 }
 export interface UserInfo {
   token: string;
   quota: string;
   marquee: string;
+  remainingTries: number;
 }
 export interface LoginRequestData {
   token: string;
@@ -27,7 +28,7 @@ export const apiLogin = async (data: LoginRequestData): Promise<LoginResponseRes
     body: JSON.stringify(data)
   });
   if (!response.ok) {
-    throw new Error("Failed to fetch Login");
+    throw new Error(`status_${response.status}`);
   }
   return response.json();
 };
