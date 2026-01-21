@@ -16,6 +16,7 @@ export interface LoginRequestData {
   token: string;
   username: string;
   logincode: string;
+  hid: number;
 }
 
 // 3. 建立一個專門用來擷取資料的函式

@@ -330,6 +330,7 @@ export const useEditorStore = defineStore("editor", () => {
       }
     } as ICanvasElement;
     setSelectedOnce(el);
+    return el;
   };
   const hasUndo = computed(() => {
     if (!advancedDefaults.undoRedoEnabled) return false;

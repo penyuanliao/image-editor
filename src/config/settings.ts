@@ -80,7 +80,7 @@ export const generalDefaults: IGeneralSettings = {
   gridBackground: "none",
   maxRecentFiles: 20,
   logo: "/assets/icons/logo.png",
-  helpUrl: "/assets-editor/help"
+  helpUrl: "/assets-editor/#/help"
 };
 
 export const appearanceDefaults = {

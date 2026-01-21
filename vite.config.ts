@@ -95,7 +95,7 @@ export default defineConfig((configEnv: ConfigEnv) => {
     };
   }
   return {
-    base: "./",
+    base: "/assets-editor",
     plugins: [vue(), serverPlugin()],
     resolve: {
       alias: {

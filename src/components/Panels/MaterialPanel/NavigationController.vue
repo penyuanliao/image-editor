@@ -8,10 +8,13 @@ import { ElementTypesEnum, type IUploadedImage } from "@/types.ts";
 import NSearchButton from "@/components/Basic/NSearchButton.vue";
 import NCarouselView from "@/components/Panels/MaterialPanel/NCarouselView.vue";
 import { useEditorStore } from "@/store/editorStore.ts";
+import { useMainStore } from "@/store/useMainStore.ts";
 
 const materialsStore = useMaterialsStore();
 
 const editorStore = useEditorStore();
+
+const mainStore = useMainStore();
 
 const emit = defineEmits<{
   (e: "add-element", action: any): void,
@@ -89,7 +92,7 @@ const handleInputClear = () => {
 }
 
 onMounted(async () => {
-  await materialsStore.getMaterials(true);
+  await materialsStore.getMaterials(mainStore.environment === "pd");
 
   if (galleryViewRef.value) {
     galleryViewRef.value.addEventListener("scrollend", () => {

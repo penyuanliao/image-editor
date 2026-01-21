@@ -6,7 +6,11 @@ let lastSearch: string = "";
  * @param name 參數名稱
  */
 export const getUrlParam = (name: string): string => {
-  const search = window.location.search;
+  let search = window.location.search || "";
+  // 因為使用router hash所
+  if (search === "" && window.location.hash) {
+    search = window.location.hash.split("?")[1] || "";
+  }
   if (!urlParams || search !== lastSearch) {
     lastSearch = search;
     urlParams = new URLSearchParams(search);

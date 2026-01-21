@@ -16,9 +16,12 @@ import NavigationController from "@/components/Panels/MaterialPanel/NavigationCo
 import AccessDenied from "@/views/AccessDenied.vue";
 import NLoading from "@/views/NLoading.vue";
 import { useAccountStore } from "@/store/useAccountStore.ts";
-import { getUrlParam } from "@/Utilities/urlHelper.ts";
 import { useMainStore } from "@/store/useMainStore.ts";
 import NComment from "@/components/Basic/NComment.vue";
+import { useRoute } from "vue-router";
+
+const routes = useRoute();
+
 const editorStore = useEditorStore();
 
 const accountStore = useAccountStore();
@@ -141,14 +144,18 @@ onMounted(async () => {
   window.addEventListener("resize", updatePanelHeight);
 
   mainStore.initialization();
-  await mainStore.startLoginDemo();
+  if (mainStore.environment === "pd")
+    await mainStore.startLoginDemo();
+  else
+    await mainStore.startLogin();
 
   // 3. 進行相關參數初始化
   // 3-1. 設定畫布寬高大小
-  const width = Number.parseInt(getUrlParam("width"));
-  const height = Number.parseInt(getUrlParam("height"));
+  const width = Number.parseInt(routes?.query.width as string);
+  const height = Number.parseInt(routes?.query.height as string);
   if (width > 0 && height > 0) editorStore.setCanvasSize(width, height);
-  editorStore.defaultPropsPanel();
+  const el = editorStore.defaultPropsPanel();
+  handleUpdateElement(el);
 });
 
 onUnmounted(() => {

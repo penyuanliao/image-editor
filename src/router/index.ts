@@ -1,4 +1,8 @@
-import { createRouter, createWebHistory, type RouteRecordRaw } from "vue-router";
+import {
+  createRouter,
+  createWebHashHistory,
+  type RouteRecordRaw
+} from "vue-router";
 
 // 定義您的路由規則
 const routes: Array<RouteRecordRaw> = [
@@ -14,12 +18,12 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import("@/views/AppEditorView.vue")
   },
   {
-    path: "/assets-editor/help",
+    path: "/help",
     name: "Help",
     component: () => import("@/views/Help.vue")
   },
   {
-    path: "/assets-editor/denied",
+    path: "/denied",
     name: "Denied",
     // 假設您有一個顯示存取被拒絕的頁面
     component: () => import("@/views/AccessDenied.vue")
@@ -35,7 +39,7 @@ const routes: Array<RouteRecordRaw> = [
 
 // 建立 router 實例
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
+  history: createWebHashHistory(import.meta.env.BASE_URL),
   routes
 });
 

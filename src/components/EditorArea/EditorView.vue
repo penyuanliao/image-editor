@@ -19,9 +19,11 @@ import NTextEditable from "@/components/Basic/NTextEditable.vue";
 import NTextArea from "@/components/Basic/NTextArea.vue";
 import NZoomControl from "@/components/Basic/NZoomControl.vue";
 import { useMainStore } from "@/store/useMainStore.ts";
-import { getUrlParam } from "@/Utilities/urlHelper.ts";
 import UndoRedo from "@/components/EditorArea/UndoRedo.vue";
 import { useAlertStore } from "@/store/useAlertStore.ts";
+import { customAlphabet } from "nanoid";
+
+const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 12);
 // import {uploadImage} from "@/api/uploader.ts";
 
 const editorStore = useEditorStore();
@@ -278,12 +280,12 @@ const saveImage = async () => {
   if (!href) return;
   const imageByBlob = await preview(true);
   if (href && imageByBlob instanceof Blob) {
-    const filename = getUrlParam('filename') || "image.png";
+    const filename = `${nanoid()}.png`;
     await mainStore.startUploadAndDownload(imageByBlob, href, filename);
   }
 };
 const handleUploadImage = async () => {
-  const filename = getUrlParam('filename') || "image.png";
+  const filename = `${nanoid()}.png`;
   const href = await preview() as string;
   if (!href) return;
   const imageByBlob = await preview(true);

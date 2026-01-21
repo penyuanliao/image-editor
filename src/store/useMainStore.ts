@@ -2,7 +2,6 @@ import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 import { ElLoading } from "element-plus";
 import { useUploadStore } from "@/store/useUploadStore.ts";
-import { getUrlParam } from "@/Utilities/urlHelper.ts";
 import { nanoid } from "nanoid";
 import { useAccountStore } from "@/store/useAccountStore.ts";
 import { NStorageManager } from "@/library/NStorageManager.ts";
@@ -10,6 +9,7 @@ import { useAlertStore } from "@/store/useAlertStore.ts";
 import { apiUrlRecord } from "@/api/urlRecord.ts";
 import { useAIGenStore } from "@/store/useAIGenStore.ts";
 import { dealy } from "@/Utilities/Utility.ts";
+import { useRoute } from "vue-router";
 
 const PD_UPLOAD_STATE = {
   WAIT: 0,
@@ -23,7 +23,7 @@ type PDUploadState = typeof PD_UPLOAD_STATE[keyof typeof PD_UPLOAD_STATE];
 // 第一個參數 'main' 是 Store 的唯一 ID
 export const useMainStore = defineStore("main", () => {
   const uploadStore = useUploadStore();
-
+  const routes = useRoute();
   // State (狀態)
   const isLoading = ref<boolean>(false);
   const theme = ref<string>("light");
@@ -119,13 +119,13 @@ export const useMainStore = defineStore("main", () => {
     setState("completed");
   }
   const pdUpload = async (blob: Blob, fileName: string): Promise<{ status: PDUploadState, url: string | null }> => {
-    const url: string = getUrlParam("upload_url");
+    const url: string = routes.query.upload_url as string;
     console.log(`上傳圖片網址: ${url}`);
     // 2. 開始上傳檔案至後台PD
     const metaData = {
-      hallId: getUrlParam("hallId") || "6",
-      width: getUrlParam("width"),
-      height: getUrlParam("height"),
+      hallId: routes.query.hid as string || "6",
+      width: routes.query.width as string,
+      height: routes.query.height as string,
       url
     };
 
