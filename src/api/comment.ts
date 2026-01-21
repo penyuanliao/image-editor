@@ -2,12 +2,10 @@ import {API_ENDPOINTS} from "@/api/endpoints.ts";
 
 export interface CommentResponseResult {
     status: boolean;
-    message?: string;
-    data: any;
     error?: string;
 }
 export const apiComment = async (
-    message: string,
+    content: string,
     options?: { authorization?: string | null }
 ): Promise<CommentResponseResult> => {
     const response = await fetch(API_ENDPOINTS.COMMENT, {
@@ -16,7 +14,7 @@ export const apiComment = async (
             "Content-Type": "application/json",
             Authorization: `Bearer ${ options?.authorization }`
         },
-        body: JSON.stringify({ message })
+        body: JSON.stringify({ content })
     });
     if (!response.ok) {
         throw new Error("Failed to fetch comment.");

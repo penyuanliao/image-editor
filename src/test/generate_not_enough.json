@@ -1,6 +1,6 @@
 {
   "status": false,
-  "code": 1,
+  "errcode": 2,
   "image": [],
   "error": "AI點數不足"
 }

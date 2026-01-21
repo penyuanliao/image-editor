@@ -2,13 +2,12 @@ import { API_ENDPOINTS } from "./endpoints";
 
 export interface UrlRecordResponseResult {
   status: boolean;
-  message?: string;
   error?: string;
 }
 
 // 3. 建立一個專門用來擷取資料的函式
 export const apiUrlRecord = async (data: {
-  url: string
+  imageurl: string
 },options?: {
   authorization?: string;
 }): Promise<UrlRecordResponseResult> => {

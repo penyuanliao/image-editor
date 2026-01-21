@@ -51,15 +51,14 @@ export const useAlertStore = defineStore("AlertStore", () => {
     });
   };
   // 無法生成圖片
-  const alertUnableGenerateImage = async () => {
-    const title: string = "图片套用异常";
-    const content: string[] = ["图片在编辑过程中发生异常，未成功套用", "请重新尝试，或下载目前图片后再关闭系统", "", ""];
+  const alertUnableGenerateImage = async (errorCode: string) => {
+    const title: string = "图片输出异常";
+    const content: string[] = [`${errorCode}:无法生成图片`, "", ""];
     const message: string = createAlertMessage(content);
     return await ConfirmMessage({
       message,
       title,
       cancelText: "关闭弹窗",
-      confirmText: "下载与关闭系统",
       options: {
         cancelButtonClass: "custom-cancel-btn w-192",
         confirmButtonClass: "custom-confirm-btn w-246",
@@ -69,10 +68,12 @@ export const useAlertStore = defineStore("AlertStore", () => {
   };
   // 上傳流程失敗
   const alertUploadFailed = async () => {
+    const title: string = "图片套用异常";
+    const content: string[] = ["图片在编辑过程中发生异常，未成功套用", "请重新尝试，或下载目前图片后再关闭系统", "", ""];
+    const message: string = createAlertMessage(content);
     return await ConfirmMessage({
-      title: "图片套用异常",
-      message:
-        '<div style="text-align: center; user-select: none; font-size: 16px;">图片在编辑过程中发生异常，未成功套用<br/>请重新尝试，或下载目前图片后再关闭系统</div>',
+      message,
+      title,
       cancelText: "关闭弹窗",
       confirmText: "下载与关闭系统",
       options: {

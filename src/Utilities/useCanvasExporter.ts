@@ -95,11 +95,19 @@ export function exportCroppedArea(options: CroppedExportOptions): Promise<string
         drawSVG(exportCtx, elementForExport);
       }
     });
+    try {
+      if (options.blob) {
+        exportCanvas.toBlob((blob) => resolve(blob), options.type || "image/png");
+      } else {
+        resolve(exportCanvas.toDataURL(options.type || "image/png"));
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        return reject(error.name);
+      } else {
+        return reject(error);
+      }
 
-    if (options.blob) {
-      exportCanvas.toBlob((blob) => resolve(blob), options.type || "image/png");
-    } else {
-      resolve(exportCanvas.toDataURL(options.type || "image/png"));
     }
 
   });

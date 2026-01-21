@@ -89,7 +89,7 @@ const handleInputClear = () => {
 }
 
 onMounted(async () => {
-  await materialsStore.getMaterials();
+  await materialsStore.getMaterials(true);
 
   if (galleryViewRef.value) {
     galleryViewRef.value.addEventListener("scrollend", () => {
@@ -133,13 +133,24 @@ watch(currentStep, (newIndex) => {
         </div>
       </section>
       <section ref="galleryViewRef" class="view scroll-bar-custom">
-        <el-page-header class="header" @back="handleViewClick(NAV_CTRL_STEPS.GROUP_VIEW)">
+        <el-page-header class="header" icon="" @back="handleViewClick(NAV_CTRL_STEPS.GROUP_VIEW)">
+          <template #title>
+            <div class="header-title">
+              <el-icon size="24">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </el-icon>
+              返回
+            </div>
+          </template>
           <template #content>
-            <h2>{{ categoryName }}</h2>
+            <h2 class="header-content">{{ categoryName }}</h2>
           </template>
         </el-page-header>
         <div class="material-content">
-          <NSearchButton v-model:input="input" @change="handleInputChange"/>
+          <NSearchButton class="gallery-search" v-model:input="input" @change="handleInputChange"/>
           <CategoryGalleryView
             v-bind:data="materialsStore.categoryImages"
             @change="handleImageChange"
@@ -148,8 +159,19 @@ watch(currentStep, (newIndex) => {
       </section>
       <section class="view filter-wrapper scroll-bar-custom">
         <el-page-header class="header" @back="handleViewClick(NAV_CTRL_STEPS.GROUP_VIEW)">
+          <template #title>
+            <div class="header-title">
+              <el-icon size="24">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </el-icon>
+              返回
+            </div>
+          </template>
           <template #content>
-            <h2>素材分類</h2>
+            <h2 class="header-content">素材分類</h2>
           </template>
         </el-page-header>
         <div class="view material-content">
@@ -208,6 +230,38 @@ watch(currentStep, (newIndex) => {
     height: 30px;
     padding: 40px 0 5px 0;
     gap: 5px;
+    position: sticky;
+    top: 0;
+    background-color: white;
+    z-index: 100;
+    :deep(.el-divider--vertical) {
+      display: none;
+    }
+  }
+  .header-title {
+    display: flex;
+    //height: 28px;
+    align-items: center;
+    gap: 5px;
+    padding: 1px 15px 1px 5px;
+    border-radius: 30px;
+    font-size: 15px;
+    border: 1px solid #DFDFDF;
+    font-weight: 400;
+    &:hover {
+      border-color: #F15624;
+      background-color: #F15624;
+      color: white;
+    }
+  }
+  .header-content {
+    padding-left: 15px;
+  }
+  .gallery-search {
+    position: sticky;
+    top: 75px;
+    background-color: white;
+    z-index: 100;
   }
   .material-content {
     flex: 1;

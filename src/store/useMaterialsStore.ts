@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
-import { apiGetMaterials, type ResMaterialsData } from "@/api/materials.ts";
+import { apiGetMaterials, type ResMaterialsData, type ResponseResult } from "@/api/materials.ts";
 import { useAccountStore } from "@/store/useAccountStore.ts";
 import materialsData from "@/test/material.json";
 
@@ -55,13 +55,12 @@ export const useMaterialsStore = defineStore("materialsStore", () => {
   const searchValue = ref<string>("");
 
   // 從 API 獲取模板的 action
-  const getMaterials = async () => {
+  const getMaterials = async (demo: boolean = false) => {
     isLoading.value = true;
     error.value = null;
     try {
       const accountStore = useAccountStore();
-      const demo: boolean = true;
-      const result = (demo) ? await apiGetMaterials({ authorization: accountStore.authorization || "" }) : materialsData;
+      const result = (!demo) ? await apiGetMaterials({ authorization: accountStore.authorization || "" }) : materialsData as ResponseResult;
       if (result.status) rawData.value = result.data;
       return result;
     } catch (e: any) {
@@ -70,11 +69,14 @@ export const useMaterialsStore = defineStore("materialsStore", () => {
       isLoading.value = false;
     }
   };
-  const getImageGenMode = (name: string) => {
-    let imageGenMode: number = 1;
-    if (name.includes("#")) imageGenMode = 2; // 背景模式
-    if (name.includes("$")) imageGenMode = 0; // 不支援AI產圖
-    return imageGenMode;
+  const getImageGenMode = (id: number) => {
+    const imageGenMode: number = 1;
+    // 1=無、2＝風格去背、3=風格不去背、4=換色去背、5=換色不去背
+    if (id > 0 && id <= 5) {
+      return id;
+    } else {
+      return imageGenMode;
+    }
   };
 
   const selectedMaterialGroup = computed({
@@ -107,7 +109,7 @@ export const useMaterialsStore = defineStore("materialsStore", () => {
           name: material.MaterialName,
           src: material.Urlpath,
           categoryId: category.ID,
-          imageGenMode: getImageGenMode(category.CategoryName)
+          imageGenMode: getImageGenMode(categories.AIStyle)
         };
       }) || [];
 
@@ -138,7 +140,7 @@ export const useMaterialsStore = defineStore("materialsStore", () => {
             categoryId: category.ID,
             categoryIndex: index,
             category: category.CategoryName,
-            imageGenMode: getImageGenMode(category.CategoryName)
+            imageGenMode: getImageGenMode(categories.AIStyle)
           });
         }
       });
@@ -176,7 +178,7 @@ export const useMaterialsStore = defineStore("materialsStore", () => {
           name: material.MaterialName,
           src: material.Urlpath,
           categoryId: category.ID, // 保留分類ID以便追蹤
-          imageGenMode: getImageGenMode(category.CategoryName)
+          imageGenMode: getImageGenMode(group.AIStyle)
         }))
       )
     );

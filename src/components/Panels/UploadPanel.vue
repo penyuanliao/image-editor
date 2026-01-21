@@ -3,7 +3,7 @@ import { onMounted, ref } from "vue";
 import { CreateImageElement } from "@/Utilities/useCreateCanvasElement.ts";
 import { generalDefaults } from "@/config/settings.ts";
 import { processFile } from "@/Utilities/FileProcessor.ts";
-import type { IImageConfig, IUploadedImage } from "@/types.ts";
+import { type IImageConfig, ImageGenModeEnum, type IUploadedImage } from "@/types.ts";
 
 const emit = defineEmits<{
   (e: "add-element", action: any): void;
@@ -32,7 +32,7 @@ const handleAddingElement = ({ name, image, imageUrl, base64 }: IUploadedImage) 
     imageUrl,
     base64
   });
-  (element.config as IImageConfig).imageGenMode = 10;
+  (element.config as IImageConfig).imageGenMode = ImageGenModeEnum.CUSTOM;
   emit("add-element", element);
 };
 

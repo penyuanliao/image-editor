@@ -141,8 +141,7 @@ onMounted(async () => {
   window.addEventListener("resize", updatePanelHeight);
 
   mainStore.initialization();
-
-  await mainStore.startLogin();
+  await mainStore.startLoginDemo();
 
   // 3. 進行相關參數初始化
   // 3-1. 設定畫布寬高大小
@@ -214,7 +213,7 @@ watch(selected, async () => {
           <LayersPanel class="layers-scroll scroll-bar-hidden" :visible="mainStore.layersVisible"/>
         </div>
       </div>
-      <div class="app-version">v{{ mainStore.version }}</div>
+      <div class="app-version">v{{ mainStore.version }}.{{ mainStore.environment }}</div>
 
     </div>
   </DropZone>

@@ -5,7 +5,7 @@ import { API_ENDPOINTS } from "./endpoints";
 
 export interface ImageGenerateResult {
   status: boolean;
-  code: number;
+  errcode: number;
   error?: string;
   image: string;
 }
@@ -19,6 +19,7 @@ export interface AIGenRequest {
   choice?: number;
   color?: string; // 處理顏色
   matting?: boolean; // 處理去背
+  aistyle?: number;
 }
 
 // 3. 建立一個專門用來擷取資料的函式

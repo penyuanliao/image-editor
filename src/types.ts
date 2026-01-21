@@ -149,9 +149,11 @@ export const AlignPositionEnum = {
 };
 
 export const ImageGenModeEnum = {
-  NONE: 0,
-  STYLE: 1,
-  COLOR: 2,
+  NONE: 1,
+  STYLE_MATTING: 2,
+  STYLE_NOT_MATTING: 3,
+  COLOR_MATTING: 4,
+  COLOR_NOT_MATTING: 5,
   CUSTOM: 10
 };
 export type ImageGenMode = (typeof ImageGenModeEnum)[keyof typeof ImageGenModeEnum];

@@ -9,6 +9,7 @@ import { NStorageManager } from "@/library/NStorageManager.ts";
 import { useAlertStore } from "@/store/useAlertStore.ts";
 import { apiUrlRecord } from "@/api/urlRecord.ts";
 import { useAIGenStore } from "@/store/useAIGenStore.ts";
+import { dealy } from "@/Utilities/Utility.ts";
 
 const PD_UPLOAD_STATE = {
   WAIT: 0,
@@ -28,6 +29,8 @@ export const useMainStore = defineStore("main", () => {
   const theme = ref<string>("light");
   // 系統版本
   const version = ref<string>(__APP_VERSION__);
+
+  const environment = ref<string>(import.meta.env.MODE);
 
   const isDev = computed(() => import.meta.env.MODE === "dev");
 
@@ -89,6 +92,7 @@ export const useMainStore = defineStore("main", () => {
   const setMarqueeText = (text: string) => {
     marqueeText.value = text.trim();
   }
+  // 開始登入
   const startLogin = async () => {
     // 1. 檢查是否由PD另外開啟頁面
     if (!window.opener && !isDev.value) {
@@ -110,11 +114,8 @@ export const useMainStore = defineStore("main", () => {
     }
     setState("completed");
   }
+  // 展演使用不登入
   const startLoginDemo = async () => {
-    if (!window.opener && !isDev.value) {
-      setState("denied");
-      return;
-    }
     setState("completed");
   }
   const pdUpload = async (blob: Blob, fileName: string): Promise<{ status: PDUploadState, url: string | null }> => {
@@ -122,7 +123,7 @@ export const useMainStore = defineStore("main", () => {
     console.log(`上傳圖片網址: ${url}`);
     // 2. 開始上傳檔案至後台PD
     const metaData = {
-      hallId: getUrlParam("hallId"),
+      hallId: getUrlParam("hallId") || "6",
       width: getUrlParam("width"),
       height: getUrlParam("height"),
       url
@@ -142,8 +143,12 @@ export const useMainStore = defineStore("main", () => {
       waiting.setText(`上傳失敗`);
       waiting.close();
       return { status: PD_UPLOAD_STATE.FAILURE_UPLOAD, url: null };
+    } else {
+      waiting.setText(`上傳完成`);
+      await dealy(1);
     }
     console.log("executeUpload", result);
+    waiting.setText(`更新中...`)
     // 3. 通知PD完成上傳
     const openerResult = await new Promise<{ status: boolean, message?: string }>((resolve) => {
       const uuid = nanoid(12);
@@ -156,12 +161,15 @@ export const useMainStore = defineStore("main", () => {
       }, 5000);
     });
     console.log("openerResult", openerResult);
-    waiting.setText(`更新失敗`);
-    waiting.close();
+
     if (!openerResult.status) {
+      waiting.setText(`更新失敗`);
+      waiting.close();
       // 通知失敗
       return { status: PD_UPLOAD_STATE.FAILURE_SEND_MESSAGE, url: result.data.link };
     } else {
+      waiting.setText(`更新完成`);
+      waiting.close();
       return { status: PD_UPLOAD_STATE.SUCCESS, url: result.data.link };
     }
   };
@@ -181,7 +189,7 @@ export const useMainStore = defineStore("main", () => {
     const authorization = accountStore.authorization || "";
 
     for (let i = 0; i < attempts; i++) {
-      const result = await apiUrlRecord({ url }, { authorization }).catch(() => { return { status: false }; });
+      const result = await apiUrlRecord({ imageurl: url }, { authorization }).catch(() => { return { status: false }; });
       if (result.status) return result;
     }
     return { status: false };
@@ -248,6 +256,7 @@ export const useMainStore = defineStore("main", () => {
 
   return {
     isLoading,
+    environment,
     isDev,
     commentVisible,
     layersVisible,

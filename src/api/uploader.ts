@@ -1,5 +1,5 @@
 import axios, { type AxiosError, type AxiosProgressEvent, type AxiosResponse } from "axios";
-import { ErrorMessage } from "@/Utilities/AlertMessage.ts";
+import { ElMessage } from "element-plus";
 
 export interface UploadImageResult {
   status: "Y" | "N";
@@ -53,7 +53,19 @@ export const uploadImage = async (
       }
     })
     .catch((error: AxiosError) => {
-      ErrorMessage(error.message);
+      if (error.code === "ERR_NETWORK" || error.message === "Network Error") {
+        ElMessage({
+          message: `連線錯誤:无法连接伺服器，可能是跨域 (CORS) 限制或网路中断(${error.code})。`,
+          type: "error",
+          duration: 10000,
+        });
+      } else {
+        ElMessage({
+          message: `未知錯誤:${error.message}(${error.code})`,
+          type: "error",
+          duration: 10000,
+        });
+      }
       return null;
     });
   if (response?.status === 200) {

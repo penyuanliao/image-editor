@@ -21,9 +21,11 @@ import NZoomControl from "@/components/Basic/NZoomControl.vue";
 import { useMainStore } from "@/store/useMainStore.ts";
 import { getUrlParam } from "@/Utilities/urlHelper.ts";
 import UndoRedo from "@/components/EditorArea/UndoRedo.vue";
+import { useAlertStore } from "@/store/useAlertStore.ts";
 // import {uploadImage} from "@/api/uploader.ts";
 
 const editorStore = useEditorStore();
+const alertStore = useAlertStore();
 const mainStore = useMainStore();
 
 const emit = defineEmits(["element-selected"]);
@@ -265,11 +267,15 @@ const preview = async (blob: boolean = false) => {
     type: "image/png",
     color: editor.value.viewport.color,
     blob
-  } as CroppedExportOptions);
+  } as CroppedExportOptions).catch(async (err) => {
+    if (err === "SecurityError") await alertStore.alertUnableGenerateImage(err);
+    return null;
+  });
 };
 // 儲存裁切後的圖片
 const saveImage = async () => {
   const href = await preview() as string;
+  if (!href) return;
   const imageByBlob = await preview(true);
   if (href && imageByBlob instanceof Blob) {
     const filename = getUrlParam('filename') || "image.png";
@@ -279,6 +285,7 @@ const saveImage = async () => {
 const handleUploadImage = async () => {
   const filename = getUrlParam('filename') || "image.png";
   const href = await preview() as string;
+  if (!href) return;
   const imageByBlob = await preview(true);
   if (imageByBlob instanceof Blob) {
     await mainStore.startUpload(imageByBlob, href, filename);
@@ -629,7 +636,7 @@ defineExpose({
               <el-icon size="24">
                 <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path d="M21.3171 20.5035C21.2555 20.9217 20.7166 21.2431 19.8374 21.2431H5.46175C4.98903 21.2431 4.60574 20.8538 4.60574 20.3738C4.60574 19.8937 4.98903 19.5045 5.46175 19.5045H19.8043C19.8043 19.5045 20.378 19.4561 20.8287 19.0055C21.2131 18.621 21.2962 17.5842 21.2962 16.9939V3.17109C21.2962 1.97211 20.3391 1.00018 19.1585 1.00018H5.1377C3.95706 1.00018 3 1.97211 3 3.17109V20.7872C3.00523 22.0104 3.98261 23.0006 5.18881 23.0006H19.1446C20.3537 23.0006 21.3334 22.0056 21.3334 20.7778C21.3334 20.6852 21.3276 20.5938 21.3165 20.5035H21.3171ZM4.58774 17.9369V3.39814C4.58774 2.99711 4.90773 2.67215 5.30263 2.67215H19.0749C19.4698 2.67215 19.7898 2.99711 19.7898 3.39814V17.0682C19.7898 17.4692 19.4698 17.7942 19.0749 17.7942H5.30844C4.69053 17.7942 4.58774 17.9369 4.58774 17.9369Z" fill="white"/>
-                  <path d="M11.0177 15.9865V14.0326H12.9916V15.9865H11.0177ZM11.2169 13.2029V12.4822C11.1826 11.4837 11.642 10.6362 12.5828 9.96389C13.4893 9.32872 13.9185 8.71714 13.8592 8.14449C13.7686 7.28698 13.282 6.83876 12.3708 6.77565C12.3464 6.77506 12.322 6.77447 12.2976 6.77447C11.2604 6.77447 10.6222 7.39431 10.3469 8.66878L10.3109 8.83568L8.54663 8.40339L8.57973 8.24415C9.01413 6.17292 10.308 5.12256 12.4254 5.12256C12.4939 5.12256 12.563 5.12374 12.6327 5.1261C14.5486 5.23225 15.6067 6.1853 15.7815 7.95871V7.96461C15.8518 9.07159 15.2228 10.0588 13.9115 10.9004C13.1606 11.377 12.811 11.9237 12.8418 12.573V12.5812V13.204H11.2169V13.2029Z" fill="white"/>
+                  <path class="fade-icon" d="M11.0177 15.9865V14.0326H12.9916V15.9865H11.0177ZM11.2169 13.2029V12.4822C11.1826 11.4837 11.642 10.6362 12.5828 9.96389C13.4893 9.32872 13.9185 8.71714 13.8592 8.14449C13.7686 7.28698 13.282 6.83876 12.3708 6.77565C12.3464 6.77506 12.322 6.77447 12.2976 6.77447C11.2604 6.77447 10.6222 7.39431 10.3469 8.66878L10.3109 8.83568L8.54663 8.40339L8.57973 8.24415C9.01413 6.17292 10.308 5.12256 12.4254 5.12256C12.4939 5.12256 12.563 5.12374 12.6327 5.1261C14.5486 5.23225 15.6067 6.1853 15.7815 7.95871V7.96461C15.8518 9.07159 15.2228 10.0588 13.9115 10.9004C13.1606 11.377 12.811 11.9237 12.8418 12.573V12.5812V13.204H11.2169V13.2029Z" fill="white"/>
                 </svg>
               </el-icon>
             </template>
@@ -843,6 +850,18 @@ defineExpose({
     letter-spacing: 0;
     text-align: center;
     gap: 8px;
+    &:hover .fade-icon {
+      animation: fade-in-out 2s infinite ease-in-out;
+    }
+  }
+}
+
+@keyframes fade-in-out {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
   }
 }
 

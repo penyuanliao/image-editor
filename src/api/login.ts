@@ -28,6 +28,11 @@ export const apiLogin = async (data: LoginRequestData): Promise<LoginResponseRes
     body: JSON.stringify(data)
   });
   if (!response.ok) {
+
+    if (response.status === 403) {
+      return response.json();
+    }
+
     throw new Error(`status_${response.status}`);
   }
   return response.json();

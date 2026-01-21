@@ -32,13 +32,9 @@ const imageGenMode = computed(() => {
   const config = editorStore.selectedElement?.config as IImageConfig;
   return config.imageGenMode || ImageGenModeEnum.NONE;
 });
-const originalImage = ref<{
-  image?: HTMLImageElement;
-  base64?: string;
-  id: string;
-  blob?: Blob;
-} | null>(null);
-
+// 顯示原始圖片
+const originalImage = ref<IGenerateSource | null>(null);
+// 顯示風格清單、要包含原始圖片
 const styles = computed(() => {
   const list = [];
   if (originalImage.value)
@@ -49,9 +45,8 @@ const styles = computed(() => {
       url: originalImage.value.image?.src
     });
 
-  return [...list, ...appearanceDefaults.AIStyles];
+  return [...list, ...appearanceDefaults.artStyle];
 });
-
 // 套色模組
 const genColorConfig = ref({
   color: "#000000"
@@ -95,26 +90,19 @@ const isSubmit = () => {
     selectedStyle: ${genStyleConfig.style}
     prompt: ${genStyleConfig.prompt}
   `);
-  if (imageGenMode.value === ImageGenModeEnum.COLOR) {
+  if (imageGenMode.value === ImageGenModeEnum.COLOR_MATTING || imageGenMode.value === ImageGenModeEnum.COLOR_NOT_MATTING) {
     return genColorConfig.value.color !== "";
-  } else if (imageGenMode.value === ImageGenModeEnum.STYLE) {
+  } else if (imageGenMode.value === ImageGenModeEnum.STYLE_MATTING || imageGenMode.value === ImageGenModeEnum.STYLE_NOT_MATTING) {
     if (genStyleConfig.style === -1) return false;
-    if (genStyleConfig.style === 0 && !genStyleConfig.prompt) return false;
+    if (genStyleConfig.style <= 0 && !genStyleConfig.prompt) return false;
   } else if (imageGenMode.value === ImageGenModeEnum.CUSTOM) {
-    if (genStyleConfig.style !== 0) return false;
+    if (genStyleConfig.style <= 0) return false;
   }
 
   return true;
 };
 // 產生圖片相關資料
-const createSource = async (): Promise<{
-  image: HTMLImageElement;
-  id: string;
-  materialId: number;
-  base64: string;
-  url?: string;
-  color?: string;
-} | null> => {
+const createSource = async (): Promise<IGenerateSource | null> => {
   const elementId = editorStore.selectedElement?.id || "";
   const config = editorStore.selectedElement?.config as IImageConfig;
   if (!config || !elementId) return null;
@@ -122,8 +110,12 @@ const createSource = async (): Promise<{
   const materialId = config.id || -1;
   let image: HTMLImageElement = config.img as HTMLImageElement;
   let base64: string = "";
+  let url = config.url;
   if (materialId <= 0) {
-    if (!config.img || !config.base64) {
+    if (originalImage.value) {
+      image = originalImage.value.image as HTMLImageElement;
+      base64 = originalImage.value.base64 || "";
+    } else if (!config.img || !config.base64) {
       const load = await processUrlToBase64(config.url || "");
       image = load.image;
       base64 = load.base64;
@@ -131,14 +123,17 @@ const createSource = async (): Promise<{
       image = config.img;
       base64 = config.base64;
     }
+  } else {
+    // 這邊主要是會更換圖片但是需要再一次產圖時需要拿回原始圖片的URL
+    if (originalImage.value) url = originalImage.value.url || "";
   }
-
   return {
     image,
     base64,
     id: elementId,
     materialId,
-    url: config.url
+    url,
+    aiStyle: config.imageGenMode
   };
 };
 
@@ -180,6 +175,20 @@ const setupChangeImage = async (
     await AlertMessage(aiGenStore.error || "AI生成失敗了!求求你再給他一次機會");
   }
 };
+// 送出結果顯示
+const submitResult = async (result: ImageGenerateResult | undefined | null, elementId: string, source: IGenerateSource) => {
+  if (result && result.status) {
+    await setupChangeImage(elementId, source, result);
+  } else if (result && !result.status) {
+    if (result.errcode === 2) {
+      await alertStore.alertAIPointNotEnough();
+    } else {
+      await alertStore.alertAIFailed();
+    }
+  } else {
+    await AlertMessage(aiGenStore.error || "AI生成失敗了!求求你再給他一次機會");
+  }
+}
 // 送出風格轉換生成
 const onSubmitStyle = async () => {
   if (!editorStore.selectedElement) return false;
@@ -212,17 +221,7 @@ const onSubmitStyle = async () => {
     choice: genStyleConfig.style,
     prompt: genStyleConfig.prompt
   });
-  if (result && result.status) {
-    await setupChangeImage(elementId, source, result);
-  } else if (result && !result.status) {
-    if (result.code === 1) {
-      await alertStore.alertAIPointNotEnough();
-    } else {
-      await alertStore.alertAIFailed();
-    }
-  } else {
-    await AlertMessage(aiGenStore.error || "AI生成失敗了!求求你再給他一次機會");
-  }
+  await submitResult(result, elementId, source);
 };
 // 送出顏色置換生成
 const onSubmitColor = async () => {
@@ -235,11 +234,7 @@ const onSubmitColor = async () => {
   const result = await aiGenStore.fetchGenerate(source, {
     color: genColorConfig.value.color
   });
-  if (result) {
-    await setupChangeImage(elementId, source, result);
-  } else {
-    await AlertMessage(aiGenStore.error || "AI生成失敗了!求求你再給他一次機會");
-  }
+  await submitResult(result, elementId, source);
 };
 // 送出移除背景生成
 const onSubmitImageMatting = async () => {
@@ -251,15 +246,11 @@ const onSubmitImageMatting = async () => {
   const result = await aiGenStore.fetchGenerate(source, {
     matting: true
   });
-  if (result) {
-    await setupChangeImage(elementId, source, result);
-  } else {
-    await AlertMessage(aiGenStore.error || "AI生成失敗了!求求你再給他一次機會");
-  }
+  await submitResult(result, elementId, source);
 };
 // 送出生成模式選擇
 const onSubmit = async () => {
-  if (imageGenMode.value === ImageGenModeEnum.COLOR) {
+  if (imageGenMode.value === ImageGenModeEnum.COLOR_NOT_MATTING || imageGenMode.value === ImageGenModeEnum.COLOR_MATTING) {
     await onSubmitColor();
   } else {
     await onSubmitStyle();
@@ -289,7 +280,7 @@ onMounted(() => {
     </div>
     <div class="content">
       <div
-        v-if="imageGenMode === ImageGenModeEnum.STYLE || imageGenMode === ImageGenModeEnum.CUSTOM"
+        v-if="imageGenMode === ImageGenModeEnum.STYLE_MATTING || imageGenMode === ImageGenModeEnum.STYLE_NOT_MATTING || imageGenMode === ImageGenModeEnum.CUSTOM"
         class="ai-select-stylize"
       >
         <el-tabs class="ai-tab" v-model="genStyleConfig.type" @tab-change="handleTabsChange">
@@ -324,7 +315,7 @@ onMounted(() => {
                 :style="{ 'pointer-events': aiGenStore.isLoading ? 'none' : 'auto' }"
               >
                 <div
-                  v-for="style in styles"
+                  v-for="style in appearanceDefaults.reimagine"
                   :key="style.key"
                   class="item"
                   @click="selectStyle(style.value)"
@@ -353,9 +344,10 @@ onMounted(() => {
           </el-tab-pane>
         </el-tabs>
       </div>
-      <div v-if="imageGenMode === ImageGenModeEnum.COLOR" class="ai-select-color">
+      <div v-if="imageGenMode === ImageGenModeEnum.COLOR_MATTING || imageGenMode === ImageGenModeEnum.COLOR_NOT_MATTING" class="ai-select-color">
         <ColorPicker
           v-model:pureColor="genColorConfig.color"
+          format="hex"
           v-bind="{ isWidget: true, disableAlpha: true, disableHistory: true }"
           style="box-shadow: none"
         />

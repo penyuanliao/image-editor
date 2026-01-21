@@ -1,15 +1,19 @@
 {
   "name": "asset-editor",
   "private": true,
-  "version": "0.1.15",
+  "version": "0.1.19",
   "type": "module",
   "scripts": {
     "dev": "vite --mode dev",
     "test": "vite --mode test",
+    "pd": "vite --mode pd",
     "build": "npm version patch --no-git-tag-version && vue-tsc -b && vite build",
-    "release": "npm version major --no-git-tag-version && vue-tsc -b && vite build",
+    "build:test": "npm version patch --no-git-tag-version && vue-tsc -b && vite build --mode test",
+    "build:pd": "npm version patch --no-git-tag-version && vue-tsc -b && vite build --mode pd",
+    "release": "vue-tsc -b && vite build",
     "preview": "vite preview",
-    "format": "prettier --write ./src"
+    "format": "prettier --write ./src",
+    "upload:s3": "aws s3 cp ./dist \"$npm_config_dest\" --recursive"
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.2",

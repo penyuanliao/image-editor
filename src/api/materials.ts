@@ -23,6 +23,7 @@ export interface ResMaterialGroup {
 export interface ResMaterialsData {
   ID: number;
   CategoryName: string;
+  AIStyle: number; // 1=無、2＝風格去背、3=風格不去背、4=換色去背、5=換色不去背
   Info: ResMaterialGroup[];
 }
 

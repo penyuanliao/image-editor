@@ -152,6 +152,7 @@ const handleNext = (index: number) => {
   display: flex;
   gap: 20px;
   background-color: white;
+  justify-content: space-between;
 }
 
 .item {
@@ -161,6 +162,7 @@ const handleNext = (index: number) => {
   cursor: pointer;
   display: flex;
   gap: 7px;
+  flex-shrink: 0;
 }
 
 .image-item {
@@ -206,7 +208,7 @@ const handleNext = (index: number) => {
   min-height: 24px;
   font-size: 18px;
   font-weight: 400;
-  line-height: 100%;
+  line-height: 24px;
   letter-spacing: 0;
   margin-block-end: 9px;
   margin-block-start: 9px;

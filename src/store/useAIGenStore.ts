@@ -6,9 +6,11 @@ import { useAccountStore } from "@/store/useAccountStore.ts";
 export interface IGenerateSource {
   image: HTMLImageElement;
   id: string; // elementId
-  materialId?: number;
+  materialId: number;
   url?: string;
   base64?: string;
+  color?: string;
+  aiStyle?: number;
 }
 // 產生的AI圖片action
 export const useAIGenStore = defineStore("aiGenStore", () => {
@@ -17,7 +19,7 @@ export const useAIGenStore = defineStore("aiGenStore", () => {
   // 存放原始圖片資料
   const originalImages: Map<
     string,
-    { image?: HTMLImageElement; base64?: string; id: string; blob?: Blob }
+    IGenerateSource
   > = new Map();
   // 存放處理過後圖片資料
   const rawData = ref<Record<number, any>>({});
@@ -54,6 +56,7 @@ export const useAIGenStore = defineStore("aiGenStore", () => {
       if (source.materialId && source.materialId > 0) {
         // body.materialid = source.materialId;
         body.materialurl = source.url;
+        body.aistyle = source.aiStyle;
       } else if (source.base64) {
         // 1-2. 這邊是手動上傳的圖片
         body.originalimage = source.base64.replace(/^data:image\/[a-z]+;base64,/, "");
@@ -66,13 +69,13 @@ export const useAIGenStore = defineStore("aiGenStore", () => {
       } else if (args.prompt && choice === 0) {
         // 3. 檢查是否選擇自訂生成
         body.prompt = args.prompt;
-        body.materialurl = source.url;
+        body.choice = 21;
       } else if (args.color) {
         // 4. 顏色轉換
-        body.color = args.color;
+        body.prompt = args.color;
       } else if (args.matting) {
         // 5. 移除背景
-        body.matting = args.matting;
+        body.choice = 99;
       } else {
 
       }
@@ -114,7 +117,7 @@ export const useAIGenStore = defineStore("aiGenStore", () => {
   // 這邊紀錄原始圖片目的用於還原
   const setOriginalImage = (
     id: string,
-    source: { image?: HTMLImageElement; base64?: string; id: string; blob?: Blob }
+    source: IGenerateSource
   ) => {
     return originalImages.set(id, source);
   };

@@ -84,39 +84,25 @@ export const generalDefaults: IGeneralSettings = {
 };
 
 export const appearanceDefaults = {
-  AIStyles: [
-    // { name: '自订', value: 0, key: 'custom', url: './assets/themes/img_custom.png' },
+  artStyle: [
     { name: "3D插画", value: 1, key: "Illustration Style", url: "./assets/themes/img_3d.png" },
     {
       name: "赛博庞克",
-      value: 4,
+      value: 2,
       key: "cyberpunk",
-      class: "cyberpunk",
       url: "./assets/themes/img_cyberpunk.png"
     },
-    { name: "塗鴉藝術", value: 6, key: "Graffiti", url: "./assets/themes/img_oil_painting.png" }
+    { name: "塗鴉藝術", value: 3, key: "Graffiti", url: "./assets/themes/img_oil_painting.png" }
   ],
-  colorMask: [
-    { name: "藍色", value: 1, key: "blue" },
-    { name: "綠色", value: 2, key: "green" },
-    { name: "紅色", value: 3, key: "red" },
-    { name: "土色", value: 4, key: "khaki" },
-    { name: "黑色", value: 5, key: "black" },
-    { name: "紫色", value: 6, key: "purple" }
-  ],
-  imagine: [
-    { name: "3D插画", value: 21, key: "Illustration Style", url: "./assets/themes/img_3d.jpg" },
-    { name: "吉卜力風格", value: 22, key: "Ghibli Style", url: "./assets/themes/img_cartoon.jpg" },
-    { name: "动漫", value: 23, key: "Anime Style", url: "./assets/themes/img_anime.jpg" },
+  reimagine: [
+    { name: "3D插画", value: 11, key: "Illustration Style", url: "./assets/themes/img_3d.png" },
     {
       name: "赛博庞克",
-      value: 24,
+      value: 12,
       key: "cyberpunk",
-      class: "cyberpunk",
-      url: "./assets/themes/img_cyberpunk.jpg"
+      url: "./assets/themes/img_cyberpunk.png"
     },
-    { name: "水彩畫", value: 25, key: "watercolor", url: "./assets/themes/img_watercolor.jpg" },
-    { name: "塗鴉藝術", value: 26, key: "Graffiti", url: "./assets/themes/img_oil_painting.jpg" }
+    { name: "塗鴉藝術", value: 13, key: "Graffiti", url: "./assets/themes/img_oil_painting.png" }
   ],
   StandardStageSizes: [
     {
