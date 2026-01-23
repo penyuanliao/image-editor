@@ -118,7 +118,7 @@ const dialogCommentStyle = () => {
         <div
           :class="{
             'comment-submit-btn': true,
-            disable: !inputValid
+            disable: !inputValid && !commentStore.isLoading
           }"
           @click="handleCommentSubmit"
         >
