@@ -96,7 +96,9 @@ const isSubmit = () => {
     if (genStyleConfig.style === -1) return false;
     if (genStyleConfig.style <= 0 && !genStyleConfig.prompt) return false;
   } else if (imageGenMode.value === ImageGenModeEnum.CUSTOM) {
-    if (genStyleConfig.style <= 0) return false;
+    if (genStyleConfig.style === 0) {
+      if (!genStyleConfig.prompt) return false;
+    } else if (genStyleConfig.style <= 0) return false;
   }
 
   return true;
@@ -379,7 +381,7 @@ onMounted(() => {
       </div>
       <div class="mask" v-if="aiGenStore.isLoading">
         <img style="width: 60px; height: 60px;" src="/src/assets/icons/loading.gif" alt="loading"/>
-        <span>正在執行BB AI素材生成...</span>
+        <span>正在执行BB AI素材生成...</span>
       </div>
     </div>
   </div>

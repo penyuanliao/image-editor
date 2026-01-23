@@ -34,12 +34,8 @@ export const useUploadStore = defineStore("uploadStore", () => {
         lastUploadedResult.value = null;
 
         try {
-            const result = await uploadImage(fileName, blob, metaData, (percent: number) => {
-              if (loadingInstance) {
-                loadingInstance.setText(`上傳中... ${percent}%`);
-              }
-            });
-
+            const result = await uploadImage(fileName, blob, metaData);
+            loadingInstance?.setText(`上傳中... ${100}%`);
             if (result && result.status === "Y") {
                 lastUploadedResult.value = result;
                 return result;

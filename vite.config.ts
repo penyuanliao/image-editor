@@ -8,7 +8,8 @@ import { proxyConfig } from "./src/config/proxy.ts";
 import { API_ENDPOINTS } from "./src/api/endpoints.ts";
 
 export default defineConfig((configEnv: ConfigEnv) => {
-  const isDev = configEnv.mode === "dev";
+  const isDev = configEnv.mode === "dev"; // 使用Mock資料
+  const isTest = configEnv.mode === "test"; // 使用proxy呼叫測試API
   let count: number = 0;
   function serverPlugin() {
     if (!isDev) return;
@@ -17,6 +18,19 @@ export default defineConfig((configEnv: ConfigEnv) => {
       configureServer(server: ViteDevServer) {
         server.middlewares.use(
           async (req: IncomingMessage, res: ServerResponse, next: () => void) => {
+            /*
+            // 1. 設定 CORS 相關 Headers，允許跨域請求
+            res.setHeader("Access-Control-Allow-Origin", "*");
+            res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+            res.setHeader("Access-Control-Allow-Headers", "X-Requested-With,content-type,Authorization");
+
+            // 2. 處理 Preflight (OPTIONS) 請求，直接回傳 204 成功
+            if (req.method === "OPTIONS") {
+              res.statusCode = 204;
+              res.end();
+              return;
+            }
+            */
             if (req.url === API_ENDPOINTS.GET_MATERIALS || req.url === API_ENDPOINTS.COMMENT) {
               let file: string = '';
               if (req.url === API_ENDPOINTS.GET_MATERIALS) file = "./src/test/material.json";
@@ -107,7 +121,7 @@ export default defineConfig((configEnv: ConfigEnv) => {
     },
     server: {
       host: true,
-      proxy: isDev ? proxyConfig : undefined,
+      proxy: isDev || isTest ? proxyConfig : undefined,
       allowedHosts: ['www.benson.com', 'admin.vir777.net', 'cdn.vir999.net']
     }
   };

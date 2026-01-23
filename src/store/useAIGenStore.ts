@@ -60,6 +60,7 @@ export const useAIGenStore = defineStore("aiGenStore", () => {
       } else if (source.base64) {
         // 1-2. 這邊是手動上傳的圖片
         body.originalimage = source.base64.replace(/^data:image\/[a-z]+;base64,/, "");
+        body.aistyle = 2; // 自行上傳模式
       }
 
       const choice = args.choice || 0;
@@ -69,13 +70,15 @@ export const useAIGenStore = defineStore("aiGenStore", () => {
       } else if (args.prompt && choice === 0) {
         // 3. 檢查是否選擇自訂生成
         body.prompt = args.prompt;
-        body.choice = 21;
+        body.choice = 0;
       } else if (args.color) {
         // 4. 顏色轉換
         body.prompt = args.color;
+        body.choice = 21;
       } else if (args.matting) {
         // 5. 移除背景
         body.choice = 99;
+        body.aistyle = 2;
       } else {
 
       }
@@ -85,7 +88,7 @@ export const useAIGenStore = defineStore("aiGenStore", () => {
 
       const result: ImageGenerateResult = await apiImageGenerate(JSON.stringify(body), { authorization });
       if (result.status) {
-        remainingTries.value--;
+        remainingTries.value = result.limit || 0;
         if (source.materialId) {
           if (rawData.value[source.materialId]) {
             rawData.value[source.materialId].push(result.image);

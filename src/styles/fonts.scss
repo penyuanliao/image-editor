@@ -10,9 +10,9 @@
     // It's recommended to convert TTF fonts to WOFF2 and WOFF for better web performance.
     // The browser will pick the first format it supports.
     src:
-      url("/assets/fonts/#{$file}.woff2") format("woff2"),
-      url("/assets/fonts/#{$file}.woff") format("woff"),
-      url("/assets/fonts/#{$file}.ttf") format("truetype");
+      url("/assets-editor/assets/fonts/#{$file}.woff2") format("woff2"),
+      url("/assets-editor/assets/fonts/#{$file}.woff") format("woff"),
+      url("/assets-editor/assets/fonts/#{$file}.ttf") format("truetype");
     font-display: swap; // Improves perceived performance by avoiding invisible text.
   }
 }

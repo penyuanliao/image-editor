@@ -8,6 +8,7 @@ export interface ImageGenerateResult {
   errcode: number;
   error?: string;
   image: string;
+  limit: number;
 }
 // originalimage, materialid, originalurl 三則一
 export interface AIGenRequest {

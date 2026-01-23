@@ -118,9 +118,9 @@ export const useMainStore = defineStore("main", () => {
   const startLoginDemo = async () => {
     setState("completed");
   }
-  const pdUpload = async (blob: Blob, fileName: string): Promise<{ status: PDUploadState, url: string | null }> => {
-    const url: string = routes.query.upload_url as string;
-    console.log(`上傳圖片網址: ${url}`);
+  const pdUpload = async (blob: Blob, fileName: string): Promise<{ status: PDUploadState, url: string | null, path: string }> => {
+    const url: string = decodeURI(routes.query.upload_url as string);
+    console.log(`上傳圖片網址: ${url}`, routes.query.upload_url);
     // 2. 開始上傳檔案至後台PD
     const metaData = {
       hallId: routes.query.hid as string || "6",
@@ -142,7 +142,7 @@ export const useMainStore = defineStore("main", () => {
       // 失敗怎麼辦
       waiting.setText(`上傳失敗`);
       waiting.close();
-      return { status: PD_UPLOAD_STATE.FAILURE_UPLOAD, url: null };
+      return { status: PD_UPLOAD_STATE.FAILURE_UPLOAD, url: "", path: "" };
     } else {
       waiting.setText(`上傳完成`);
       await dealy(1);
@@ -153,7 +153,7 @@ export const useMainStore = defineStore("main", () => {
     const openerResult = await new Promise<{ status: boolean, message?: string }>((resolve) => {
       const uuid = nanoid(12);
       postMessageBlock.value[uuid] = resolve;
-      window.opener?.postMessage({ uuid, url: result.data.link }, "*");
+      window.opener?.postMessage({ uuid, url: result.data.path }, "*");
       // 超時5秒
       setTimeout(() => {
         postMessageBlock.value[uuid] = null;
@@ -166,11 +166,11 @@ export const useMainStore = defineStore("main", () => {
       waiting.setText(`更新失敗`);
       waiting.close();
       // 通知失敗
-      return { status: PD_UPLOAD_STATE.FAILURE_SEND_MESSAGE, url: result.data.link };
+      return { status: PD_UPLOAD_STATE.FAILURE_SEND_MESSAGE, url: result.data.link, path: result.data.path };
     } else {
       waiting.setText(`更新完成`);
       waiting.close();
-      return { status: PD_UPLOAD_STATE.SUCCESS, url: result.data.link };
+      return { status: PD_UPLOAD_STATE.SUCCESS, url: result.data.link, path: result.data.path };
     }
   };
   const download = (href: string, fileName: string) => {

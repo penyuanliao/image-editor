@@ -8,9 +8,8 @@ export interface LoginResponseResult {
 }
 export interface UserInfo {
   token: string;
-  quota: string;
+  quota: number;
   marquee: string;
-  remainingTries: number;
 }
 export interface LoginRequestData {
   token: string;

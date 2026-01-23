@@ -21,7 +21,7 @@ export const useAlertStore = defineStore("AlertStore", () => {
     const title: string = "AI点数不足";
     const message: string = `<div style="text-align: center; user-select: none; font-size: 16px;">
 您的 AI 点数已用完，暂时无法使用AI功能
-<ul>
+<ul style="alert-ul">
     <li>AI 点数为您网站的管理者共用</li>
     <li>每月 1 日将自动为您网站补充</li>
 </ul>

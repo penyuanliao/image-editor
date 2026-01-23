@@ -42,11 +42,15 @@ const handleCommentSubmit = async () => {
     dialogFormVisible.value = false;
     ElMessage({
       message: "您的意见非常宝贵，感谢您的填写！",
-      type: "success"
+      type: "success",
+      customClass: "message-center" // 應用置中 class
     });
   }
-  dialogFormVisible.value = false;
 };
+const handleClose = () => {
+  dialogFormVisible.value = false;
+  commentStore.comments.content = "";
+}
 
 const dialogCommentStyle = () => {
   const dialogMarginTop = window.innerHeight <= 720 ? "7.5vh" : "15vh";
@@ -68,6 +72,7 @@ const dialogCommentStyle = () => {
     :lock-scroll="false"
     v-model="dialogFormVisible"
     center
+    @close="handleClose"
   >
     <template #header="{ titleId }">
       <div class="comment-header">
@@ -242,5 +247,13 @@ const dialogCommentStyle = () => {
     background-color: #9f9f9f;
     color: #d9d9d9;
   }
+}
+
+// 使用 :global() 來定義全域 class，讓 ElMessage 可以套用
+:global(.message-center) {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
 }
 </style>

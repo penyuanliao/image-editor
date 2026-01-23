@@ -85,24 +85,24 @@ export const generalDefaults: IGeneralSettings = {
 
 export const appearanceDefaults = {
   artStyle: [
-    { name: "3D插画", value: 1, key: "Illustration Style", url: "./assets/themes/img_3d.png" },
+    { name: "3D插画", value: 1, key: "Illustration Style", url: "/assets-editor/assets/themes/img_3d.png" },
     {
       name: "赛博庞克",
       value: 2,
       key: "cyberpunk",
-      url: "./assets/themes/img_cyberpunk.png"
+      url: "/assets-editor/assets/themes/img_cyberpunk.png"
     },
-    { name: "塗鴉藝術", value: 3, key: "Graffiti", url: "./assets/themes/img_oil_painting.png" }
+    { name: "塗鴉藝術", value: 3, key: "Graffiti", url: "/assets-editor/assets/themes/img_oil_painting.png" }
   ],
   reimagine: [
-    { name: "3D插画", value: 11, key: "Illustration Style", url: "./assets/themes/img_3d.png" },
+    { name: "3D插画", value: 11, key: "Illustration Style", url: "/assets-editor/assets/themes/img_3d.png" },
     {
       name: "赛博庞克",
       value: 12,
       key: "cyberpunk",
-      url: "./assets/themes/img_cyberpunk.png"
+      url: "/assets-editor/assets/themes/img_cyberpunk.png"
     },
-    { name: "塗鴉藝術", value: 13, key: "Graffiti", url: "./assets/themes/img_oil_painting.png" }
+    { name: "塗鴉藝術", value: 13, key: "Graffiti", url: "/assets-editor/assets/themes/img_oil_painting.png" }
   ],
   StandardStageSizes: [
     {

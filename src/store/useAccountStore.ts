@@ -43,7 +43,7 @@ export const useAccountStore = defineStore("accountStore", () => {
         userInfo.value.authorization = result.data?.token || null;
         userInfo.value.username = username || "";
         userInfo.value.marqueeText = result.data?.marquee || "";
-        userInfo.value.remainingTries = result.data?.remainingTries || 0;
+        userInfo.value.remainingTries = result.data?.quota || 0;
         return result;
       } else {
         error.value = result.error || "驗證失敗";
