@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {type IGalleryInfo, type IGroupThumbnail} from "@/store/useMaterialsStore.ts";
-import {type PropType, ref} from "vue";
+import { type PropType, ref} from "vue";
 import NImage from "@/components/Basic/NImage.vue";
 
 const props = defineProps({
@@ -37,6 +37,7 @@ const handlePrev = (index: number) => {
 const handleNext = (index: number) => {
   carouselRefs.value[index]?.next();
 };
+
 </script>
 
 <template>
@@ -56,7 +57,9 @@ const handleNext = (index: number) => {
         <el-carousel :ref="(el: any) => (carouselRefs[index] = el)"
                      :loop="false" :autoplay="false" :indicator-position="'none'" class="group-carousel"
                      :arrow="'never'" height="100px">
-          <el-carousel-item class="el-carousel-item" v-for="(row, itemIndex) in group.groupItems" :key="`row-${itemIndex}`">
+          <el-carousel-item class="el-carousel-item" v-for="(row, itemIndex) in group.groupItems" :key="`row-${itemIndex}`" :style="{
+            'z-index': `${ itemIndex === getActiveIndex(index) ? 9 : 0 }`
+          }">
             <div class="item" v-for="item in row" :key="`item-${item.id}`">
               <div class="image-item">
                 <NImage :src="item.src" fit="contain" @click="handleChange(item, index)"/>
@@ -213,4 +216,8 @@ const handleNext = (index: number) => {
   margin-block-end: 9px;
   margin-block-start: 9px;
 }
+
+/*:deep(.el-carousel__item) {
+  transition: none !important;
+}*/
 </style>

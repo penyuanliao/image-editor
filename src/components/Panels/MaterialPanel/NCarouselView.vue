@@ -74,7 +74,9 @@ const handleNext = () => {
       :arrow="'never'"
       height="100px"
     >
-      <el-carousel-item class="el-carousel-item" v-for="(group, i) in recentlyUseImageList">
+      <el-carousel-item class="el-carousel-item" v-for="(group, i) in recentlyUseImageList" :style="{
+        'z-index': `${ i === getActiveIndex() ? 9 : 0 }`
+      }">
         <div class="item" v-for="(item, j) in group" :key="`recently-${i}-${j}`">
           <div class="item-image">
             <NImage :src="item.image.src" fit="contain" @click="handleImageChange(item)" />
@@ -190,4 +192,10 @@ const handleNext = () => {
     background-color: rgba(80, 80, 80, 0.6);
   }
 }
+/*
+:deep(.el-carousel__item) {
+  transition: none !important;
+}
+*/
+
 </style>
