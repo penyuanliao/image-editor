@@ -53,7 +53,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 
-const activeName = ref<number | null>(0);
+const activeName = ref<number | null>(-1);
 
 const items = [
   {
@@ -87,14 +87,10 @@ const items = [
 @use "@/styles/theme";
 
 .faq {
-  width: 100%;
-  max-width: 896px; // approx max-w-4xl
+  width: 96%;
+  max-width: 1406px; // approx max-w-4xl
   margin: 0 auto;
-  padding: 4rem 1.5rem;
-
-  @media (min-width: 1001px) {
-    padding: 6rem 1.5rem;
-  }
+  padding: 0 0 60px 0;
 
   :deep(.el-collapse) {
     border: none;
@@ -103,11 +99,7 @@ const items = [
   &__list {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
-
-    @media (min-width: 1001px) {
-      gap: 1rem;
-    }
+    gap: 1rem;
   }
 }
 
@@ -127,9 +119,6 @@ const items = [
     transition: background-color 0.3s ease;
     font-size: inherit;
     padding: 12px 29px;
-    @media (min-width: 1001px) {
-      padding: 12px 29px;
-    }
 
     &.is-active {
       background-color: #fff5f2;
@@ -153,11 +142,7 @@ const items = [
     height: 100%;
     display: flex;
     align-items: center;
-    gap: 1rem;
-
-    @media (min-width: 1001px) {
-      gap: 1.5rem;
-    }
+    gap: 1.5rem;
   }
 
   &__icon {
@@ -216,6 +201,21 @@ const items = [
     width: calc(100% - 58px);
     margin: 0 auto;
     border-color: #f03a00;
+  }
+}
+
+@media (max-width: 1000px) {
+  .faq {
+    padding: 0 0 60px 0;
+    max-width: calc(100% - 60px);
+    &__list {
+      gap: 0.75rem;
+    }
+  }
+  .faq-item {
+    &__question-group {
+      gap: 1rem;
+    }
   }
 }
 </style>

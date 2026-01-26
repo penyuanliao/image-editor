@@ -4,7 +4,6 @@ import {
   ElementTypesEnum,
   type ICanvasElement,
   type IImageConfig,
-  type IUploadedImage,
   type StageConfig
 } from "../types.ts";
 import { calculateConstrainedSize } from "@/Utilities/useImageEditor.ts";
@@ -14,6 +13,18 @@ import { nanoid } from "nanoid";
 
 // 為了讓 CanvasEditor 能夠傳入 store，我們需要匯出 store 的類型
 export type EditorStore = ReturnType<typeof useEditorStore>;
+
+export interface IRecentImageList {
+  imageUrl: string;
+  image: HTMLImageElement;
+  name: string;
+  base64?: string;
+  file?: File;
+  imageGenMode?: number;
+  id?: number | undefined;
+  filename?: string;
+  origin?: string;
+}
 
 export const useEditorStore = defineStore("editor", () => {
   // --- State ---
@@ -32,7 +43,7 @@ export const useEditorStore = defineStore("editor", () => {
     } as StageConfig
   });
   // 圖片列表
-  const imageList = ref<IUploadedImage[]>([]);
+  const imageList = ref<IRecentImageList[]>([]);
   // 原始圖像
   const originalImage = ref<HTMLImageElement | null | undefined>(null);
   // 畫布上的元素 (文字、圖形等)
@@ -144,7 +155,7 @@ export const useEditorStore = defineStore("editor", () => {
   }
 
   // 取得圖片
-  function addImage(image: IUploadedImage) {
+  function addImage(image: IRecentImageList) {
     // 只紀錄最近使用的20筆
     if (imageList.value.length + 1 >= generalDefaults.maxRecentFiles) {
       imageList.value.shift();

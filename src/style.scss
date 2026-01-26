@@ -135,6 +135,7 @@ body {
 
 :root {
   --box-bar-width: 85px;
+  --el-overlay-color-lighter: rgba(0, 0, 0, 0.7) !important;
 }
 @media (max-width: 1000px) {
   :root {

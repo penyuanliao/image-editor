@@ -7,7 +7,7 @@ import { useMaterialsStore } from "@/store/useMaterialsStore.ts";
 import { ElementTypesEnum, type IUploadedImage } from "@/types.ts";
 import NSearchButton from "@/components/Basic/NSearchButton.vue";
 import NCarouselView from "@/components/Panels/MaterialPanel/NCarouselView.vue";
-import { useEditorStore } from "@/store/editorStore.ts";
+import { type IRecentImageList, useEditorStore } from "@/store/editorStore.ts";
 import { useMainStore } from "@/store/useMainStore.ts";
 
 const materialsStore = useMaterialsStore();
@@ -17,8 +17,8 @@ const editorStore = useEditorStore();
 const mainStore = useMainStore();
 
 const emit = defineEmits<{
-  (e: "add-element", action: any): void,
-  (e: "add-recently-image", action: IUploadedImage): void
+  (e: "add-element", action: any): void;
+  (e: "add-recently-image", action: IUploadedImage): void;
 }>();
 // 目前頁面控制流程
 const NAV_CTRL_STEPS = {
@@ -55,8 +55,7 @@ const handleCategoriesGroupChange = (value: {
   materialsStore.selectedCategoryIndex = value.categoryIndex;
   currentStep.value = NAV_CTRL_STEPS.GALLERY_VIEW;
 };
-const handleRecentlyImageChange = (value: IUploadedImage) => {
-  console.log(value);
+const handleRecentlyImageChange = (value: IRecentImageList) => {
   emit("add-recently-image", value);
 };
 const handleImageChange = (value: {
@@ -72,7 +71,8 @@ const handleImageChange = (value: {
       id: value.id,
       x: 0,
       y: 0,
-      imageGenMode: value.imageGenMode
+      imageGenMode: value.imageGenMode,
+      filename: value.name
     },
     name: value.name
   });
@@ -89,7 +89,7 @@ const handleInputChange = (value: string) => {
 const handleInputClear = () => {
   materialsStore.searchValue = "";
   currentStep.value = NAV_CTRL_STEPS.GROUP_VIEW;
-}
+};
 
 onMounted(async () => {
   await materialsStore.getMaterials(mainStore.environment === "pd");
@@ -124,10 +124,13 @@ watch(currentStep, (newIndex) => {
     <div class="material-content-wrapper" ref="contentWrapper">
       <section class="view scroll-bar-custom">
         <div>
-          <NSearchButton class="search-btn" v-model:input="input" @change="handleInputChange"/>
+          <NSearchButton class="search-btn" v-model:input="input" @change="handleInputChange" />
           <p v-if="editorStore.imageList.length > 0">最近使用过的素材</p>
           <div class="recently-used" v-if="editorStore.imageList.length > 0">
-            <NCarouselView v-bind:data="editorStore.imageList" @change="handleRecentlyImageChange"/>
+            <NCarouselView
+              v-bind:data="editorStore.imageList"
+              @change="handleRecentlyImageChange"
+            />
           </div>
           <CategoriesGroupView
             v-bind:data="materialsStore.groupThumbnails"
@@ -140,9 +143,27 @@ watch(currentStep, (newIndex) => {
           <template #title>
             <div class="header-title">
               <el-icon size="24">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M15 18L9 12L15 6"
+                    stroke="currentColor"
+                    stroke-width="3"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <path
+                    d="M15 18L9 12L15 6"
+                    stroke="currentColor"
+                    stroke-width="3"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
                 </svg>
               </el-icon>
               返回
@@ -153,7 +174,7 @@ watch(currentStep, (newIndex) => {
           </template>
         </el-page-header>
         <div class="material-content">
-          <NSearchButton class="gallery-search" v-model:input="input" @change="handleInputChange"/>
+          <NSearchButton class="gallery-search" v-model:input="input" @change="handleInputChange" />
           <CategoryGalleryView
             v-bind:data="materialsStore.categoryImages"
             @change="handleImageChange"
@@ -165,9 +186,27 @@ watch(currentStep, (newIndex) => {
           <template #title>
             <div class="header-title">
               <el-icon size="24">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M15 18L9 12L15 6"
+                    stroke="currentColor"
+                    stroke-width="3"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <path
+                    d="M15 18L9 12L15 6"
+                    stroke="currentColor"
+                    stroke-width="3"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
                 </svg>
               </el-icon>
               返回
@@ -179,7 +218,11 @@ watch(currentStep, (newIndex) => {
         </el-page-header>
         <div class="view material-content">
           <p>搜尋結果</p>
-          <NSearchButton v-model:input="input" @change="handleInputChange" @clear="handleInputClear"/>
+          <NSearchButton
+            v-model:input="input"
+            @change="handleInputChange"
+            @clear="handleInputClear"
+          />
           <CategoryGalleryView v-bind:data="materialsStore.filtered" @change="handleImageChange" />
         </div>
       </section>
@@ -249,11 +292,11 @@ watch(currentStep, (newIndex) => {
     padding: 1px 15px 1px 5px;
     border-radius: 30px;
     font-size: 15px;
-    border: 1px solid #DFDFDF;
+    border: 1px solid #dfdfdf;
     font-weight: 400;
     &:hover {
-      border-color: #F15624;
-      background-color: #F15624;
+      border-color: #f15624;
+      background-color: #f15624;
       color: white;
     }
   }

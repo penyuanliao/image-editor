@@ -58,6 +58,9 @@ export interface IImageConfig extends AbsoluteConfig {
   radius?: number | number[]; // 圓角
   cropConfig?: IImageCropConfig; // 圖片剪裁設定
   imageGenMode?: number;
+  materialId?: string;
+  filename?: string; // GA使用
+  origin?: string; // AI產圖完url會變成產圖的blob url
 }
 
 // 多顏色區塊的段落

@@ -63,7 +63,28 @@ const isEmptyCanvas = computed(() => {
     editorStore.scaleClear();
   }
   return empty;
-})
+});
+
+const promptTitleStyle = computed(() => {
+  const { width } = editor.value.artboardSize;
+  // 依照 artboard 寬度動態計算字體大小 (例如: 寬度的 2.8%)
+  const fontSize = width * 0.028;
+  const min = 18;
+  const max = 32; // 可以根據需求調整最大值
+  return {
+    'font-size': `${Math.max(min, Math.min(max, fontSize))}px`
+  };
+});
+
+const promptSubTitleStyle = computed(() => {
+  const { width } = editor.value.artboardSize;
+  const fontSize = width * 0.028;
+  const min = 12;
+  const max = 24;
+  return {
+    'font-size': `${Math.max(min, Math.min(max, fontSize))}px`
+  };
+});
 
 // --- 互動狀態管理 ---
 const textInput = ref<HTMLInputElement | null>(null);
@@ -371,8 +392,8 @@ const handlePopOverMenuChange = (state: string) => {
 };
 
 // --- 供外部呼叫的方法 ---
-const addElement = async (element: ICanvasElement) => {
-  await editor.value.addElement(element);
+const addElement = async (element: ICanvasElement, recent: boolean = true) => {
+  await editor.value.addElement(element, recent);
 };
 // 更新在這邊處理
 const updateSelectedElement = (newProps: Partial<any>) => {
@@ -585,8 +606,8 @@ defineExpose({
         >
           <div class="prompt-content">
             <div class="prompt-icon"><Symbols name="picture" /></div>
-            <h1>{{ `开始制作 ${ editor.artboardSize.width }x${ editor.artboardSize.height } 广宣图` }}</h1>
-            <p>
+            <h1 :style="promptTitleStyle">{{ `开始制作 ${ editor.artboardSize.width }x${ editor.artboardSize.height } 广宣图` }}</h1>
+            <p :style="promptSubTitleStyle">
               选择背景&ensp;<span><Symbols name="arrow-right"/></span>&ensp;添加素材
               &ensp;<span><Symbols name="arrow-right"/></span>&ensp;编辑文字
               &ensp;<span><Symbols name="arrow-right"/></span>&ensp;完成存档

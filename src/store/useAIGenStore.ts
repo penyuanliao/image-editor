@@ -11,6 +11,7 @@ export interface IGenerateSource {
   base64?: string;
   color?: string;
   aiStyle?: number;
+  filename?: string;
 }
 // 產生的AI圖片action
 export const useAIGenStore = defineStore("aiGenStore", () => {

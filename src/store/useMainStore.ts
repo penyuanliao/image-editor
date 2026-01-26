@@ -34,7 +34,7 @@ export const useMainStore = defineStore("main", () => {
 
   const isDev = computed(() => import.meta.env.MODE === "dev");
 
-  const storageData = ref<{ help: boolean }>({ help: false });
+  const storageData = ref<{ onboarding: boolean }>({ onboarding: false });
 
   // 跑馬燈資料
   const marqueeText = ref<string>("");
@@ -253,6 +253,9 @@ export const useMainStore = defineStore("main", () => {
       NStorageManager.set("storageData", JSON.stringify(storageData.value));
     }
   }
+  const hasOnboarding = computed(() => {
+    return storageData.value.onboarding === true;
+  })
 
   return {
     isLoading,
@@ -275,6 +278,7 @@ export const useMainStore = defineStore("main", () => {
     startLoginDemo,
     startUpload,
     startUploadAndDownload,
-    setStorage
+    setStorage,
+    hasOnboarding,
   };
 });

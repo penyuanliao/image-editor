@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 import { apiLogin, type LoginResponseResult, type UserInfo } from "@/api/login.ts";
 import { useRoute } from "vue-router";
+import { appearanceDefaults } from "@/config/settings.ts";
 
 // TODO: 何時重新驗證
 // PD驗證
@@ -27,13 +28,13 @@ export const useAccountStore = defineStore("accountStore", () => {
     error.value = null;
     try {
       // 使用者名稱
-      const username: string = routes.query.username as string;
+      const username: string = routes.query.username as string || appearanceDefaults.guestMember.username;
       // 使用者token
-      const token: string = routes.query.token as string;
+      const token: string = routes.query.token as string || appearanceDefaults.guestMember.token;
       // 使用者驗證碼
-      const logincode: string = routes.query.logincode as string;
+      const logincode: string = routes.query.logincode as string || appearanceDefaults.guestMember.logincode;
 
-      const hid: number = Number.parseInt(routes.query.hid as string || "0");
+      const hid: number = Number.parseInt(routes.query.hid as string || appearanceDefaults.guestMember.hid);
 
       const result: LoginResponseResult = await apiLogin({ username, token, logincode, hid }).catch((error: string) => {
         return { status: false, message: "驗證失敗", error };

@@ -9,6 +9,7 @@ import {
 import { calculateConstrainedSize } from "@/Utilities/useImageEditor.ts";
 import { nanoid } from "nanoid";
 import { svgPathBbox } from "svg-path-bbox";
+import type { IRecentImageList } from "@/store/editorStore.ts";
 // 產生一個新的 CanvasElement
 export const createCanvasElement = (
   element: ICanvasElement,
@@ -82,7 +83,9 @@ export const createCanvasElement = (
           opacity: Math.min(Math.max(config.opacity || 1, 0), 1.0),
           categoryId: config.categoryId,
           draggable: true,
-          imageGenMode: typeof config.imageGenMode === "number" ? config.imageGenMode : 1
+          imageGenMode: typeof config.imageGenMode === "number" ? config.imageGenMode : 1,
+          filename: config.filename,
+          origin: config.origin
         }
       });
     } else if (element.type === ElementTypesEnum.SVG) {
@@ -118,19 +121,17 @@ export const createCanvasElement = (
     }
   });
 };
+// recent image 產出一個新的 CanvasElement
 export const CreateImageElement = ({
   name,
   image,
   imageUrl,
   base64,
-  imageGenMode
-}: {
-  name: string;
-  image: HTMLImageElement;
-  imageUrl: string;
-  base64?: string;
-  imageGenMode?: number | undefined;
-}): ICanvasElement => {
+  imageGenMode,
+  filename,
+  id,
+  origin,
+}: IRecentImageList): ICanvasElement => {
   return {
     id: nanoid(12),
     name,
@@ -146,7 +147,10 @@ export const CreateImageElement = ({
       url: imageUrl,
       img: image,
       base64,
-      imageGenMode: typeof imageGenMode === "number" ? imageGenMode : 1
+      imageGenMode: typeof imageGenMode === "number" ? imageGenMode : 1,
+      filename,
+      origin,
+      id
     }
   };
 };

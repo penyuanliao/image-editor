@@ -19,6 +19,7 @@ import { useAccountStore } from "@/store/useAccountStore.ts";
 import { useMainStore } from "@/store/useMainStore.ts";
 import NComment from "@/components/Basic/NComment.vue";
 import { useRoute } from "vue-router";
+import Onboarding from "@/components/Onboarding/OnboardingPopover.vue";
 
 const routes = useRoute();
 
@@ -36,6 +37,8 @@ const selected = ref<string>();
 const boxBarSelectedIndex = ref<number>(0);
 // 開啟上傳
 const showUpload = ref<boolean>(false);
+// 是否顯示導覽
+const onboardingVisible = ref<boolean>(false);
 
 const panelMaxHeight = ref(window.innerHeight - 80 - 22);
 
@@ -92,7 +95,6 @@ const handleUpdateElement = (newProps: Partial<ICanvasElement>) => {
   editor.value?.updateSelectedElement(newProps);
 };
 const handleAlignElement = (hAlign: string, vAlign: string) => {
-  console.log("alignSelectedElement", hAlign, vAlign);
   editor.value?.alignSelectedElement(hAlign, vAlign);
 };
 const handleRefresh = () => {
@@ -101,7 +103,7 @@ const handleRefresh = () => {
 
 const handleAddRecentlyImage = (info: IUploadedImage) => {
   const newImageElement: ICanvasElement = CreateImageElement(info);
-  handleAddElement(newImageElement);
+  editor.value?.addElement(newImageElement, false);
 };
 
 // 處理從 DropZone 元件傳來的檔案
@@ -156,6 +158,11 @@ onMounted(async () => {
   if (width > 0 && height > 0) editorStore.setCanvasSize(width, height);
   const el = editorStore.defaultPropsPanel();
   handleUpdateElement(el);
+  if (!mainStore.hasOnboarding) {
+    onboardingVisible.value = true;
+    mainStore.setStorage("onboarding", true);
+  }
+
 });
 
 onUnmounted(() => {
@@ -225,6 +232,7 @@ watch(selected, async () => {
     </div>
   </DropZone>
   <NComment v-model:visible="mainStore.commentVisible" :name="accountStore.userInfo.username"></NComment>
+  <Onboarding v-model:visible="onboardingVisible"/>
 </template>
 
 <style scoped lang="scss">

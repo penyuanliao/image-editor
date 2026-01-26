@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 
+defineProps({
+  iconSize: {
+    type: Number,
+    default: 30
+  }
+});
+
 const carouselRef = ref<any>();
 
 const total = computed(() => {
@@ -22,10 +29,8 @@ const handleNext = () => {
   <div class="carousel-wrapper">
     <!-- 自訂左按鈕 -->
     <div v-show="getActiveIndex() > 0" class="custom-arrow left" @click="handlePrev()">
-      <el-icon size="36">
+      <el-icon :size="iconSize">
         <svg
-          width="22"
-          height="36"
           viewBox="0 0 22 36"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
@@ -43,19 +48,17 @@ const handleNext = () => {
 
     <el-carousel ref="carouselRef" class="viewer" :autoplay="false" arrow="never" :loop="false">
       <el-carousel-item class="onboarding-item" :key="`boarding-1`">
-        <img class="img" src="@/assets/onboarding/step1.png" alt="" />
+        <el-image class="img" src="/assets-editor/assets/onboarding/stepsBySteps1.png" alt="" />
       </el-carousel-item>
       <el-carousel-item class="onboarding-item" :key="`boarding-2`">
-        <img class="img" src="@/assets/onboarding/step2.png" alt="" />
+        <el-image class="img" src="/assets-editor/assets/onboarding/stepsBySteps2.png" alt="" />
       </el-carousel-item>
     </el-carousel>
 
     <!-- 自訂右按鈕 -->
     <div v-show="getActiveIndex() !== total" class="custom-arrow right" @click="handleNext()">
-      <el-icon size="36">
+      <el-icon :size="iconSize">
         <svg
-          width="22"
-          height="36"
           viewBox="0 0 22 36"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
@@ -151,11 +154,11 @@ const handleNext = () => {
 }
 
 .el-carousel__item:nth-child(2n) {
-  background-color: #99a9bf;
+  background-color: white;
 }
 
 .el-carousel__item:nth-child(2n + 1) {
-  background-color: #d3dce6;
+  background-color: white;
 }
 
 /* 將指示器改為圓形 */
@@ -172,5 +175,7 @@ const handleNext = () => {
     }
   }
 }
-
+:deep(.el-carousel__container) {
+  height: 100%;
+}
 </style>

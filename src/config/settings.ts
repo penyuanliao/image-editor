@@ -182,6 +182,12 @@ export const appearanceDefaults = {
     }
   ],
   boxBarSelected: BoxBarTypes.image,
+  guestMember: {
+    username: "mktuser",
+    token: "b286667e0549154911c9ab9347c6410919fa814e117f83724c9c321a9e245755",
+    logincode: "esb",
+    hid: "6"
+  }
 };
 
 export const advancedDefaults: IAdvancedSettings = {

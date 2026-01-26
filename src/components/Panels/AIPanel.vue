@@ -108,7 +108,6 @@ const createSource = async (): Promise<IGenerateSource | null> => {
   const elementId = editorStore.selectedElement?.id || "";
   const config = editorStore.selectedElement?.config as IImageConfig;
   if (!config || !elementId) return null;
-
   const materialId = config.id || -1;
   let image: HTMLImageElement = config.img as HTMLImageElement;
   let base64: string = "";
@@ -127,7 +126,12 @@ const createSource = async (): Promise<IGenerateSource | null> => {
     }
   } else {
     // 這邊主要是會更換圖片但是需要再一次產圖時需要拿回原始圖片的URL
-    if (originalImage.value) url = originalImage.value.url || "";
+    if (originalImage.value) {
+      url = originalImage.value.url || "";
+    } else if (config.origin) {
+      url = config.origin || "";
+    }
+    url = '';
   }
   return {
     image,
@@ -135,7 +139,8 @@ const createSource = async (): Promise<IGenerateSource | null> => {
     id: elementId,
     materialId,
     url,
-    aiStyle: config.imageGenMode
+    aiStyle: config.imageGenMode,
+    filename: config.filename
   };
 };
 
@@ -147,13 +152,17 @@ const validate = async () => {
   return true;
 };
 // 設定AI生成圖片至畫布
-const setupAddElement = async (result: ImageGenerateResult) => {
+const setupRecentElement = async (source: IGenerateSource, result: ImageGenerateResult) => {
   const genImage = await processBase64(result.image);
   editorStore.addImage({
     imageUrl: genImage.src,
     image: genImage, // 儲存圖片物件
-    name: "AI生成圖片",
-    base64: result.image
+    name: "AI_Generated",
+    base64: result.image,
+    imageGenMode: source.aiStyle,
+    id: source.materialId,
+    filename: source.filename,
+    origin: source.url,
   });
   return genImage;
 };
@@ -165,7 +174,7 @@ const setupChangeImage = async (
 ) => {
   if (result) {
     // 產生HTMLImageElement並加入最近使用清單
-    const genImage = await setupAddElement(result);
+    const genImage = await setupRecentElement(source, result);
     // 紀錄原始圖片
     const newId = editorStore.replaceSelectedElementImage(elementId, genImage, result.image);
     if (newId) aiGenStore.setOriginalImage(newId, source);
@@ -183,9 +192,9 @@ const submitResult = async (result: ImageGenerateResult | undefined | null, elem
     await setupChangeImage(elementId, source, result);
   } else if (result && !result.status) {
     if (result.errcode === 2) {
-      await alertStore.alertAIPointNotEnough();
-    } else {
       await alertStore.alertAIFailed();
+    } else {
+      await alertStore.alertAIPointNotEnough();
     }
   } else {
     await AlertMessage(aiGenStore.error || "AI生成失敗了!求求你再給他一次機會");
@@ -573,7 +582,8 @@ onMounted(() => {
   width: 100%;
 }
 .prompt-textarea {
-  min-height: 200px;
+  min-height: 100px;
+  max-height: 200px;
   width: 100%;
   position: relative;
   border: 1px solid theme.$border-color-base;

@@ -1,23 +1,21 @@
 <template>
   <div class="help-container">
-    <div class="navbar">
-      <img src="@/assets/icons/logo.png" height="136" alt="Logo" class="logo" />
-    </div>
-    <main class="help-main-content">
-      <FeatureSection number="01" title="BB AI 功能" subtitle="释放您的无限创造力"
-                      description="每月 BBIN 为各网站管理者提供单元共用免费 AI 点数，让您的行销与设计素材快速产出，节省时间、提升成效。"
-                      description2="透过 BB AI，轻松完成背景换色、物件转换、风格调整，也可直接输入提示詞描述，生成符合您需求的全新素材。同时支援自行上传图片素材并运用 AI 一键移除图片背景，让素材能更灵活套用于各种设计情境，大幅提升制作效率。"
-                      imageSrc="/assets-editor/assets/step1.png" :reverse="true" />
-
-      <FeatureSection number="02" title="BB 素材库" subtitle="一站式素材整合加速设计产出"
-                      description="BBIN 建构多元视觉层，持续扩充的素材库，涵盖多元设计情境，透过清晰的分类架构或关键字搜寻，填空可快速的找到所需素材。"
-                      description2="素材一键加入画布后，即可开始直觉自由调整位置、尺寸等设定，缘您无须学习复杂的设计软体操作，即可轻松完成广宣页面设计。完成编辑后，系统也会将您所获得排版的设计内容自动汇入后台，放置在推荐的广宣版位上，高效率的完成上架。"
-                      imageSrc="/assets-editor/assets/step2.png" />
-
-      <FeatureSection number="03" title="文字编辑模组" subtitle="让文案成为视觉的一部分"
-                      description="系统提供丰富的文字编辑模組，透过操作直觉的编辑介面，让您快速的完成文字配置，可依需求精准调整样式与层次。"
-                      description2="并利用精选适合广宣设计的字体，助您产出高品质，无论搭配字级、色彩、透明、行距与字距等丰富设定功能，讓您脑中的创意文案，一秒化身为广宣设计画面中的主角，让讯息传达更清楚、阅读体验更升级。"
-                      imageSrc="/assets-editor/assets/step3.png" :reverse="true" />
+    <main class="help-main-content" ref="mainContentRef" :style="helpMainContentStyle">
+      <div class="navbar">
+        <img src="@/assets/icons/logo.png" height="136" alt="Logo" class="logo" />
+      </div>
+      <OnboardingFlow class="onboarding" :iconSize="36"/>
+      <FeatureSection
+        v-for="(feature, index) in features"
+        :key="index"
+        :number="feature.step"
+        :title="feature.title"
+        :subtitle="feature.subtitle"
+        :desc="feature.desc"
+        :imageSrc="feature.imageSrc"
+        :reverse="feature.reverse"
+        :options="feature.options"
+      />
       <FAQ class="faq"/>
       <Footer/>
     </main>
@@ -32,11 +30,111 @@
 </template>
 
 <script setup lang="ts">
+import { computed, onMounted, onUnmounted, ref } from "vue";
+import OnboardingFlow from "@/components/Onboarding/OnboardingFlow.vue";
 import FeatureSection from "@/components/Help/FeatureSection.vue";
 import FAQ from "@/components/Help/FAQ.vue";
 import Footer from "@/components/Help/Footer.vue";
 
 defineEmits(['close']);
+
+interface IFeatures {
+  step: string;
+  title: string;
+  subtitle: string;
+  desc: string[];
+  imageSrc: string;
+  reverse: boolean;
+  options?: {
+    descLetterSpacing?: string
+  };
+}
+
+const features = ref<IFeatures[]>([
+  {
+    step: "01",
+    title: "BB AI 功能",
+    subtitle: "释放您的无限创造力",
+    desc: [
+      "每月 BBIN 为各网站管理者提供<span style='color: #F15624'>单站共用免费 AI 点数<span>",
+      "让您的行销与设计素材快速产出，节省时间、提升成效",
+      "<br/>",
+      "透过 BB AI，轻松完成<span style='color: #F15624'>背景换色、物件转换、风格调整<span>",
+      "也可直接输入提示词描述，生成符合您需求的全新素材",
+      "<br/>",
+      "同时支援自行上传图片素材并运用AI一键移除图片背景",
+      "让素材能灵活套用于各种设计情境，大幅提升制作效率",
+    ],
+    imageSrc: "/assets-editor/assets/step1.png",
+    reverse: true
+  },
+  {
+    step: "02",
+    title: "BB 素材库",
+    subtitle: "一站式素材整合加速设计产出",
+    desc: [
+      "BBIN 建构多元且完整、持续扩充的<span style='color: #F15624'>素材库</span>，涵盖多元设计情境",
+      "透过清晰的分类架构或关键字搜寻，讓您可快速的找到所需素材",
+      "<br/>",
+      "素材一键加入画布后，即可开始直觉<span style='color: #F15624'>自由调整位置</span>、尺寸等设定",
+      "讓您無須學習複雜的軟體操作，即可轻松完成廣宣版面需求设计",
+      "<br/>",
+      "完成编辑后，系统也會将您所见即所得的設計內容<span style='color: #F15624'>自动汇入后台</span>",
+      "助您在推廣的廣宣產出上，能高效的完成上架",
+    ],
+    imageSrc: "/assets-editor/assets/step2.png",
+    reverse: false
+  },
+  {
+    step: "03",
+    title: "文字编辑模组",
+    subtitle: "让文案成为视觉的一部分",
+    desc: [
+      "系统提供丰富的文字编辑模组，透过操作<span style='color: #F15624'>直觉的编辑介面</span>",
+      "让您快速的完成文字配置，可依需求精准调整样式与层次",
+      "<br/>",
+      "并利用<span style='color: #F15624'>精选适合广宣设计的优质字体</span>，助您产出高级质感",
+      "最后搭配字级、色彩、透明、行距与字距等丰富设定功能",
+      "让您脑中的创意文案，一秒化身为广宣设计画面中的主角",
+      "让<span style='color: #F15624'>讯息传递更清楚</span>、阅读体验更升级",
+    ],
+    imageSrc: "/assets-editor/assets/step3.png",
+    reverse: true,
+    options: {
+      descLetterSpacing: "2.1px"
+    }
+  }
+]);
+
+const mainContentRef = ref<HTMLElement | null>(null);
+const containerWidth = ref(0);
+
+const updateContainerWidth = () => {
+  if (mainContentRef.value) {
+    containerWidth.value = mainContentRef.value.clientWidth;
+  }
+};
+
+onMounted(() => {
+  updateContainerWidth();
+  window.addEventListener("resize", updateContainerWidth);
+});
+
+onUnmounted(() => {
+  window.removeEventListener("resize", updateContainerWidth);
+});
+
+const helpMainContentStyle = computed(() => {
+  const imgWidth: number = 1920;
+  const imgHeight: number = 1080;
+  const ratio = imgWidth / imgHeight;
+  const calculatedHeight = containerWidth.value > 0 ? containerWidth.value / ratio : 720; // 初始或寬度為0時的備用高度
+  return {
+    "--dialog-onboarding-width": "100%",
+    "--dialog-onboarding-height": `${calculatedHeight}px`,
+  }
+})
+
 </script>
 
 <style scoped lang="scss">
@@ -54,10 +152,12 @@ defineEmits(['close']);
   width: 100%;
   height: 80px;
   min-height: 80px;
-  position: relative;
+  position: absolute;
+  top: 0;
   display: flex;
   align-items: center;
   border-bottom: 1px solid theme.$border-color-base;
+  background: white;
   z-index: 100;
   .logo {
     width: 150px;
@@ -66,11 +166,16 @@ defineEmits(['close']);
     padding-right: 32px;
   }
 }
+.onboarding {
+  width: 100%;
+  height: var(--dialog-onboarding-height);
+}
 .help-main-content {
   display: flex;
   flex-direction: column;
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
 }
 .faq {
   position: relative;

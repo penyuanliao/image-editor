@@ -345,7 +345,7 @@ export class CanvasEditor {
     } as ICanvasElement);
   }
   // 增加元件到畫布上面
-  public async addElement(element: any): Promise<boolean> {
+  public async addElement(element: any, recent: boolean = true): Promise<boolean> {
     if (!this.canvas) {
       ErrorMessage("畫布並未被建立!!");
       return false;
@@ -356,12 +356,15 @@ export class CanvasEditor {
       if (el.type === ElementTypesEnum.Image) {
         const config = el.config as IImageConfig;
         const image = (el.config as IImageConfig).img;
-        if (image) {
+        if (image && recent) {
           this.store.addImage({
             imageUrl: image.src,
             image: image,
-            name: "new image",
-            imageGenMode: config.imageGenMode
+            name: "new_image",
+            imageGenMode: config.imageGenMode,
+            base64: config.base64,
+            id: config.id,
+            filename: config.filename
           });
         }
 
