@@ -34,6 +34,8 @@ export interface IGeneralSettings {
   logo: string;
   // 幫助
   helpUrl: string;
+  // 輸出格式
+  exportFileType: "png" | "jpg" | "webp"
 }
 
 export interface IAdvancedSettings {
@@ -80,7 +82,8 @@ export const generalDefaults: IGeneralSettings = {
   gridBackground: "none",
   maxRecentFiles: 20,
   logo: "/assets/icons/logo.png",
-  helpUrl: "/assets-editor/#/help"
+  helpUrl: "/assets-editor/#/help",
+  exportFileType: "png"
 };
 
 export const appearanceDefaults = {

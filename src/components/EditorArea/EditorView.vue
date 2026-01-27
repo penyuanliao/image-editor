@@ -22,6 +22,7 @@ import { useMainStore } from "@/store/useMainStore.ts";
 import UndoRedo from "@/components/EditorArea/UndoRedo.vue";
 import { useAlertStore } from "@/store/useAlertStore.ts";
 import { customAlphabet } from "nanoid";
+import { gtmManager } from "@/library/GtmManager.ts";
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 12);
 // import {uploadImage} from "@/api/uploader.ts";
@@ -273,7 +274,7 @@ const finishEditing = () => {
   editor.value.render();
 };
 //
-const preview = async (blob: boolean = false) => {
+const preview = async (blob: boolean = false, ext: string = "png") => {
   // 計算比例
   const scaleFactor = 1 / editor.value.artboardSize.scale;
   // 輸出圖片的 URL
@@ -287,7 +288,7 @@ const preview = async (blob: boolean = false) => {
       height: cropBox.height
     },
     scaleFactor,
-    type: "image/png",
+    type: `image/${ ext }`,
     color: editor.value.viewport.color,
     blob
   } as CroppedExportOptions).catch(async (err) => {
@@ -297,20 +298,24 @@ const preview = async (blob: boolean = false) => {
 };
 // 儲存裁切後的圖片
 const saveImage = async () => {
-  const href = await preview() as string;
+  const fileType: string = generalDefaults.exportFileType;
+  const href = await preview(false, fileType) as string;
   if (!href) return;
-  const imageByBlob = await preview(true);
+  const imageByBlob = await preview(true, fileType);
   if (href && imageByBlob instanceof Blob) {
-    const filename = `${nanoid()}.png`;
+    const filename = `${nanoid()}.${fileType}`;
+    gtmManager.trackEvent({ event: "存檔關閉按鈕_存檔下載" });
     await mainStore.startUploadAndDownload(imageByBlob, href, filename);
   }
 };
 const handleUploadImage = async () => {
-  const filename = `${nanoid()}.png`;
-  const href = await preview() as string;
+  const fileType: string = generalDefaults.exportFileType;
+  const filename = `${nanoid()}.${fileType}`;
+  const href = await preview(false, fileType) as string;
   if (!href) return;
-  const imageByBlob = await preview(true);
+  const imageByBlob = await preview(true, fileType);
   if (imageByBlob instanceof Blob) {
+    gtmManager.trackEvent({ event: "存檔關閉按鈕_存檔關閉" });
     await mainStore.startUpload(imageByBlob, href, filename);
   } else {
     // 產生圖片失敗

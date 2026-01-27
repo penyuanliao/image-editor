@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import { ConfirmMessage, createAlertMessage } from "@/Utilities/AlertMessage.ts";
+import { gtmManager } from "@/library/GtmManager.ts";
 
 export const useAlertStore = defineStore("AlertStore", () => {
   // 執行AI失敗
@@ -7,6 +8,9 @@ export const useAlertStore = defineStore("AlertStore", () => {
     const title: string = "本次 AI 执行失败";
     const content: string[] = ["系统在执行过程中发生异常", "未能完成本次 AI 内容产出", "请稍后再试一次", "如持续发生异常，请联系 BBIN 专员协助处理", ""];
     const message: string = createAlertMessage(content);
+
+    gtmManager.trackEvent({ event: "彈跳視窗_本次 AI 执行失败" });
+
     return await ConfirmMessage({
       message,
       title,
@@ -27,6 +31,9 @@ export const useAlertStore = defineStore("AlertStore", () => {
 </ul>
 <br/>
     </div>`;
+
+    gtmManager.trackEvent({ event: "彈跳視窗_AI 点数不足" });
+
     return await ConfirmMessage({
       message,
       title,
@@ -41,6 +48,9 @@ export const useAlertStore = defineStore("AlertStore", () => {
     const title: string = "无操作权限";
     const content: string[] = ["此功能需从【后台管理】启用功能连结", "无法直接透过网址呼叫使用", "如您依正常流程操作仍无法使用", "请联系 BBIN 专员协助处理"];
     const message: string = createAlertMessage(content);
+
+    gtmManager.trackEvent({ event: "彈跳視窗_功能权限异常" });
+
     return await ConfirmMessage({
       message,
       title,

@@ -13,7 +13,7 @@ import {
   drawViewer
 } from "./useImageEditor.ts";
 import { ErrorMessage } from "./AlertMessage.ts";
-import { createCanvasElement } from "./useCreateCanvasElement.ts";
+import { createCanvasElement, getElementType } from "./useCreateCanvasElement.ts";
 // 引入 store 的類型，但不直接使用 useEditorStore()
 import type { EditorStore } from "../store/editorStore.ts";
 import { clipboardPaste, validationPermissions } from "./useClipboard.ts";
@@ -29,6 +29,7 @@ import { advancedDefaults, generalDefaults } from "@/config/settings.ts";
 import { nanoid } from "nanoid";
 import { nextTick } from "vue";
 import mitt, { type Emitter } from "mitt";
+import { gtmManager } from "@/library/GtmManager.ts";
 
 interface ICanvasViewport {
   width: number;
@@ -310,13 +311,13 @@ export class CanvasEditor {
     this.store.addImage({
       imageUrl: image.src,
       image: image,
-      name: "new image",
+      name: "Upload_Pasted",
       base64
     });
     this.store.addElement({
       id: nanoid(12),
       type: ElementTypesEnum.Image,
-      name: "new image",
+      name: "Upload_Pasted",
       config: {
         content: image.src,
         x: this.canvas.width / 2,
@@ -360,7 +361,7 @@ export class CanvasEditor {
           this.store.addImage({
             imageUrl: image.src,
             image: image,
-            name: "new_image",
+            name: el.name || "new_image",
             imageGenMode: config.imageGenMode,
             base64: config.base64,
             id: config.id,
@@ -746,6 +747,7 @@ export class CanvasEditor {
         if (action === "del") {
           this.store.removeElements([selectedElement.id]);
           this.render();
+          gtmManager.trackEvent({ event: `畫布_刪除按鈕_${ getElementType(selectedElement) }` });
           return;
         }
         this.handleTransformStart(x, y, action, selectedElement);

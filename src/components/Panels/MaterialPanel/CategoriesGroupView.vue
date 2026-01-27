@@ -2,6 +2,7 @@
 import {type IGalleryInfo, type IGroupThumbnail} from "@/store/useMaterialsStore.ts";
 import { type PropType, ref} from "vue";
 import NImage from "@/components/Basic/NImage.vue";
+import { gtmManager } from "@/library/GtmManager.ts";
 
 const props = defineProps({
   data: {
@@ -13,7 +14,7 @@ const props = defineProps({
   }
 });
 const emit = defineEmits({
-  change: (value: { categoryIndex: number; category: string; groupIndex: number }) => value
+  change: (value: { categoryIndex: number; category: string; groupIndex: number; group: string; }) => value
 });
 
 const carouselRefs = ref<any[]>([]);
@@ -26,16 +27,23 @@ const handleChange = (info: IGalleryInfo, groupIndex: number) => {
   emit("change", {
     categoryIndex: info.categoryIndex,
     category: info.category,
+    group: props.data[groupIndex]?.groupName || '',
     groupIndex
   });
 };
 
 const handlePrev = (index: number) => {
   carouselRefs.value[index]?.prev();
+  gtmManager.trackEvent({
+    event: `選擇素材_${props.data[index]?.groupName}_左`
+  });
 };
 
 const handleNext = (index: number) => {
   carouselRefs.value[index]?.next();
+  gtmManager.trackEvent({
+    event: `選擇素材_${props.data[index]?.groupName}_右`
+  });
 };
 
 </script>

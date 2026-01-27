@@ -16,7 +16,7 @@ interface ExportOptions {
 export interface CroppedExportOptions extends ExportOptions {
   cropBox: { x: number; y: number; width: number; height: number };
   scaleFactor: number;
-  type?: "image/jpeg" | "image/png";
+  type?: "image/jpeg" | "image/png" | "image/webp";
   color?: string;
   blob?: boolean;
 }

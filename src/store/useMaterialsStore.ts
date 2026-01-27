@@ -12,7 +12,9 @@ export interface IGalleryItem {
   name: string;
   src: string;
   categoryId: number;
+  category: string;
   imageGenMode: number;
+  group: string;
 }
 
 /**
@@ -109,6 +111,8 @@ export const useMaterialsStore = defineStore("materialsStore", () => {
           name: material.MaterialName,
           src: material.Urlpath,
           categoryId: category.ID,
+          group: categories.CategoryName,
+          category: `${category.CategoryName}`,
           imageGenMode: getImageGenMode(categories.AIStyle)
         };
       }) || [];
@@ -178,10 +182,19 @@ export const useMaterialsStore = defineStore("materialsStore", () => {
           name: material.MaterialName,
           src: material.Urlpath,
           categoryId: category.ID, // 保留分類ID以便追蹤
-          imageGenMode: getImageGenMode(group.AIStyle)
+          imageGenMode: getImageGenMode(group.AIStyle),
+          group: group.CategoryName,
+          category: category.CategoryName,
         }))
       )
     );
+  });
+
+  const categoryName = computed(() => {
+    if (selectedGroup.value == -1) return '';
+
+    const categories = rawData.value[selectedGroup.value];
+    return categories?.CategoryName || '';
   });
 
   return {
@@ -189,6 +202,7 @@ export const useMaterialsStore = defineStore("materialsStore", () => {
     isLoading,
     error,
     getMaterials,
+    categoryName,
     groupList,
     materials,
     groupThumbnails,

@@ -10,6 +10,7 @@ import { apiUrlRecord } from "@/api/urlRecord.ts";
 import { useAIGenStore } from "@/store/useAIGenStore.ts";
 import { dealy } from "@/Utilities/Utility.ts";
 import { useRoute } from "vue-router";
+import { gtmManager } from "@/library/GtmManager.ts";
 
 const PD_UPLOAD_STATE = {
   WAIT: 0,
@@ -95,10 +96,10 @@ export const useMainStore = defineStore("main", () => {
   // 開始登入
   const startLogin = async () => {
     // 1. 檢查是否由PD另外開啟頁面
-    if (!window.opener && !isDev.value) {
-      setState("denied");
-      return;
-    }
+    // if (!window.opener && !isDev.value) {
+    //   setState("denied");
+    //   return;
+    // }
     const accountStore = useAccountStore();
     const aiGenStore = useAIGenStore();
     // 2. 開始進行檢查登入狀態
@@ -153,7 +154,8 @@ export const useMainStore = defineStore("main", () => {
     const openerResult = await new Promise<{ status: boolean, message?: string }>((resolve) => {
       const uuid = nanoid(12);
       postMessageBlock.value[uuid] = resolve;
-      window.opener?.postMessage({ uuid, url: result.data.path }, "*");
+      console.log("postMessage:", window.opener, { uuid, url: result.data.path });
+      window.opener.postMessage({ uuid, url: result.data.path }, "*");
       // 超時5秒
       setTimeout(() => {
         postMessageBlock.value[uuid] = null;
@@ -200,6 +202,7 @@ export const useMainStore = defineStore("main", () => {
     // 1. 檢查是否完成下載後，確認上傳完成直接關閉視窗
     const state: string = await alertStore.alertConfirmUploadAndDownload();
     console.log(`1. state: ${state}`);
+    gtmManager.trackEvent({ event: `彈跳視窗_完成編輯確認_${ state === "confirm" ? "是" : "否" }` });
     if (state === "close" || state === "cancel") return; // 取消上傳
 
     // 2. 開始上傳檔案至後台PD
@@ -207,6 +210,7 @@ export const useMainStore = defineStore("main", () => {
     if (uploadResult.status !== PD_UPLOAD_STATE.SUCCESS) {
 
       const failed = await alertStore.alertUploadFailed();
+      gtmManager.trackEvent({ event: `彈跳視窗_图片套用异常_${ failed === "confirm" ? "下載圖片關閉系統" : "返回系統重新編輯" }` });
       if (failed === "confirm") {
         download(href, fileName);
       }
@@ -226,10 +230,12 @@ export const useMainStore = defineStore("main", () => {
     // 1. 檢查是否已完成編輯，確認上傳完成直接關閉視窗
     const state: string = await alertStore.alertConfirmUpload();
     console.log(`1. state: ${state}`);
+    gtmManager.trackEvent({ event: `彈跳視窗_完成編輯確認_${ state === "confirm" ? "是" : "否" }` });
     if (state === "close" || state === "cancel") return; // 取消上傳
     const uploadResult = await pdUpload(blob, fileName);
     if (uploadResult.status !== PD_UPLOAD_STATE.SUCCESS) {
       const failed = await alertStore.alertUploadFailed();
+      gtmManager.trackEvent({ event: `彈跳視窗_图片套用异常_${ failed === "confirm" ? "下載圖片關閉系統" : "返回系統重新編輯" }` });
       if (failed === "confirm") {
         download(href, fileName);
       }

@@ -85,7 +85,8 @@ export const createCanvasElement = (
           draggable: true,
           imageGenMode: typeof config.imageGenMode === "number" ? config.imageGenMode : 1,
           filename: config.filename,
-          origin: config.origin
+          origin: config.origin,
+          name: config.name,
         }
       });
     } else if (element.type === ElementTypesEnum.SVG) {
@@ -150,7 +151,18 @@ export const CreateImageElement = ({
       imageGenMode: typeof imageGenMode === "number" ? imageGenMode : 1,
       filename,
       origin,
-      id
+      id,
+      name: filename
     }
   };
 };
+
+export const getElementType = (element: ICanvasElement) => {
+  let type = element?.config.name;
+  if (element?.name?.indexOf("AI_Generated") !== -1) {
+    type = "AI生成";
+  } else if (element?.name?.indexOf("Upload") !== -1) {
+    type = "上傳";
+  }
+  return type;
+}

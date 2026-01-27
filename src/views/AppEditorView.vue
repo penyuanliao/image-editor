@@ -113,7 +113,9 @@ const handleFilesDropped = async (files: FileList) => {
       const file = files[i];
       if (file) {
         const info = await processFile(file);
-        handleAddRecentlyImage(info);
+        info.name = "Upload_Dropped";
+        const newImageElement: ICanvasElement = CreateImageElement(info);
+        editor.value?.addElement(newImageElement, true);
       }
     }
   }

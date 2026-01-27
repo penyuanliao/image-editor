@@ -9,6 +9,7 @@ import NSearchButton from "@/components/Basic/NSearchButton.vue";
 import NCarouselView from "@/components/Panels/MaterialPanel/NCarouselView.vue";
 import { type IRecentImageList, useEditorStore } from "@/store/editorStore.ts";
 import { useMainStore } from "@/store/useMainStore.ts";
+import { gtmManager } from "@/library/GtmManager.ts";
 
 const materialsStore = useMaterialsStore();
 
@@ -34,8 +35,8 @@ const contentWrapper = ref<HTMLDivElement | null>(null);
 const galleryViewRef = ref<HTMLDivElement>();
 // 目前頁面
 const currentStep = ref(NAV_CTRL_STEPS.GROUP_VIEW);
-// 分類名稱
-const categoryName = ref<string>("");
+// 標題名稱
+const headerName = ref<string>("");
 // 搜尋字串
 const input = ref<string>("");
 
@@ -49,21 +50,41 @@ const handleCategoriesGroupChange = (value: {
   categoryIndex: number;
   category: string;
   groupIndex: number;
+  group: string;
 }) => {
-  categoryName.value = value.category;
+  headerName.value = value.category;
   materialsStore.selectedMaterialGroup.value = value.groupIndex;
   materialsStore.selectedCategoryIndex = value.categoryIndex;
   currentStep.value = NAV_CTRL_STEPS.GALLERY_VIEW;
+  gtmManager.trackEvent({
+    event: `選擇素材_${ value.group }_${ value.category }`
+  });
 };
 const handleRecentlyImageChange = (value: IRecentImageList) => {
   emit("add-recently-image", value);
+  const gtmOptions = {
+    event: ""
+  };
+  if (value.name === "AI_Generated") {
+    gtmOptions.event = "選擇素材_最近使用過的素材_AI生成";
+  } else if (value.name.indexOf("Upload") != -1) {
+    gtmOptions.event = "選擇素材_最近使用過的素材_上傳";
+  } else {
+    gtmOptions.event = `選擇素材_最近使用過的素材_${value.filename}`
+  }
+  gtmManager.trackEvent(gtmOptions);
 };
 const handleImageChange = (value: {
   id: number;
   src: string;
   name: string;
   imageGenMode: number;
+  group: string;
+  category: string;
 }) => {
+  gtmManager.trackEvent({
+    event: `選擇素材_${ value.group }_${ value.category }_${ value.name }`
+  });
   emit("add-element", {
     type: ElementTypesEnum.Image,
     config: {
@@ -72,17 +93,20 @@ const handleImageChange = (value: {
       x: 0,
       y: 0,
       imageGenMode: value.imageGenMode,
-      filename: value.name
+      filename: value.name,
+      name: value.name
     },
-    name: value.name
+    name: "Material"
   });
 };
 // 資料搜尋
 const handleInputChange = (value: string) => {
-  console.log(value);
   if (value) {
     materialsStore.searchValue = value;
     currentStep.value = NAV_CTRL_STEPS.SEARCH_VIEW;
+    gtmManager.trackEvent({
+      event: `搜尋_${ value }`,
+    });
   }
 };
 // 清除搜尋
@@ -112,7 +136,7 @@ watch(currentStep, (newIndex) => {
       duration: 0.4,
       ease: "power2.inOut",
       onComplete: () => {
-        if (currentStep.value === 0) categoryName.value = "";
+        if (currentStep.value === 0) headerName.value = "";
       }
     });
   }
@@ -129,6 +153,7 @@ watch(currentStep, (newIndex) => {
           <div class="recently-used" v-if="editorStore.imageList.length > 0">
             <NCarouselView
               v-bind:data="editorStore.imageList"
+              v-bind:title="headerName"
               @change="handleRecentlyImageChange"
             />
           </div>
@@ -170,7 +195,7 @@ watch(currentStep, (newIndex) => {
             </div>
           </template>
           <template #content>
-            <h2 class="header-content">{{ categoryName }}</h2>
+            <h2 class="header-content">{{ headerName }}</h2>
           </template>
         </el-page-header>
         <div class="material-content">

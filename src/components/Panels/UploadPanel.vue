@@ -17,6 +17,7 @@ const handleFileChange = async (event: Event) => {
   if (target.files) {
     for (const file of Array.from(target.files)) {
       const info = await processFile(file);
+      info.name = "Upload_Clicked"
       handleAddingElement(info);
     }
     emit("completed");

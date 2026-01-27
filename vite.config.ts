@@ -9,7 +9,7 @@ import { API_ENDPOINTS } from "./src/api/endpoints.ts";
 
 export default defineConfig((configEnv: ConfigEnv) => {
   const isDev = configEnv.mode === "dev"; // 使用Mock資料
-  const isTest = configEnv.mode === "test"; // 使用proxy呼叫測試API
+  const isTest = configEnv.mode === "qatest"; // 使用proxy呼叫測試API
   let count: number = 0;
   function serverPlugin() {
     if (!isDev) return;

@@ -2,11 +2,16 @@
 import NImage from "@/components/Basic/NImage.vue";
 import { computed, type PropType, ref } from "vue";
 import type { IUploadedImage } from "@/types.ts";
+import { gtmManager } from "@/library/GtmManager.ts";
 
 const props = defineProps({
   data: {
     type: Array as PropType<IUploadedImage[]>,
     default: () => []
+  },
+  title: {
+    type: String,
+    default: ""
   }
 });
 
@@ -36,9 +41,11 @@ const getActiveIndex = () => {
 
 const handlePrev = () => {
   carouselRef.value?.prev();
+  gtmManager.trackEvent({ event: "選擇素材_最近使用過的素材_左" });
 };
 const handleNext = () => {
   carouselRef.value?.next();
+  gtmManager.trackEvent({ event: "選擇素材_最近使用過的素材_右" });
 };
 </script>
 

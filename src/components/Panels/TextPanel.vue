@@ -7,6 +7,7 @@ import {ElementTypesEnum, type ICanvasElement, type ITextConfig, type ITextSegme
 import NPanel from "../Basic/NPanel.vue";
 import { availableFonts } from "@/config/fonts.ts";
 import { advancedDefaults } from "@/config/settings.ts";
+import { gtmManager } from "@/library/GtmManager.ts";
 
 // import { ColorInputWithoutInstance } from "tinycolor2";
 
@@ -412,8 +413,8 @@ const handleLockAndUnlock = () => {
   }
 };
 const handleSaveHistory = () => {
-  console.log("handleSaveHistory");
   editorStore.saveHistory();
+  gtmManager.trackEvent({ event: `文字編輯_調整功能_漸層_${ gradient.enabled ? "開" : "關" }` })
 };
 
 onMounted(() => {

@@ -6,6 +6,8 @@ import { type IImageConfig } from "@/types.ts";
 import { Delete, Lock, Unlock } from "@element-plus/icons-vue";
 import NPanel from "@/components/Basic/NPanel.vue";
 import NPosition from "@/components/Basic/NPosition.vue";
+import { gtmManager } from "@/library/GtmManager.ts";
+import { getElementType } from "@/Utilities/useCreateCanvasElement.ts";
 
 const editorStore = useEditorStore();
 // Only show and operate on the panel if a sticker is selected
@@ -180,10 +182,13 @@ const handleResetSize = () => {
  * @param value
  */
 const handlePositionChange = (value: string) => {
+  const type = getElementType(editorStore.selectedElement);
   if (value === "flip-horizontal") {
     editorStore.flipHorizontal();
+    if (type) gtmManager.trackEvent({ event: `素材編輯_調整功能_位置_水平${type}` });
   } else if (value === "flip-vertical") {
     editorStore.flipVertical();
+    if (type) gtmManager.trackEvent({ event: `素材編輯_調整功能_位置_垂直${type}` });
   } else {
     const horizontally: string[] = ["left", "center", "right"];
     const vertically: string[] = ["top", "middle", "bottom"];
@@ -205,6 +210,7 @@ const handleDeleted = () => {
   const id = editorStore.selectedElement?.id;
   if (id) {
     editorStore.removeElements([id]);
+    gtmManager.trackEvent({ event: "素材編輯_調整功能_刪除" });
   }
 };
 const handleSaveHistory = () => {

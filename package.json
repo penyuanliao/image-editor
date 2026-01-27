@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite --mode dev",
-    "test": "vite --mode test",
+    "qatest": "vite --mode qatest",
     "pd": "vite --mode pd",
+    "main": "vite --mode main",
     "build": "npm version patch --no-git-tag-version && vue-tsc -b && vite build",
     "build:test": "npm version patch --no-git-tag-version && vue-tsc -b && vite build --mode test",
     "build:pd": "npm version patch --no-git-tag-version && vue-tsc -b && vite build --mode pd",

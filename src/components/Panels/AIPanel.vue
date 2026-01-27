@@ -11,6 +11,8 @@ import Symbols from "@/components/Basic/Symbols.vue";
 import { ColorPicker } from "colorpickers";
 import type { ImageGenerateResult } from "@/api/generate.ts";
 import { useAlertStore } from "@/store/useAlertStore.ts";
+import { gtmManager } from "@/library/GtmManager.ts";
+import { getElementType } from "@/Utilities/useCreateCanvasElement.ts";
 // import {calculateConstrainedSize} from "@/Utilities/useImageEditor.ts";
 
 const aiGenStore = useAIGenStore();
@@ -55,10 +57,11 @@ const genColorConfig = ref({
 const genStyleConfig = reactive({
   type: StyleGenTypes.convert,
   style: -1, // 選擇風格類型
+  styleName: '', // 選擇風格名稱: GA用
   prompt: ""
 });
 // 設定風格或物件的編號
-const selectStyle = (style: number) => {
+const selectStyle = (style: number, name: string) => {
   genStyleConfig.style = style;
   if (genStyleConfig.style !== 0) {
     genStyleConfig.prompt = "";
@@ -131,7 +134,7 @@ const createSource = async (): Promise<IGenerateSource | null> => {
     } else if (config.origin) {
       url = config.origin || "";
     }
-    url = '';
+
   }
   return {
     image,
@@ -206,6 +209,7 @@ const onSubmitStyle = async () => {
   if (!(await validate())) return;
 
   const elementId = editorStore.selectedElement?.id;
+  const type = getElementType(editorStore.selectedElement);
 
   if (genStyleConfig.style === -2) {
     editorStore.replaceSelectedElementImage(
@@ -233,19 +237,27 @@ const onSubmitStyle = async () => {
     prompt: genStyleConfig.prompt
   });
   await submitResult(result, elementId, source);
+  if (genStyleConfig.type === StyleGenTypes.convert) {
+    gtmManager.trackEvent({ event: `素材編輯_AI功能_風格_物件轉換_${ type }_{${ genStyleConfig.styleName }_生成` });
+  } else if (genStyleConfig.type === StyleGenTypes.style) {
+    gtmManager.trackEvent({ event: `素材編輯_AI功能_風格_風格轉換_${ type }_${ genStyleConfig.styleName }_生成` });
+  } else if (genStyleConfig.type === StyleGenTypes.custom) {
+    gtmManager.trackEvent({ event: `素材編輯_AI功能_風格_自訂生成_${ type }_生成`, text: genStyleConfig.prompt });
+  }
 };
 // 送出顏色置換生成
 const onSubmitColor = async () => {
   if (!editorStore.selectedElement) return false;
   if (!(await validate())) return;
+  const type = getElementType(editorStore.selectedElement);
   const elementId = editorStore.selectedElement?.id;
-
   const source = await createSource();
   if (!source) return;
   const result = await aiGenStore.fetchGenerate(source, {
     color: genColorConfig.value.color
   });
   await submitResult(result, elementId, source);
+  gtmManager.trackEvent({ event: `素材編輯_AI功能_背景_${ type }_${genColorConfig.value.color}_生成` });
 };
 // 送出移除背景生成
 const onSubmitImageMatting = async () => {
@@ -258,6 +270,7 @@ const onSubmitImageMatting = async () => {
     matting: true
   });
   await submitResult(result, elementId, source);
+  gtmManager.trackEvent({ event: "素材編輯_AI功能_移除背景" });
 };
 // 送出生成模式選擇
 const onSubmit = async () => {
@@ -307,7 +320,7 @@ onMounted(() => {
                 v-for="style in styles"
                 :key="style.key"
                 class="item"
-                @click="selectStyle(style.value)"
+                @click="selectStyle(style.value, style.name)"
               >
                 <div class="image" :class="{ selected: genStyleConfig.style === style.value }">
                   <img :src="style.url" alt="" />

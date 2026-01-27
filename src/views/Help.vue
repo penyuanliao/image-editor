@@ -19,7 +19,7 @@
       <FAQ class="faq"/>
       <Footer/>
     </main>
-    <el-backtop class="back-top" target=".help-main-content" :bottom="171" :right="24">
+    <el-backtop class="back-top" target=".help-main-content" :bottom="125" :right="24">
       <el-icon size="16">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
