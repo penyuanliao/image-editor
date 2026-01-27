@@ -11,7 +11,7 @@
     "build": "npm version patch --no-git-tag-version && vue-tsc -b && vite build",
     "build:test": "npm version patch --no-git-tag-version && vue-tsc -b && vite build --mode test",
     "build:pd": "npm version patch --no-git-tag-version && vue-tsc -b && vite build --mode pd",
-    "release": "vue-tsc -b && vite build",
+    "release": "vue-tsc -b && vite build --mode main",
     "preview": "vite preview",
     "format": "prettier --write ./src",
     "upload:s3": "aws s3 cp ./dist \"$npm_config_dest\" --recursive"

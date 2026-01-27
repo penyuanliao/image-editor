@@ -66,7 +66,7 @@ export const ConfirmMessage = async ({
   return await ElMessageBox.confirm(message, title, {
     confirmButtonText: confirmText,
     cancelButtonText: cancelText,
-    draggable: true,
+    draggable: false,
     showConfirmButton: !!confirmText,
     showCancelButton: !!cancelText,
     dangerouslyUseHTMLString: true,

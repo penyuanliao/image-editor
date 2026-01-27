@@ -7,11 +7,11 @@ export interface ClipboardList {
 
 export const clipboardPaste = async (): Promise<{
   texts: string[];
-  images: { image: HTMLImageElement; base64: string }[];
+  images: { image: HTMLImageElement; base64: string, size: number; }[];
 }> => {
   const content: ClipboardItems = await navigator.clipboard.read();
   const texts: string[] = [];
-  const images: { image: HTMLImageElement; base64: string }[] = [];
+  const images: { image: HTMLImageElement; base64: string, size: number }[] = [];
   for (let i = 0; i < content.length; i++) {
     let item: ClipboardItem = content[i] as ClipboardItem;
     if (item.types.includes("text/plain")) {
@@ -22,10 +22,12 @@ export const clipboardPaste = async (): Promise<{
       const blob = await item.getType(png ? "image/png" : "image/jpeg");
       const image = await loadImage(blob);
       const base64 = await blobToBase64(blob);
+      const size = blob.size;
       if (image)
         images.push({
           image,
-          base64
+          base64,
+          size
         });
     }
   }

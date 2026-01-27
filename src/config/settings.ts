@@ -35,7 +35,10 @@ export interface IGeneralSettings {
   // 幫助
   helpUrl: string;
   // 輸出格式
-  exportFileType: "png" | "jpg" | "webp"
+  exportFileType: "png" | "jpg" | "webp";
+  multipleMaxFiles: number;
+  // 檔案允許最大值bytes
+  fileMaxAllowedSize: number;
 }
 
 export interface IAdvancedSettings {
@@ -83,7 +86,9 @@ export const generalDefaults: IGeneralSettings = {
   maxRecentFiles: 20,
   logo: "/assets/icons/logo.png",
   helpUrl: "/assets-editor/#/help",
-  exportFileType: "png"
+  exportFileType: "png",
+  multipleMaxFiles: 1,
+  fileMaxAllowedSize: 2097152
 };
 
 export const appearanceDefaults = {

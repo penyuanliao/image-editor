@@ -30,6 +30,7 @@ import { nanoid } from "nanoid";
 import { nextTick } from "vue";
 import mitt, { type Emitter } from "mitt";
 import { gtmManager } from "@/library/GtmManager.ts";
+import { useAlertStore } from "@/store/useAlertStore.ts";
 
 interface ICanvasViewport {
   width: number;
@@ -1541,10 +1542,21 @@ export class CanvasEditor {
   public async paste(position?: { x: number; y: number }) {
     const valid: boolean = await validationPermissions();
     if (valid) {
+      const alertStore = useAlertStore();
+      const maxFiles: number = generalDefaults.multipleMaxFiles;
+      const maxSize: number = generalDefaults.fileMaxAllowedSize;
       const { texts, images } = await clipboardPaste();
-      for (const { image, base64 } of images) {
+      let count: number = 0;
+      for (const { image, base64, size } of images) {
         // 新增上傳的圖片
-        if (image) this.addImage(image, base64);
+        if (image) {
+          if (size > maxSize) {
+            await alertStore.alertImageSizeNotAllowed(maxSize);
+            continue;
+          }
+          this.addImage(image, base64);
+        }
+        if (++count >= maxFiles) break;
       }
       // 這邊是複製自己的Elements
       for (const str of texts) {

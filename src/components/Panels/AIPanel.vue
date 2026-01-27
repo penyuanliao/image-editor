@@ -4,7 +4,7 @@ import { type IGenerateSource, useAIGenStore } from "@/store/useAIGenStore.ts";
 import { useEditorStore } from "@/store/editorStore.ts";
 import { type IImageConfig, ImageGenModeEnum } from "@/types.ts";
 import { processBase64, processUrlToBase64 } from "@/Utilities/FileProcessor.ts";
-import { appearanceDefaults } from "@/config/settings.ts";
+import { appearanceDefaults, generalDefaults } from "@/config/settings.ts";
 import { AlertMessage } from "@/Utilities/AlertMessage.ts";
 import NPanelButton from "@/components/Basic/NPanelButton.vue";
 import Symbols from "@/components/Basic/Symbols.vue";
@@ -63,6 +63,7 @@ const genStyleConfig = reactive({
 // 設定風格或物件的編號
 const selectStyle = (style: number, name: string) => {
   genStyleConfig.style = style;
+  genStyleConfig.styleName = name;
   if (genStyleConfig.style !== 0) {
     genStyleConfig.prompt = "";
   }
@@ -196,6 +197,8 @@ const submitResult = async (result: ImageGenerateResult | undefined | null, elem
   } else if (result && !result.status) {
     if (result.errcode === 2) {
       await alertStore.alertAIFailed();
+    } else if (result.errcode === 3) {
+      await alertStore.alertImageSizeNotAllowed(generalDefaults.fileMaxAllowedSize);
     } else {
       await alertStore.alertAIPointNotEnough();
     }
@@ -342,7 +345,7 @@ onMounted(() => {
                   v-for="style in appearanceDefaults.reimagine"
                   :key="style.key"
                   class="item"
-                  @click="selectStyle(style.value)"
+                  @click="selectStyle(style.value, style.name)"
                 >
                   <div class="image" :class="{ selected: genStyleConfig.style === style.value }">
                     <img :src="style.url" alt="" />

@@ -17,9 +17,11 @@ import AccessDenied from "@/views/AccessDenied.vue";
 import NLoading from "@/views/NLoading.vue";
 import { useAccountStore } from "@/store/useAccountStore.ts";
 import { useMainStore } from "@/store/useMainStore.ts";
+import { useAlertStore } from "@/store/useAlertStore.ts";
 import NComment from "@/components/Basic/NComment.vue";
 import { useRoute } from "vue-router";
 import Onboarding from "@/components/Onboarding/OnboardingPopover.vue";
+import { generalDefaults } from "@/config/settings.ts";
 
 const routes = useRoute();
 
@@ -28,6 +30,8 @@ const editorStore = useEditorStore();
 const accountStore = useAccountStore();
 
 const mainStore = useMainStore();
+
+const alertStore = useAlertStore();
 
 // 素材編輯器view
 const editor = ref<InstanceType<typeof EditorView> | null>(null);
@@ -108,10 +112,18 @@ const handleAddRecentlyImage = (info: IUploadedImage) => {
 
 // 處理從 DropZone 元件傳來的檔案
 const handleFilesDropped = async (files: FileList) => {
+
+  const maxFiles: number = generalDefaults.multipleMaxFiles;
+  const maxSize: number = generalDefaults.fileMaxAllowedSize;
+
   if (files && files.length > 0) {
-    for (let i = 0; i < files.length; i++) {
+    for (let i = 0; i < maxFiles; i++) {
       const file = files[i];
       if (file) {
+        if (file.size > maxSize) {
+          await alertStore.alertImageSizeNotAllowed(maxSize);
+          return;
+        }
         const info = await processFile(file);
         info.name = "Upload_Dropped";
         const newImageElement: ICanvasElement = CreateImageElement(info);
@@ -186,6 +198,7 @@ watch(selected, async () => {
   <DropZone
     v-if="mainStore.state === 'completed'"
     class="drop-zone-wrapper"
+    :max-files="1"
     @files-dropped="handleFilesDropped"
   >
     <div class="main-container">

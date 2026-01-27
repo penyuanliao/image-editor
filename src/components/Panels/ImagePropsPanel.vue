@@ -182,6 +182,7 @@ const handleResetSize = () => {
  * @param value
  */
 const handlePositionChange = (value: string) => {
+  if (!editorStore.selectedElement) return;
   const type = getElementType(editorStore.selectedElement);
   if (value === "flip-horizontal") {
     editorStore.flipHorizontal();

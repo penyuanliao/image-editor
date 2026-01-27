@@ -5,10 +5,10 @@ import { API_ENDPOINTS } from "./endpoints";
 
 export interface ImageGenerateResult {
   status: boolean;
-  errcode: number;
+  errcode?: number;
   error?: string;
   image: string;
-  limit: number;
+  limit?: number;
 }
 // originalimage, materialid, originalurl 三則一
 export interface AIGenRequest {
@@ -37,6 +37,15 @@ export const apiImageGenerate = async (
     body
   });
   if (!response.ok) {
+
+    if (response.status === 413) {
+      return {
+        status: false,
+        errcode: 3,
+        image: ""
+      };
+    }
+
     throw new Error("Failed to fetch image generate.");
   }
   return response.json();

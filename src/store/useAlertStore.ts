@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { ConfirmMessage, createAlertMessage } from "@/Utilities/AlertMessage.ts";
 import { gtmManager } from "@/library/GtmManager.ts";
+import { formatBytesToString } from "@/Utilities/Utility.ts";
 
 export const useAlertStore = defineStore("AlertStore", () => {
   // 執行AI失敗
@@ -93,7 +94,7 @@ export const useAlertStore = defineStore("AlertStore", () => {
       }
     });
   };
-  //PD上傳圖片確認關閉
+  // PD上傳圖片確認關閉
   const alertConfirmUpload = async () => {
     return await ConfirmMessage({
       message:
@@ -113,6 +114,27 @@ export const useAlertStore = defineStore("AlertStore", () => {
       confirmText: "是",
       cancelText: "否",
     });
+  };
+  // 圖片檔案大小限制 max單位KB
+  const alertImageSizeNotAllowed = async (max: number = 2097152 ) => {
+    const title: string = "图片无法上传";
+    const message: string = `<div style="text-align: center; user-select: none; font-size: 16px;">
+请确认图片格式与大小符合规范
+<ul style="alert-ul">
+    <li>图片格式需为 JPG、JPEG、PNG</li>
+    <li>档案大小上限为${ formatBytesToString(max) }</li>
+    <li>档名不可包含小数点</li>
+</ul>
+<br/>
+    </div>`;
+    return await ConfirmMessage({
+      message,
+      title,
+      cancelText: "我知道了",
+      options: {
+        cancelButtonClass: "custom-cancel-btn w-330",
+      }
+    });
   }
 
   return {
@@ -123,6 +145,7 @@ export const useAlertStore = defineStore("AlertStore", () => {
     alertUnableGenerateImage,
     alertConfirmUpload,
     alertConfirmUploadAndDownload,
-    alertUploadFailed
+    alertUploadFailed,
+    alertImageSizeNotAllowed
   };
 });
