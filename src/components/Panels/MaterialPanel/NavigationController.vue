@@ -207,7 +207,7 @@ watch(currentStep, (newIndex) => {
         </div>
       </section>
       <section class="view filter-wrapper scroll-bar-custom">
-        <el-page-header class="header" @back="handleViewClick(NAV_CTRL_STEPS.GROUP_VIEW)">
+        <el-page-header class="header" icon="" @back="handleViewClick(NAV_CTRL_STEPS.GROUP_VIEW)">
           <template #title>
             <div class="header-title">
               <el-icon size="24">

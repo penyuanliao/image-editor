@@ -11,7 +11,8 @@
     "build": "npm version patch --no-git-tag-version && vue-tsc -b && vite build",
     "build:qatest": "vue-tsc -b && vite build --mode qatest",
     "build:main": "vue-tsc -b && vite build --mode main",
-    "release": "vue-tsc -b && vite build --mode main",
+    "patch": "npm version minor --no-git-tag-version",
+    "release": "npm version major --no-git-tag-version",
     "preview": "vite preview",
     "format": "prettier --write ./src",
     "upload:s3": "aws s3 cp ./dist \"$npm_config_dest\" --recursive"
