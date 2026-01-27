@@ -1,7 +1,7 @@
 <template>
   <div class="help-container">
     <main class="help-main-content" ref="mainContentRef" :style="helpMainContentStyle">
-      <div class="navbar">
+      <div class="navbar" :style="navbarHeaderStyle">
         <img src="@/assets/icons/logo.png" height="136" alt="Logo" class="logo" />
       </div>
       <OnboardingFlow class="onboarding" :iconSize="36"/>
@@ -108,20 +108,27 @@ const features = ref<IFeatures[]>([
 
 const mainContentRef = ref<HTMLElement | null>(null);
 const containerWidth = ref(0);
+const scrollTop = ref<number>(0);
 
 const updateContainerWidth = () => {
   if (mainContentRef.value) {
     containerWidth.value = mainContentRef.value.clientWidth;
   }
 };
+const handleUpdateScroll = (event: Event) => {
+  const target = event.target as HTMLElement;
+  scrollTop.value = target.scrollTop;
+};
 
 onMounted(() => {
   updateContainerWidth();
   window.addEventListener("resize", updateContainerWidth);
+  mainContentRef.value?.addEventListener("scroll", handleUpdateScroll);
 });
 
 onUnmounted(() => {
   window.removeEventListener("resize", updateContainerWidth);
+  mainContentRef.value?.removeEventListener("scroll", handleUpdateScroll);
 });
 
 const helpMainContentStyle = computed(() => {
@@ -132,6 +139,13 @@ const helpMainContentStyle = computed(() => {
   return {
     "--dialog-onboarding-width": "100%",
     "--dialog-onboarding-height": `${calculatedHeight}px`,
+  }
+});
+const navbarHeaderStyle = computed(() => {
+  const height = scrollTop.value >= 10 ? 50 : 80;
+  return {
+    "min-height": `${ height }px`,
+    height: `${ height }px`,
   }
 })
 
@@ -148,6 +162,15 @@ const helpMainContentStyle = computed(() => {
   flex-direction: column;
   background-color: white;
 }
+
+.help-main-content {
+  --navbar-top: 10px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
 .navbar {
   width: 100%;
   height: 80px;
@@ -158,24 +181,20 @@ const helpMainContentStyle = computed(() => {
   align-items: center;
   border-bottom: 1px solid theme.$border-color-base;
   background: white;
+  transition: height 0.3s ease;
   z-index: 100;
   .logo {
     width: 150px;
+    height: 100%;
     object-fit: contain;
     padding-left: 32px;
     padding-right: 32px;
   }
 }
 .onboarding {
-  width: 100%;
-  height: var(--dialog-onboarding-height);
-}
-.help-main-content {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
+   width: 100%;
+   height: var(--dialog-onboarding-height);
+   top: var(--navbar-top, 60px);
 }
 .faq {
   position: relative;
