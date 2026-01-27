@@ -224,4 +224,10 @@ const navbarHeaderStyle = computed(() => {
   }
 }
 
+@media (max-width: 1000px) {
+  .help-main-content {
+    --navbar-top: 80px;
+  }
+}
+
 </style>
