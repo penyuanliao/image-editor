@@ -48,4 +48,4 @@ jobs:
       
       - name: Clean CloudFront
         run: |
-          aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/${{ vars.S3_DEST_DIR }}/*"
+          aws cloudfront create-invalidation --distribution-id ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/${{ vars.S3_DEST_DIR }}/*"
