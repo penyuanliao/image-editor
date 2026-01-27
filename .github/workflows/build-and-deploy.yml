@@ -32,25 +32,19 @@ jobs:
         run: npm ci --legacy-peer-deps
 
       - name: Build project
-        run: npm run build
-
-      - name: Set S3 Bucket Name
-        run: |
-          if [[ "${{ github.ref_name }}" == "qatest" ]]; then
-            echo "TARGET_BUCKET=your-qatest-bucket-name" >> $GITHUB_ENV
-          elif [[ "${{ github.ref_name }}" == "pd" ]]; then
-            echo "TARGET_BUCKET=your-pd-bucket-name" >> $GITHUB_ENV
-          elif [[ "${{ github.ref_name }}" == "main" ]]; then
-            echo "TARGET_BUCKET=your-main-bucket-name" >> $GITHUB_ENV
-          fi
+        run: npm run build:${{ github.ref_name }}
 
       - name: Deploy 到 S3
         uses: jakejarvis/s3-sync-action@v0.5.1
         with:
           args: --delete
         env:
-          AWS_S3_BUCKET: ${{ env.TARGET_BUCKET }}
+          AWS_S3_BUCKET: ${{ vars.TARGET_BUCKET }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
           SOURCE_DIR: ${{ secrets.BUILD_DIR }}
+      
+      - name: Clean CloudFront
+        run: |
+          aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/assets-editor/*"

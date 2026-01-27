@@ -1,7 +1,7 @@
 {
   "name": "asset-editor",
   "private": true,
-  "version": "0.1.36",
+  "version": "0.1.37",
   "type": "module",
   "scripts": {
     "dev": "vite --mode dev",
@@ -9,8 +9,8 @@
     "pd": "vite --mode pd",
     "main": "vite --mode main",
     "build": "npm version patch --no-git-tag-version && vue-tsc -b && vite build",
-    "build:test": "npm version patch --no-git-tag-version && vue-tsc -b && vite build --mode test",
-    "build:pd": "npm version patch --no-git-tag-version && vue-tsc -b && vite build --mode pd",
+    "build:qatest": "vue-tsc -b && vite build --mode qatest",
+    "build:main": "vue-tsc -b && vite build --mode main",
     "release": "vue-tsc -b && vite build --mode main",
     "preview": "vite preview",
     "format": "prettier --write ./src",
