@@ -3,6 +3,8 @@ name: Build and Deploy
 on:
   push:
     branches: [ "qatest" ]
+  workflow_dispatch:
+
 jobs:
   build:
     runs-on: ubuntu-latest

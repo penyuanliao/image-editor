@@ -146,6 +146,7 @@ const navbarHeaderStyle = computed(() => {
   return {
     "min-height": `${ height }px`,
     height: `${ height }px`,
+    "--navbar-top": `${ height }px`,
   }
 })
 
@@ -194,7 +195,7 @@ const navbarHeaderStyle = computed(() => {
 .onboarding {
    width: 100%;
    height: var(--dialog-onboarding-height);
-   top: var(--navbar-top, 60px);
+   //top: var(--navbar-top, 60px);
 }
 .faq {
   position: relative;
